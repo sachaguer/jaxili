@@ -1,0 +1,13 @@
+name: jax_sbi
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - jupyter
+    - matplotlib
+    - jax
+    - cmake
+    - tensorflow_probability
+    - optax
+    - dm-haiku
+    - sbibm
