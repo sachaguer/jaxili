@@ -1,4 +1,5 @@
 import haiku as hk
+from flax import linen as nn
 import jax
 import jax.numpy as jnp
 import tensorflow_probability as tfp
@@ -95,56 +96,31 @@ class ConditionalRealNVP(hk.Module):
 
         return nvp
 
-class MixtureDensityNetwork(hk.Module):
-    """
-    Mixture Density Network
 
-    A neural network that outputs the parameters of a Gaussian Mixture Model.
-    """
-    def __init__(self, n_components, *args, layers=[128, 128], activation=jax.nn.silu, **kwargs):
-        """
-        Constructor
+class MixtureDensityNetwork(nn.Module):
+    n_data : int #Dimension of data vector
+    n_components : int #number of mixture components
+    layers : list #list of hidden layers size
+    activation : callable #activation function
 
-        Parameters
-        ----------
-
-        n_components: int
-            Number of components of the MDN
-        layers: int list
-            List of hidden layers size
-        activation: callable
-            Activation function
-        """
-        super().__init__(*args, **kwargs)
-        self.d = d
-        self.layers = layers
-        self.activation = activation
-
+    @nn.compact
     def __call__(self, x):
-        """
-        Create a Mixture Density Network with self.n_layers layers with input dimension self.d.
+        for size in self.layers:
+            x = self.activation(nn.Dense(size)(x))
+        final_size = self.n_components * (1 + self.n_data + self.n_data*(self.n_data+1)//2)
+        x = nn.Dense(final_size)(x)
+        print(x.shape)
+        logits = x[..., :self.n_components]
+        locs = x[..., self.n_components:self.n_components*(self.n_data+1)]
+        scale_tril = x[..., self.n_components*(self.n_data+1):]
 
-        Parameters
-        ----------
-        x: jnp.Array
-            Input
-
-        Output
-        ------
-        mdn : tfd.MixtureSameFamily
-            Mixture Density Network
-        """
-        for i, layer_size in enumerate(self.layers):
-            x = self.activation(hk.Linear(layer_size, name="layer%d" % i)(x))
-
-        locs = hk.Linear(self.d)(x)
-        scales = jnp.clip(jnp.exp(hk.Linear(self.d)(x)), 1e-2, 1e2)
-        weights = jax.nn.softmax(hk.Linear(self.d)(x))
-
-        mdn = tfd.MixtureSameFamily(
-            mixture_distribution=tfd.Categorical(probs=weights),
-            components_distribution=tfd.MultivariateNormalDiag(loc=locs, scale_diag=scales)
+        distribution = tfd.MixtureSameFamily(
+            mixture_distribution=tfd.Categorical(logits=logits),
+            components_distribution=tfd.MultivariateNormalTriL(
+                loc=jnp.reshape(locs, (-1, self.n_components, self.n_data)),
+                scale_tril=tfp.math.fill_triangular(jnp.reshape(scale_tril, (-1, self.n_components, self.n_data*(self.n_data+1)//2)))
+            )
         )
 
-        return mdn
+        return distribution
 
