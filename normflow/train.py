@@ -62,20 +62,11 @@ class TrainerModule:
         self.seed = seed
         self.check_val_every_epoch = check_val_every_epoch
         self.exmp_input = exmp_input
-        #Set of hyperparameters to save
-        self.config = {
-            'model_class': model_class.__name__,
-            'model_hparams': model_hparams,
-            'optimizer_hparams': optimizer_hparams,
-            'logger_params': logger_params,
-            'enable_progress_bar': enable_progress_bar,
-            'debug': self.debug,
-            'check_val_every_epoch': self.check_val_every_epoch,
-            'seed': self.seed
-        }
+        self.generate_config(logger_params)
         self.config.update(kwargs)
         #Create an empty model. Note: no parameters yet
         self.model = self.model_class(**self.model_hparams)
+        self.init_apply_fn()
         self.print_tabulate(self.exmp_input)
         #Init trainer parts
         self.init_logger(logger_params)
@@ -135,15 +126,36 @@ class TrainerModule:
         model_rng, init_rng = jax.random.split(model_rng)
         exmp_input = [exmp_input] if not isinstance(exmp_input, (list, tuple)) else exmp_input
         #Run model initialization
-        variables = self.run_model_init(init_rng, exmp_input)
+        variables = self.run_model_init(exmp_input, init_rng)
         #Create default state. Optimizer is initialized later
         self.state = TrainState(step=0,
-                                apply_fn=self.model.apply,
+                                apply_fn=self.apply_fn,
                                 params=variables['params'],
-                                batch_stats=variables.get['batch_stats'],
+                                batch_stats=variables.get('batch_stats'),
                                 rng=model_rng,
                                 tx=None,
                                 opt_state=None)
+        
+    def init_apply_fn(self):
+        """
+        Initialize a default apply function for the model.
+        """
+        self.apply_fn = self.model.apply
+
+    def generate_config(self, logger_params):
+        """
+        Generates a configuration dictionary for the trainer.
+        """
+        self.config = {
+            'model_class': self.model_class.__name__,
+            'model_hparams': self.model_hparams,
+            'optimizer_hparams': self.optimizer_hparams,
+            'logger_params': logger_params,
+            'enable_progress_bar': self.enable_progress_bar,
+            'debug': self.debug,
+            'check_val_every_epoch': self.check_val_every_epoch,
+            'seed': self.seed
+        }
         
     def run_model_init(self,
                        exmp_input : Any,
@@ -171,7 +183,6 @@ class TrainerModule:
         ----------
         exmp_input : An input to the model with which the shapes are inferred.
         """
-
         print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input, train=True))
 
     def init_optimizer(self,
@@ -219,14 +230,14 @@ class TrainerModule:
         )
         #Initialize training state
         self.state = TrainState.create(
-            apply_fn=self.model.apply,
+            apply_fn=self.apply_fn,
             params=self.state.params,
             batch_stats=self.state.batch_stats,
             tx=optimizer,
             rng=self.state.rng
         )
 
-    def create_jitted_function(self):
+    def create_jitted_functions(self):
         """
         Creates jitted versions of the training, validation and evaluation functions.
         If self.debug is True, no jitting is applied.
@@ -239,7 +250,7 @@ class TrainerModule:
             self.eval_step = eval_step
         else:
             self.train_step = jax.jit(train_step)
-            self.test_step = jax.jit(eval_step)
+            self.eval_step = jax.jit(eval_step)
 
     def create_function(self) -> Tuple[Callable[[TrainState, Any], Tuple[TrainState, Dict]],
                                        Callable[[TrainState, Any], Tuple[TrainState, Dict]]]:
@@ -290,10 +301,10 @@ class TrainerModule:
         for epoch_idx in self.tracker(range(1, num_epochs+1), desc='Epochs'):
             train_metrics = self.train_epoch(train_loader)
             self.logger.log_metrics(train_metrics, step=epoch_idx)
-            self.on_trainig_epoch_end(epoch_idx)
+            self.on_training_epoch_end(epoch_idx)
             #Validation every N epochs
             if epoch_idx % self.check_val_every_epoch == 0:
-                eval_metrics = self.eval_epoch(val_loader, log_prefix='val/')
+                eval_metrics = self.eval_model(val_loader, log_prefix='val/')
                 self.on_validation_epoch_end(epoch_idx, eval_metrics, val_loader)
                 self.logger.log_metrics(eval_metrics, step=epoch_idx)
                 self.save_metrics(f'eval_epoch_{str(epoch_idx).zfill(3)}', eval_metrics)
@@ -340,7 +351,7 @@ class TrainerModule:
         metrics['epoch_time'] = time.time() - start_time
         return metrics
 
-    def eval_epoch(self,
+    def eval_model(self,
                    data_loader : Iterator,
                    log_prefix : Optional[str] = '') -> Dict[str, Any]:
         """
@@ -490,9 +501,9 @@ class TrainerModule:
         Loads model and batch statistics from the logging directory
         """
 
-        state_dict = checkpoints.restore_checkpoints(self.log_dir)
+        state_dict = checkpoints.restore_checkpoint(ckpt_dir=self.log_dir, target=None)
         self.state = TrainState.create(
-            apply_fn=self.model.apply,
+            apply_fn=self.apply_fn,
             params=state_dict['params'],
             batch_stats=state_dict['batch_stats'],
             tx=self.state.tx if self.state.tx else optax.sgd(0.1),
@@ -510,7 +521,7 @@ class TrainerModule:
         params = {'params': self.state.params}
         if self.state.batch_stats:
             params['batch_stats'] = self.state.batch_stats
-        return self.model.bind(**params)
+        return self.model.bind(params)
     
     @classmethod
     def load_from_checkpoints(cls,

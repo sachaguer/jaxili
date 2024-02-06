@@ -3,6 +3,7 @@ import jax
 import jax.numpy as jnp
 import tensorflow_probability as tfp
 import normflow.model as nfn
+from functools import partial
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
@@ -38,7 +39,6 @@ class MixtureDensityDistribution(tfd.Distribution):
 
     def log_prob(self, params, theta, y):
         distr = self.compute_distribution(params, y)
-        print(distr)
         return distr.log_prob(theta)
     
     def prob(self, params, theta, y):
@@ -47,5 +47,42 @@ class MixtureDensityDistribution(tfd.Distribution):
     
     def sample(self, params, y, n_samples, key):
         distr = self.compute_distribution(params, y)
-        print(distr)
+        return distr.sample(n_samples, seed=key)
+    
+
+class ConditionalRealNVPDistribution(tfd.Distribution):
+    def __init__(self, d, n_layers, bijector_fn, dtype=jnp.float32, reparameterization_type=None, validate_args=False, allow_nan_stats=True, name="CondRealNVPDistribution"):
+        super().__init__(
+            dtype=dtype,
+            reparameterization_type=reparameterization_type,
+            validate_args=validate_args,
+            allow_nan_stats=allow_nan_stats,
+            name=name,
+        )
+        self.d = d
+        self.n_layers = n_layers
+        self.bijector_fn = bijector_fn
+
+        self.real_nvp = self.build_network()
+
+    def build_network(self):
+        return partial(
+            nfn.ConditionalRealNVP,
+            n_layers=self.n_layers,
+            bijector_fn=self.bijector_fn
+        )
+
+    def compute_distribution(self, params, y):
+        return self.real_nvp(self.d).apply(params, y)
+    
+    def log_prob(self, params, theta, y):
+        distr = self.compute_distribution(params, y)
+        return distr.log_prob(theta)
+    
+    def prob(self, params, theta, y):
+        distr = self.compute_distribution(params, y)
+        return distr.prob(theta)
+    
+    def sample(self, params, y, n_samples, key):
+        distr = self.compute_distribution(params, y)
         return distr.sample(n_samples, seed=key)

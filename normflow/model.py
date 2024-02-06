@@ -1,12 +1,15 @@
 import haiku as hk
 from flax import linen as nn
+import numpy as np
 import jax
 import jax.numpy as jnp
 import tensorflow_probability as tfp
+from typing import Any
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
 tfd = tfp.distributions
+
 
 class AffineCoupling(hk.Module):
     """
@@ -98,19 +101,22 @@ class ConditionalRealNVP(hk.Module):
 
 
 class MixtureDensityNetwork(nn.Module):
+    """
+    A Mixture of Gaussian Density modeled using neural networks.
+    The weights of each gaussian component, the mean and the covariance are learned by the network.
+    """
     n_data : int #Dimension of data vector
     n_components : int #number of mixture components
     layers : list #list of hidden layers size
     activation : callable #activation function
 
     @nn.compact
-    def __call__(self, x):
+    def __call__(self, x, **kwargs):
         for size in self.layers:
             x = self.activation(nn.Dense(size)(x))
         final_size = self.n_components * (1 + self.n_data + self.n_data*(self.n_data+1)//2)
         x = nn.Dense(final_size)(x)
-        print(x.shape)
-        logits = x[..., :self.n_components]
+        logits = jax.nn.log_softmax(x[..., :self.n_components])
         locs = x[..., self.n_components:self.n_components*(self.n_data+1)]
         scale_tril = x[..., self.n_components*(self.n_data+1):]
 
@@ -124,3 +130,84 @@ class MixtureDensityNetwork(nn.Module):
 
         return distribution
 
+class AffineCoupling(nn.Module):
+    y : Any #Conditionning variable
+    layers : list #list of hidden layers size
+    activation : callable #activation function
+
+    @nn.compact
+    def __call__(self, x, output_units, **kwargs):
+        x = jnp.concatenate([x, self.y], axis=-1)
+        for i, layer_size in enumerate(self.layers):
+            x = self.activation(nn.Dense(layer_size)(x))
+        
+        #Shift and Scale parameters
+        shift = nn.Dense(output_units)(x)
+        scale = nn.softplus(nn.Dense(output_units)(x)) + 1e-3
+
+        return tfb.Chain([tfb.Shift(shift), tfb.Scale(scale)])
+    
+class ConditionalRealNVP(nn.Module):
+    d : int #Dimension of the input
+    n_layers : int #Number of layers
+    bijector_fn : tfb.Bijector #Bijector function
+
+    @nn.compact
+    def build_bijector(self, y):
+        """
+        Build the bijector using tensorflo_probability
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable
+
+        Returns
+        -------
+        nvp : tfd.Distributions
+            Normalizing Flow transporting a multidimensional Gaussian
+            to a more complex distribution.
+        """
+        chain = tfb.Chain(
+            [
+                tfb.Permute(jnp.arange(self.d)[::-1])(
+                    tfb.RealNVP(
+                        self.d//2, bijector_fn=self.bijector_fn(y, name="b%d" % i)
+                    )
+                )
+            for i in range(self.n_layers)
+            ]
+        )
+
+        nvp = tfd.TransformedDistribution(
+            tfd.MultivariateNormalDiag(0.5*jnp.ones(self.d), 0.05 * jnp.ones(self.d)),
+            bijector=chain
+        )
+
+        return nvp
+    
+    def sample(self, y, num_samples, key):
+        """
+        Samples from the distribution mapped by the real NVP
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable
+        num_samples : int
+            Number of samples
+        key : jnp.Array
+            Random key
+
+        Returns
+        -------
+        samples : jnp.Array
+            num_samples samples from the distribution
+        """
+        nvp = self.build_bijector(y)
+        return nvp.sample(num_samples, seed=key)
+
+    def __call__(self, x, y, **kwargs):
+        nvp = self.build_bijector(y)
+        return nvp.log_prob(x)
+        
