@@ -245,7 +245,7 @@ class TrainerModule:
 
         train_step, eval_step = self.create_functions()
         if self.debug: #Skip jitting
-            print('Skipping kitting due to debug=True')
+            print('Skipping jitting due to debug=True')
             self.train_step = train_step
             self.eval_step = eval_step
         else:

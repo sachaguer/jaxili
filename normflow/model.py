@@ -4,101 +4,12 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 import tensorflow_probability as tfp
-from typing import Any
+from typing import Any, Optional
+from jax.scipy.stats import multivariate_normal
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
 tfd = tfp.distributions
-
-
-class AffineCoupling(hk.Module):
-    """
-    Affine Coupling layer
-    """
-    def __init__(self, y, *args, layers=[128, 128], activation=jax.nn.silu, **kwargs):
-        """
-        Constructor
-        Parameters
-        ----------
-
-        y: jnp.Array
-            Conditionning variable
-        layers: int list
-            List of hidden layers size
-        activation: callable
-            Activation function
-        """
-        super().__init__(*args, **kwargs)
-        self.y = y
-        self.layers = layers
-        self.activation = activation
-
-    def __call__(self, x, output_units, **condition_args):
-        net = jnp.concatenate([x, self.y], axis=-1) #concatenate the input and the conditionning variable ??
-        for i, layer_size in enumerate(self.layers):
-            net = self.activation(hk.Linear(layer_size, name="layer%d" % i)(net))
-
-        shifter = tfb.Shift(hk.Linear(output_units)(net))
-        scaler = tfb.Scale(jnp.clip(jnp.exp(hk.Linear(output_units)(net)), 1e-2, 1e2))
-        return tfb.Chain([shifter, scaler])
-    
-class ConditionalRealNVP(hk.Module):
-    """
-    Conditional Real NVP
-
-    A normalizing flow using specified bijector functions. (https://arxiv.org/abs/1605.08803)
-    """
-    def __init__(self, d, *args, n_layers=3, bijector_fn=AffineCoupling, **kwargs):
-        """
-        Constructor
-
-        Parameters
-        ----------
-
-        d: int
-            Dimension of the input
-        n_layers: int
-            Number of layers
-        bijector_fn: tfb.Bijector
-            Bijector function
-        """ 
-        super().__init__(*args, **kwargs)
-        self.d = d
-        self.n_layers = n_layers
-        self.bijector_fn = bijector_fn
-
-    def __call__(self, y):
-        """
-        Create a Conditional Real NVP with self.n_layers layers with input dimension self.d.
-
-        Parameters
-        ----------
-        y: jnp.Array
-            Conditionning variable
-
-        Output
-        ------
-        nvp : tfd.TransformedDistribution
-            Normalizing Flow implemented as a Conditional Real NVP.
-        """
-        chain = tfb.Chain(
-            [
-                tfb.Permute(jnp.arange(self.d)[::-1])(
-                    tfb.RealNVP(
-                        self.d// 2, bijector_fn=self.bijector_fn(y, name="b%d" % i)
-                    )
-                )
-                for i in range(self.n_layers)
-            ]
-        )
-
-        nvp = tfd.TransformedDistribution(
-            tfd.MultivariateNormalDiag(0.5*jnp.ones(self.d), 0.05 * jnp.ones(self.d)),
-            bijector=chain
-        )
-
-        return nvp
-
 
 class MixtureDensityNetwork(nn.Module):
     """
@@ -210,4 +121,249 @@ class ConditionalRealNVP(nn.Module):
     def __call__(self, x, y, **kwargs):
         nvp = self.build_bijector(y)
         return nvp.log_prob(x)
+
+
+#Reproduce implementation of MADE and MAFs from https://github.com/e-hulten/maf/blob/master/made.py
+
+class MaskedLinear(nn.Module): #Check if there is no issue when you jit a loss using such a network. Note: Mask will not change after initialisation.
+    """
+    Linear transformation with masked out elements.
+
+    y = x.dot(mask*W.T)+b
+
+    Parameters
+    ----------
+    n_out : int
+        Output dimension
+    bias : bool
+        Whether to include bias. Default True.
+    """
+    n_out : int
+    bias : bool = True
+    mask: Any = None
+
+    def initialize_mask(self, mask : Any):
+        """Internal method to initialize mask"""
+        self.mask = mask
+
+    @nn.compact
+    def __call__(self, x):
+        """Apply masked linear transformation"""
+        layer = nn.Dense(self.n_out, use_bias=self.bias)
+        is_initialized = self.has_variable('params', 'Dense_0')
+        if is_initialized: 
+            w = layer.variables['params']['kernel']
+            b = layer.variables['params']['bias']
+        else:
+            return layer(x)
+        return jnp.dot(x, self.mask*w)+b
+
+class ConditionalMADE(nn.Module):
+    n_in : int #Size of the input vector
+    hidden_dims : list[int] #list of hidden dimensions
+    n_cond : int =0 #Size of the conditionning variable. 0 if None.
+    gaussian : bool = True #whether the output are mean and variance of a Gaussian conditional
+    random_order : bool = False #Whether to use random order of the input for masking
+    seed : Optional[int] = None #Random seed to label nodes
+
+    def setup(self):
+        np.random.seed(self.seed)
+        self.n_out = 2*self.n_in if self.gaussian else self.n_in
+        masks = {}
+        mask_matrix = []
+        layers = []
+
+        dim_list = [self.n_in+self.n_cond, *self.hidden_dims, self.n_out]
+
+        #Make layers and activation functions
+        for i in range(len(dim_list)-2):
+            layers.append(MaskedLinear(dim_list[i+1]))
+            layers.append(nn.silu)
+        #Last hidden layer to output layer
+        layers.append(MaskedLinear(dim_list[-1]))
+        #Create masks
+        self._create_masks(mask_matrix, masks, layers)
+        #Create model
+        self.layers = layers
+        self.model = nn.Sequential(self.layers)
+
+    def _create_masks(self, mask_matrix: list, masks: dict, layers : list):
+        """Create masks for the model"""
+        L = len(self.hidden_dims) #Number of hidden layers
+        D = self.n_in #Number of input parameters
+        C = self.n_cond #Number of conditionning parameters
+
+        #Whather to use random or natural order of the input
+        masks[0] = np.random.permutation(D) if self.random_order else np.arange(D)
+
+        #Set the connectivity number for the hidden layers
+        for l in range(L):
+            low = masks[l].min() #Get the lowest index in the previous layer
+            size = self.hidden_dims[l] #The size of the current hidden layer
+            masks[l+1] = np.random.randint(low, D-1, size=size)
+        
+        #Order of the output layer is the same as the input layer
+        masks[L+1] = masks[0]
+
+        #Create mask matric for input -> hidden_layer_1
+        m = masks[0]
+        m_next = masks[1]
+        M = np.ones((len(m), len(m_next)))
+        for j in range(len(m_next)):
+            M[:, j] = (m <= m_next[j]).astype(int)
+        M_cond = np.ones((C, len(m_next)))
+        M = np.concatenate([M, M_cond], axis=0)
+        mask_matrix.append(jnp.array(M))
+
+
+        #Create mask matrix for hidden_layer_1 -> ... -> last_hidden_layers
+        for i in range(1, len(masks)-2):
+            m = masks[i]
+            m_next = masks[i+1]
+            #Initialise mask matrix
+            M = np.zeros((len(m), len(m_next)))
+            for j in range(len(m_next)):
+                #Compare m_next[j] to each element of m
+                M[:, j] = (m <= m_next[j]).astype(int)
+            #append matrix to mask list
+            mask_matrix.append(jnp.array(M))
+
+        #Create mask matrix for last_hidden_layer -> output
+        m = masks[len(masks)-2]
+        m_next = masks[len(masks)-1]
+        M = np.zeros((len(m), len(m_next)))
+        for j in range(len(m)):
+            #Compare m_next[j] to each element of m
+            M[j, :] = (m[j] < m_next).astype(int)
+        #append matrix to mask list
+        mask_matrix.append(jnp.array(M))
+
+        #If the output is Gaussian, double the number of output (mu, sigma)
+        #Pairwise identical mask
+        if self.gaussian:
+            m = mask_matrix.pop(-1)
+            mask_matrix.append(jnp.concatenate([m, m], axis=1))
+
+        #Initialize the MaskedLinear layers with weights
+        mask_iter = iter(mask_matrix)
+        for module in layers:
+            if isinstance(module, MaskedLinear):
+                module.initialize_mask(next(mask_iter))
+
+    def __call__(self, x, y=None):
+        """
+        Forward pass of the model
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input vector
+        y : jnp.Array
+            Conditionning variable
+        """
+        if self.n_cond != 0:
+            x = jnp.concatenate([x, y], axis=-1)
+        if self.gaussian:
+            return self.model(x)
+        else:
+            return jax.nn.sigmoid(self.model(x))
+        
+class MAFLayer(nn.Module):
+    n_in : int #Size of the input vector
+    n_cond : int #Size of the conditionning variable
+    hidden_dims : list[int] #list of hidden dimensions
+    reverse : bool #Whether to reverse the order of the input
+    seed : Optional[int] = None #Random seed to label nodes
+
+    def forward(self, x, y=None):
+        out = self.__call__(x, y)
+        mu, logp = jnp.split(out, 2, axis=-1)
+        print(mu, logp)
+        u = (x-mu)*jnp.exp(0.5*logp)
+        u = jnp.flip(u, axis=-1) if self.reverse else u
+        log_det = -jnp.sum( logp, axis=-1)
+        return u, log_det
+    
+    def backward(self, u, y=None):
+        u = jnp.flip(u, axis=-1) if self.reverse else u
+        x = jnp.zeros_like(u)
+        for dim in range(self.n_in):
+            out = self.__call__(x,y)
+            mu, logp = jnp.split(out, 2, axis=-1)
+            mod_logp = jax.lax.clamp(-jnp.inf, -0.5*logp, max=10.)
+            x = x.at[:,dim].set(mu[:,dim]+jnp.exp(mod_logp[:,dim])*u[:,dim])
+            #x[:, dim] = mu[:, dim] + jnp.exp(mod_logp[:, dim])*u[:, dim]
+        log_det = jnp.sum(mod_logp, axis=-1)
+        return u, log_det
+        
+
+    @nn.compact
+    def __call__(self, x, y=None):
+        """
+        Forward pass of the model. Returns mean and variance of the gaussian conditionals.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input vector
+        y : jnp.Array
+            Conditionning variable
+        """
+        x = ConditionalMADE(n_in=self.n_in, hidden_dims=self.hidden_dims, n_cond=self.n_cond, seed=self.seed)(x, y)
+        return x
+        
+class ConditionalMAF(nn.Module):
+    n_in : int #Size of the input vector
+    n_cond : int #Size of the conditionning variable
+    n_layers : int #Number of layers (i.e. number of stacked MADEs)
+    hidden_dims : list[int] #list of hidden dimensionsin each MADE.
+    use_reverse : bool =True #Whether to reverse the order of the input between each MADE
+
+    def setup(self):
+        layer_list = []
+        for _ in range(self.n_layers):
+            layer_list.append(
+                MAFLayer(
+                    n_in=self.n_in, n_cond=self.n_cond, hidden_dims=self.hidden_dims, reverse=self.use_reverse
+                )
+            )
+        self.layer_list = layer_list
+        self.mean = jnp.zeros(self.n_in)
+        self.cov = jnp.eye(self.n_in)
+
+    @nn.compact
+    def __call__(self, x, y=None, train : bool=True):
+        """
+        Forward pass of the model. Returns mean and variance of the gaussian conditionals
+        as well as the log-determinant of the Jacobian
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input vector
+        y : jnp.Array
+            Conditionning variable
+        train : bool
+            True if the model is training, False otherwise.
+        """
+        log_det_sum = jnp.zeros(x.shape[0])
+        for layer in self.layer_list:
+            x, log_det = layer.forward(x, y)
+            log_det_sum += log_det
+            x = nn.BatchNorm(use_running_average=not train)(x)
+        return x, log_det_sum
+    
+    def backward(self, u, y=None):
+        log_det_sum = jnp.zeros(u.shape[0])
+        #backward pass
+        for layer in reversed(self.layer_list):
+            u, log_det = layer.backward(u, y)
+            log_det_sum += log_det
+        return u, log_det_sum
+    
+    def log_prob(self, x, y=None, train : bool=True):
+        u, log_det_sum = self.__call__(x, y, train)
+        return multivariate_normal.logpdf(u, self.mean, self.cov) + log_det_sum
+
+
         
