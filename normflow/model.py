@@ -1,4 +1,3 @@
-import haiku as hk
 from flax import linen as nn
 import numpy as np
 import jax
@@ -6,12 +5,30 @@ import jax.numpy as jnp
 import tensorflow_probability as tfp
 from typing import Any, Optional
 from jax.scipy.stats import multivariate_normal
+from abc import abstractmethod
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
 tfd = tfp.distributions
 
-class MixtureDensityNetwork(nn.Module):
+class NDENetwork(nn.Module):
+    """
+    A Normalizing Flow parent class to implement normalizing flows using
+    neural networks.
+    """
+    def log_prob(self, x, y=None, **kwargs):
+        """
+        Log probability of the data point x conditioned by y.
+        """
+        raise NotImplementedError("log_prob method not implemented in your child class of NDENetwork")
+
+    def sample(self, y, num_samples, key):
+        """
+        Sample from the distribution conditioned by y.
+        """
+        raise NotImplementedError("sample method not implemented in tour child class of NDENetwork")
+
+class MixtureDensityNetwork(NDENetwork):
     """
     A Mixture of Gaussian Density modeled using neural networks.
     The weights of each gaussian component, the mean and the covariance are learned by the network.
@@ -22,14 +39,29 @@ class MixtureDensityNetwork(nn.Module):
     activation : callable #activation function
 
     @nn.compact
-    def __call__(self, x, **kwargs):
+    def __call__(self, y, **kwargs):
+        """
+        Builds a bijector that tranforms a multivariate Gaussian distribution
+        into a Mixture of Gaussian distribution using a neural network.
+        The weights, means and covariances are obtained from a conditioned variable y.
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable
+
+        Returns
+        -------
+        distribution : tfd.Distribution
+            Mixture of Gaussian distribution
+        """
         for size in self.layers:
-            x = self.activation(nn.Dense(size)(x))
+            y = self.activation(nn.Dense(size)(y))
         final_size = self.n_components * (1 + self.n_data + self.n_data*(self.n_data+1)//2)
-        x = nn.Dense(final_size)(x)
-        logits = jax.nn.log_softmax(x[..., :self.n_components])
-        locs = x[..., self.n_components:self.n_components*(self.n_data+1)]
-        scale_tril = x[..., self.n_components*(self.n_data+1):]
+        y = nn.Dense(final_size)(y)
+        logits = jax.nn.log_softmax(y[..., :self.n_components])
+        locs = y[..., self.n_components:self.n_components*(self.n_data+1)]
+        scale_tril = y[..., self.n_components*(self.n_data+1):]
 
         distribution = tfd.MixtureSameFamily(
             mixture_distribution=tfd.Categorical(logits=logits),
@@ -40,6 +72,46 @@ class MixtureDensityNetwork(nn.Module):
         )
 
         return distribution
+
+    def log_prob(self, x, y, **kwargs):
+        """
+        Returns the log probability of the data point x conditioned by y.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point
+        y : jnp.Array
+            Conditionning variable
+
+        Returns
+        -------
+        log_prob : jnp.Array
+            Log probability of the data point
+        """
+        distribution = self.__call__(y, **kwargs)
+        return distribution.log_prob(x)
+
+    def sample(self, y, num_samples, key):
+        """
+        Samples from the distribution conditioned by y.
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable
+        num_samples : int
+            Number of samples
+        key : jnp.Array
+            Random key
+
+        Returns
+        -------
+        samples : jnp.Array
+            num_samples samples from the distribution
+        """
+        distribution = self.__call__(y)
+        return distribution.sample(num_samples, seed=key).squeeze()
 
 class AffineCoupling(nn.Module):
     y : Any #Conditionning variable
