@@ -278,10 +278,9 @@ class MAFLayer(nn.Module):
     def forward(self, x, y=None):
         out = self.__call__(x, y)
         mu, logp = jnp.split(out, 2, axis=-1)
-        print(mu, logp)
         u = (x-mu)*jnp.exp(0.5*logp)
         u = jnp.flip(u, axis=-1) if self.reverse else u
-        log_det = -jnp.sum( logp, axis=-1)
+        log_det = 0.5*jnp.sum(logp, axis=-1)
         return u, log_det
     
     def backward(self, u, y=None):
@@ -292,9 +291,8 @@ class MAFLayer(nn.Module):
             mu, logp = jnp.split(out, 2, axis=-1)
             mod_logp = jax.lax.clamp(-jnp.inf, -0.5*logp, max=10.)
             x = x.at[:,dim].set(mu[:,dim]+jnp.exp(mod_logp[:,dim])*u[:,dim])
-            #x[:, dim] = mu[:, dim] + jnp.exp(mod_logp[:, dim])*u[:, dim]
         log_det = jnp.sum(mod_logp, axis=-1)
-        return u, log_det
+        return x, log_det
         
 
     @nn.compact
@@ -318,13 +316,15 @@ class ConditionalMAF(nn.Module):
     n_layers : int #Number of layers (i.e. number of stacked MADEs)
     hidden_dims : list[int] #list of hidden dimensionsin each MADE.
     use_reverse : bool =True #Whether to reverse the order of the input between each MADE
+    seed : Optional[int] = None #Random seed to label nodes
 
     def setup(self):
+        np.random.seed(self.seed)
         layer_list = []
         for _ in range(self.n_layers):
             layer_list.append(
                 MAFLayer(
-                    n_in=self.n_in, n_cond=self.n_cond, hidden_dims=self.hidden_dims, reverse=self.use_reverse
+                    n_in=self.n_in, n_cond=self.n_cond, hidden_dims=self.hidden_dims, reverse=self.use_reverse, seed=np.random.randint(0, 1000)
                 )
             )
         self.layer_list = layer_list
@@ -350,7 +350,7 @@ class ConditionalMAF(nn.Module):
         for layer in self.layer_list:
             x, log_det = layer.forward(x, y)
             log_det_sum += log_det
-            x = nn.BatchNorm(use_running_average=not train)(x)
+            #x = nn.BatchNorm(use_running_average=not train)(x)
         return x, log_det_sum
     
     def backward(self, u, y=None):
@@ -364,6 +364,11 @@ class ConditionalMAF(nn.Module):
     def log_prob(self, x, y=None, train : bool=True):
         u, log_det_sum = self.__call__(x, y, train)
         return multivariate_normal.logpdf(u, self.mean, self.cov) + log_det_sum
+    
+    def sample(self, y=None, num_samples=1, key=None):
+        u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
+        x, _ = self.backward(u, y)
+        return x
 
 
         
