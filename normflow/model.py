@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import tensorflow_probability as tfp
 from typing import Any, Optional
 from jax.scipy.stats import multivariate_normal
-from abc import abstractmethod
+from functools import partial 
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
@@ -130,15 +130,17 @@ class AffineCoupling(nn.Module):
 
         return tfb.Chain([tfb.Shift(shift), tfb.Scale(scale)])
     
-class ConditionalRealNVP(nn.Module):
-    d : int #Dimension of the input
+class ConditionalRealNVP(NDENetwork):
+    n_in : int #Dimension of the input
     n_layers : int #Number of layers
-    bijector_fn : tfb.Bijector #Bijector function
+    layers : list[int] #list of hidden layers size
+    activation : callable #activation function
+    #bijector_fn : tfb.Bijector #Bijector function
 
     @nn.compact
-    def build_bijector(self, y):
+    def __call__(self, y, **kwargs):
         """
-        Build the bijector using tensorflo_probability
+        Build the bijector using tensorflow_probability
 
         Parameters
         ----------
@@ -151,11 +153,16 @@ class ConditionalRealNVP(nn.Module):
             Normalizing Flow transporting a multidimensional Gaussian
             to a more complex distribution.
         """
+        bijector_fn  = partial(
+            AffineCoupling,
+            layers=self.layers,
+            activation=self.activation
+        )
         chain = tfb.Chain(
             [
-                tfb.Permute(jnp.arange(self.d)[::-1])(
+                tfb.Permute(jnp.arange(self.n_in)[::-1])(
                     tfb.RealNVP(
-                        self.d//2, bijector_fn=self.bijector_fn(y, name="b%d" % i)
+                        self.n_in//2, bijector_fn=bijector_fn(y, name="b%d" % i)
                     )
                 )
             for i in range(self.n_layers)
@@ -163,13 +170,13 @@ class ConditionalRealNVP(nn.Module):
         )
 
         nvp = tfd.TransformedDistribution(
-            tfd.MultivariateNormalDiag(0.5*jnp.ones(self.d), 0.05 * jnp.ones(self.d)),
+            tfd.MultivariateNormalDiag(0.5*jnp.ones(self.n_in), 0.05 * jnp.ones(self.n_in)),
             bijector=chain
         )
 
         return nvp
     
-    def sample(self, y, num_samples, key):
+    def sample(self, y, num_samples, key, **kwargs):
         """
         Samples from the distribution mapped by the real NVP
 
@@ -187,11 +194,21 @@ class ConditionalRealNVP(nn.Module):
         samples : jnp.Array
             num_samples samples from the distribution
         """
-        nvp = self.build_bijector(y)
+        nvp = self.__call__(y)
         return nvp.sample(num_samples, seed=key)
 
-    def __call__(self, x, y, **kwargs):
-        nvp = self.build_bijector(y)
+    def log_prob(self, x, y, **kwargs):
+        """
+        Computes the log probability of the data point x conditioned by y from the normalizing flow.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point
+        y : jnp.Array
+            Conditionning variable
+        """
+        nvp = self.__call__(y)
         return nvp.log_prob(x)
 
 
@@ -382,7 +399,7 @@ class MAFLayer(nn.Module):
         x = ConditionalMADE(n_in=self.n_in, hidden_dims=self.hidden_dims, n_cond=self.n_cond, seed=self.seed)(x, y)
         return x
         
-class ConditionalMAF(nn.Module):
+class ConditionalMAF(NDENetwork):
     n_in : int #Size of the input vector
     n_cond : int #Size of the conditionning variable
     n_layers : int #Number of layers (i.e. number of stacked MADEs)
