@@ -36,7 +36,7 @@ class MixtureDensityNetwork(NDENetwork):
     n_data : int #Dimension of data vector
     n_components : int #number of mixture components
     layers : list #list of hidden layers size
-    activation : callable #activation function
+    activation : str = 'silu' #activation function
 
     @nn.compact
     def __call__(self, y, **kwargs):
@@ -55,8 +55,16 @@ class MixtureDensityNetwork(NDENetwork):
         distribution : tfd.Distribution
             Mixture of Gaussian distribution
         """
+        if self.activation=='silu':
+            activation = jax.nn.silu
+        elif self.activation=='relu':
+            activation = jax.nn.relu
+        elif self.activation=='tanh':
+            activation = jax.nn.tanh
+        else:
+            raise ValueError("Activation function not recognized")
         for size in self.layers:
-            y = self.activation(nn.Dense(size)(y))
+            y = activation(nn.Dense(size)(y))
         final_size = self.n_components * (1 + self.n_data + self.n_data*(self.n_data+1)//2)
         y = nn.Dense(final_size)(y)
         logits = jax.nn.log_softmax(y[..., :self.n_components])
@@ -134,8 +142,7 @@ class ConditionalRealNVP(NDENetwork):
     n_in : int #Dimension of the input
     n_layers : int #Number of layers
     layers : list[int] #list of hidden layers size
-    activation : callable #activation function
-    #bijector_fn : tfb.Bijector #Bijector function
+    activation : str = 'silu' #activation function
 
     @nn.compact
     def __call__(self, y, **kwargs):
@@ -153,10 +160,19 @@ class ConditionalRealNVP(NDENetwork):
             Normalizing Flow transporting a multidimensional Gaussian
             to a more complex distribution.
         """
+
+        if self.activation=='silu':
+            activation = jax.nn.silu
+        elif self.activation=='relu':
+            activation = jax.nn.relu
+        elif self.activation=='tanh':
+            activation = jax.nn.tanh
+        else:
+            raise ValueError("Activation function not recognized")
         bijector_fn  = partial(
             AffineCoupling,
             layers=self.layers,
-            activation=self.activation
+            activation=activation
         )
         chain = tfb.Chain(
             [
@@ -194,6 +210,8 @@ class ConditionalRealNVP(NDENetwork):
         samples : jnp.Array
             num_samples samples from the distribution
         """
+        if y.shape[0]==1:
+            y *= jnp.ones((num_samples, 1))
         nvp = self.__call__(y)
         return nvp.sample(num_samples, seed=key)
 
@@ -254,8 +272,19 @@ class ConditionalMADE(nn.Module):
     gaussian : bool = True #whether the output are mean and variance of a Gaussian conditional
     random_order : bool = False #Whether to use random order of the input for masking
     seed : Optional[int] = None #Random seed to label nodes
+    activation : str = 'silu' #Activation function
 
     def setup(self):
+
+        if self.activation=='silu':
+            activation = jax.nn.silu
+        elif self.activation=='relu':
+            activation = jax.nn.relu
+        elif self.activation=='tanh':
+            activation = jax.nn.tanh
+        else:
+            raise ValueError("Activation function not recognized")
+        
         np.random.seed(self.seed)
         self.n_out = 2*self.n_in if self.gaussian else self.n_in
         masks = {}
@@ -267,7 +296,7 @@ class ConditionalMADE(nn.Module):
         #Make layers and activation functions
         for i in range(len(dim_list)-2):
             layers.append(MaskedLinear(dim_list[i+1]))
-            layers.append(nn.silu)
+            layers.append(activation)
         #Last hidden layer to output layer
         layers.append(MaskedLinear(dim_list[-1]))
         #Create masks
@@ -363,6 +392,7 @@ class MAFLayer(nn.Module):
     hidden_dims : list[int] #list of hidden dimensions
     reverse : bool #Whether to reverse the order of the input
     seed : Optional[int] = None #Random seed to label nodes
+    activation : str = 'silu' #Activation function
 
     def forward(self, x, y=None):
         out = self.__call__(x, y)
@@ -396,16 +426,17 @@ class MAFLayer(nn.Module):
         y : jnp.Array
             Conditionning variable
         """
-        x = ConditionalMADE(n_in=self.n_in, hidden_dims=self.hidden_dims, n_cond=self.n_cond, seed=self.seed)(x, y)
+        x = ConditionalMADE(n_in=self.n_in, hidden_dims=self.hidden_dims, n_cond=self.n_cond, seed=self.seed, activation=self.activation)(x, y)
         return x
         
 class ConditionalMAF(NDENetwork):
     n_in : int #Size of the input vector
     n_cond : int #Size of the conditionning variable
     n_layers : int #Number of layers (i.e. number of stacked MADEs)
-    hidden_dims : list[int] #list of hidden dimensionsin each MADE.
+    layers : list[int] #list of hidden dimensionsin each MADE.
     use_reverse : bool =True #Whether to reverse the order of the input between each MADE
     seed : Optional[int] = None #Random seed to label nodes
+    activation : str = 'silu' #Activation function
 
     def setup(self):
         np.random.seed(self.seed)
@@ -413,7 +444,7 @@ class ConditionalMAF(NDENetwork):
         for _ in range(self.n_layers):
             layer_list.append(
                 MAFLayer(
-                    n_in=self.n_in, n_cond=self.n_cond, hidden_dims=self.hidden_dims, reverse=self.use_reverse, seed=np.random.randint(0, 1000)
+                    n_in=self.n_in, n_cond=self.n_cond, hidden_dims=self.layers, reverse=self.use_reverse, seed=np.random.randint(0, 1000), activation=self.activation
                 )
             )
         self.layer_list = layer_list
@@ -456,6 +487,8 @@ class ConditionalMAF(NDENetwork):
     
     def sample(self, y=None, num_samples=1, key=None):
         u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
+        if y is not None and y.shape[0]==1:
+            y = y*jnp.ones((num_samples, 1))
         x, _ = self.backward(u, y)
         return x
 

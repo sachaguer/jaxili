@@ -547,8 +547,6 @@ class TrainerModule:
             hparams = json.load(f)
         hparams.pop('model_class')
         hparams.update(hparams.pop('model_hparams'))
-        if hparams['activation'] == 'silu':
-            hparams.update({'activation': jax.nn.silu})
         if not hparams['logger_params']:
             hparams['logger_params'] = dict()
         hparams['logger_params']['log_dir'] = checkpoint
