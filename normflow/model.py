@@ -256,7 +256,7 @@ class MaskedLinear(nn.Module): #Check if there is no issue when you jit a loss u
     @nn.compact
     def __call__(self, x):
         """Apply masked linear transformation"""
-        layer = nn.Dense(self.n_out, use_bias=self.bias)
+        layer = nn.Dense(self.n_out, use_bias=self.bias, param_dtype=jnp.float64)
         is_initialized = self.has_variable('params', 'Dense_0')
         if is_initialized: 
             w = layer.variables['params']['kernel']

@@ -1,13 +1,18 @@
-name: jax_sbi
+name: jaxili
 dependencies:
   - python=3.10
   - pip
   - pip:
     - jupyter
     - matplotlib
+    - numpy
+    - numpydoc
     - jax
     - cmake
     - tensorflow_probability
     - optax
-    - dm-haiku
+    - flax
     - sbibm
+    - torch
+    - optuna
+

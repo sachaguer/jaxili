@@ -1,0 +1,20 @@
+[project]
+name = "jaxili"
+readme = "README.md"
+requires-python = "==3.10"
+authors = [{ "name" = "Sacha Guerrini", "email" = "sacha.guerrini@cea.fr"}]
+maintainers = [{ "name" = "Sacha Guerrini", "email" = "sacha.guerrini@cea.fr"}]
+description = "This package provides tools to execute and implement Implicit Likelihood Inference tools in JAX."
+dependencies = ["numpy"]
+version = "0.0.1"
+
+[project.optional-dependencies]
+docs = ["myst-parser", "numpydoc", "sphinx", "sphinx-book-theme"]
+lint = ["black"]
+release = ["build", "twine"]
+
+dev = ["jaxili[docs, lint, release, test]"]
+
+[tool.pydocstyle]
+convention="numpy"
+
