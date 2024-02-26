@@ -15,4 +15,7 @@ dependencies:
     - sbibm
     - torch
     - optuna
+    - emcee
+    - chainconsumer==0.34.0
+    - flowMC
 

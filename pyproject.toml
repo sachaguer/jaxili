@@ -1,7 +1,7 @@
 [project]
 name = "jaxili"
 readme = "README.md"
-requires-python = "==3.10"
+requires-python = "==3.10.13"
 authors = [{ "name" = "Sacha Guerrini", "email" = "sacha.guerrini@cea.fr"}]
 maintainers = [{ "name" = "Sacha Guerrini", "email" = "sacha.guerrini@cea.fr"}]
 description = "This package provides tools to execute and implement Implicit Likelihood Inference tools in JAX."
@@ -12,9 +12,27 @@ version = "0.0.1"
 docs = ["myst-parser", "numpydoc", "sphinx", "sphinx-book-theme"]
 lint = ["black"]
 release = ["build", "twine"]
+test = [
+    "pytest",
+    "pytest-black",
+    "pytest-cov",
+    "pytest-emoji",
+    "pytest-pydocstyle",
+]
 
 dev = ["jaxili[docs, lint, release, test]"]
+
+[tool.black]
+line-length = 88
 
 [tool.pydocstyle]
 convention="numpy"
 
+[tool.pytest.ini_options]
+addopts = ["--verbose", "--black", "--emoji", "--pydocstyle", "--cov=mycosmo"]
+
+[tool.setuptools.packages.find]
+where = ["."]  # list of folders that contain the packages (["."] by default)
+include = ["jaxili"]  # package names should match these glob patterns (["*"] by default)
+exclude = ["assets", "notebooks", "simulator"]  # exclude packages matching these glob patterns (empty by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
