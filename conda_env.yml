@@ -9,13 +9,15 @@ dependencies:
     - numpydoc
     - jax
     - cmake
+    - tensorflow
     - tensorflow_probability
     - optax
     - flax
     - sbibm
     - torch
+    - pytorch-lightning
     - optuna
-    - emcee
     - chainconsumer==0.34.0
+    - emcee
     - flowMC
 
