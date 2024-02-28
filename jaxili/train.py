@@ -172,7 +172,7 @@ class TrainerModule:
         -------
             The initialized variable dictionary.
         """
-        return self.model.init(init_rng, *exmp_input, train=True)
+        return self.model.init(init_rng, *exmp_input, train=True, method='log_prob')
     
     def print_tabulate(self, 
                        exmp_input : Any):
