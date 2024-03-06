@@ -63,10 +63,11 @@ class MixtureDensityNetwork(NDENetwork):
             activation = jax.nn.tanh
         else:
             raise ValueError("Activation function not recognized")
+        kernel_init = kwargs.get('kernel_init', nn.initializers.variance_scaling(scale=1., mode='fan_in', distribution='normal'))
         for size in self.layers:
-            y = activation(nn.Dense(size)(y))
+            y = activation(nn.Dense(size, kernel_init=kernel_init)(y))
         final_size = self.n_components * (1 + self.n_data + self.n_data*(self.n_data+1)//2)
-        y = nn.Dense(final_size)(y)
+        y = nn.Dense(final_size, kernel_init=kernel_init)(y)
         logits = jax.nn.log_softmax(y[..., :self.n_components])
         locs = y[..., self.n_components:self.n_components*(self.n_data+1)]
         scale_tril = y[..., self.n_components*(self.n_data+1):]
@@ -256,7 +257,7 @@ class MaskedLinear(nn.Module): #Check if there is no issue when you jit a loss u
     @nn.compact
     def __call__(self, x):
         """Apply masked linear transformation"""
-        layer = nn.Dense(self.n_out, use_bias=self.bias, param_dtype=jnp.float64)
+        layer = nn.Dense(self.n_out, use_bias=self.bias, param_dtype=jnp.float64, kernel_init=nn.initializers.truncated_normal(0.01))
         is_initialized = self.has_variable('params', 'Dense_0')
         if is_initialized: 
             w = layer.variables['params']['kernel']
@@ -437,6 +438,7 @@ class ConditionalMAF(NDENetwork):
     use_reverse : bool =True #Whether to reverse the order of the input between each MADE
     seed : Optional[int] = None #Random seed to label nodes
     activation : str = 'silu' #Activation function
+    prior : Optional[Any] = None
 
     def setup(self):
         np.random.seed(self.seed)
@@ -483,13 +485,24 @@ class ConditionalMAF(NDENetwork):
     
     def log_prob(self, x, y=None, train : bool=True):
         u, log_det_sum = self.__call__(x, y, train)
-        return multivariate_normal.logpdf(u, self.mean, self.cov) + log_det_sum
+        if self.n_layers%2==1 and self.use_reverse:
+            u = jnp.flip(u, axis=-1)
+        if self.prior is None:
+            log_pdf = multivariate_normal.logpdf(u, self.mean, self.cov)
+        else:
+            log_pdf = self.prior.log_prob(u)
+        return log_pdf + log_det_sum
     
     def sample(self, y=None, num_samples=1, key=None):
-        u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
+        if self.prior is None:
+            u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
+        else:
+            u = self.prior.sample(sample_shape=(num_samples,), seed=key)
         if y is not None and y.shape[0]==1:
             y = y*jnp.ones((num_samples, 1))
         x, _ = self.backward(u, y)
+        if self.n_layers%2==1 and self.use_reverse:
+            x = jnp.flip(x, axis=-1)
         return x
 
 

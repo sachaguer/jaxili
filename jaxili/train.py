@@ -9,6 +9,7 @@ import jax
 import jax.numpy as jnp
 from flax import linen as nn
 from flax.training import train_state, checkpoints
+from flax.training.early_stopping import EarlyStopping
 import optax
 
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
@@ -221,7 +222,7 @@ class TrainerModule:
             end_value=0.01 * lr
         )
         #Clip gradients at max value, and evt. apply weight decay
-        transf = [optax.clip_by_global_norm(hparams.pop('gradient_clip', 0.1))]
+        transf = [optax.clip_by_global_norm(hparams.pop('gradient_clip', 5.0))]
         if opt_class == optax.sgd and 'weight_decay' in hparams:
             transf.append(optax.add_decayed_weights(hparams.pop('weight_decay', 0.0)))
         optimizer = optax.chain(
@@ -230,7 +231,7 @@ class TrainerModule:
         )
         #Initialize training state
         self.state = TrainState.create(
-            apply_fn=self.apply_fn,
+            apply_fn=self.state.apply_fn,
             params=self.state.params,
             batch_stats=self.state.batch_stats,
             tx=optimizer,
@@ -276,7 +277,9 @@ class TrainerModule:
                     train_loader : Iterator,
                     val_loader : Iterator,
                     test_loader : Optional[Iterator] = None,
-                    num_epochs : int = 500) -> Dict[str, Any]:
+                    num_epochs : int = 500,
+                    min_delta : float = 1e-3,
+                    patience : int = 20) -> Dict[str, Any]:
         """
         Starts a training loop for the given number of epochs.
 
@@ -286,6 +289,8 @@ class TrainerModule:
         val_loader : An iterator over the validation data.
         test_loader : If given, best model will be evaluated on the test set.
         num_epochs : Number of epochs for which to train the model.
+        min_delta : Minimum change in the monitored metric to qualify as an improvement.
+        patience : Number of epochs with no improvement after which training will be stopped.
 
         Returns
         -------
@@ -298,6 +303,8 @@ class TrainerModule:
         #Prepare training loop
         self.on_training_start()
         best_eval_metrics = None
+        best_epoch = None
+        early_stop = EarlyStopping(min_delta, patience)
         for epoch_idx in self.tracker(range(1, num_epochs+1), desc='Epochs'):
             train_metrics = self.train_epoch(train_loader)
             self.logger.log_metrics(train_metrics, step=epoch_idx)
@@ -312,8 +319,16 @@ class TrainerModule:
                 if self.is_new_model_better(eval_metrics, best_eval_metrics):
                     best_eval_metrics = eval_metrics
                     best_eval_metrics.update(train_metrics)
+                    best_epoch = epoch_idx
                     self.save_model(step=epoch_idx)
                     self.save_metrics('best_eval', best_eval_metrics)
+                early_stop = early_stop.update(eval_metrics['val/loss'])
+                if early_stop.should_stop:
+                    print(f'Neural network training stopped after {epoch_idx} epochs.')
+                    print(f'Early stopping with best validation metric: {early_stop.best_metric}')
+                    print(f'Best model saved at epoch {best_epoch}')
+                    print(f'Early stopping parameters: min_delta={min_delta}, patience={patience}')
+                    break
         #Test best model if possible
         if test_loader is not None:
             self.load_model()
