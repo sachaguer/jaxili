@@ -131,11 +131,11 @@ class AffineCoupling(nn.Module):
     def __call__(self, x, output_units, **kwargs):
         x = jnp.concatenate([x, self.y], axis=-1)
         for i, layer_size in enumerate(self.layers):
-            x = self.activation(nn.Dense(layer_size)(x))
+            x = self.activation(nn.Dense(layer_size, kernel_init=nn.initializers.truncated_normal(0.001))(x))
         
         #Shift and Scale parameters
-        shift = nn.Dense(output_units)(x)
-        scale = nn.softplus(nn.Dense(output_units)(x)) + 1e-3
+        shift = nn.Dense(output_units, kernel_init=nn.initializers.truncated_normal(0.001))(x)
+        scale = nn.softplus(nn.Dense(output_units, kernel_init=nn.initializers.truncated_normal(0.001))(x)) + 1e-3
 
         return tfb.Chain([tfb.Shift(shift), tfb.Scale(scale)])
     
@@ -144,6 +144,7 @@ class ConditionalRealNVP(NDENetwork):
     n_layers : int #Number of layers
     layers : list[int] #list of hidden layers size
     activation : str = 'silu' #activation function
+    base_dist : Optional[Any] = None #Base distribution
 
     @nn.compact
     def __call__(self, y, **kwargs):
@@ -175,6 +176,7 @@ class ConditionalRealNVP(NDENetwork):
             layers=self.layers,
             activation=activation
         )
+        base_distribution = self.base_dist if self.base_dist is not None else tfd.MultivariateNormalDiag(0.5*jnp.ones(self.n_in), 0.05 * jnp.ones(self.n_in))
         chain = tfb.Chain(
             [
                 tfb.Permute(jnp.arange(self.n_in)[::-1])(
@@ -187,7 +189,7 @@ class ConditionalRealNVP(NDENetwork):
         )
 
         nvp = tfd.TransformedDistribution(
-            tfd.MultivariateNormalDiag(0.5*jnp.ones(self.n_in), 0.05 * jnp.ones(self.n_in)),
+            base_distribution,
             bijector=chain
         )
 
