@@ -1,4 +1,5 @@
 from flax import linen as nn
+import distrax
 import numpy as np
 import jax
 import jax.numpy as jnp
@@ -72,8 +73,8 @@ class MixtureDensityNetwork(NDENetwork):
         locs = y[..., self.n_components:self.n_components*(self.n_data+1)]
         scale_tril = y[..., self.n_components*(self.n_data+1):]
 
-        distribution = tfd.MixtureSameFamily(
-            mixture_distribution=tfd.Categorical(logits=logits),
+        distribution = distrax.MixtureSameFamily(
+            mixture_distribution=distrax.Categorical(logits=logits),
             components_distribution=tfd.MultivariateNormalTriL(
                 loc=jnp.reshape(locs, (-1, self.n_components, self.n_data)),
                 scale_tril=tfp.math.fill_triangular(jnp.reshape(scale_tril, (-1, self.n_components, self.n_data*(self.n_data+1)//2)))
@@ -120,7 +121,7 @@ class MixtureDensityNetwork(NDENetwork):
             num_samples samples from the distribution
         """
         distribution = self.__call__(y)
-        return distribution.sample(num_samples, seed=key).squeeze()
+        return distribution.sample(sample_shape=num_samples, seed=key).squeeze()
 
 class AffineCoupling(nn.Module):
     y : Any #Conditionning variable
@@ -144,7 +145,6 @@ class ConditionalRealNVP(NDENetwork):
     n_layers : int #Number of layers
     layers : list[int] #list of hidden layers size
     activation : str = 'silu' #activation function
-    base_dist : Optional[Any] = None #Base distribution
 
     @nn.compact
     def __call__(self, y, **kwargs):
@@ -176,8 +176,8 @@ class ConditionalRealNVP(NDENetwork):
             layers=self.layers,
             activation=activation
         )
-        base_distribution = self.base_dist if self.base_dist is not None else tfd.MultivariateNormalDiag(0.5*jnp.ones(self.n_in), 0.05 * jnp.ones(self.n_in))
-        chain = tfb.Chain(
+        base_distribution = distrax.MultivariateNormalDiag(jnp.zeros(self.n_in), jnp.ones(self.n_in))
+        chain = distrax.Chain(
             [
                 tfb.Permute(jnp.arange(self.n_in)[::-1])(
                     tfb.RealNVP(
@@ -188,7 +188,7 @@ class ConditionalRealNVP(NDENetwork):
             ]
         )
 
-        nvp = tfd.TransformedDistribution(
+        nvp = distrax.Transformed(
             base_distribution,
             bijector=chain
         )
@@ -213,10 +213,8 @@ class ConditionalRealNVP(NDENetwork):
         samples : jnp.Array
             num_samples samples from the distribution
         """
-        if y.shape[0]==1:
-            y *= jnp.ones((num_samples, 1))
         nvp = self.__call__(y)
-        return nvp.sample(num_samples, seed=key)
+        return nvp.sample(sample_shape=num_samples, seed=key)
 
     def log_prob(self, x, y, **kwargs):
         """
@@ -440,7 +438,6 @@ class ConditionalMAF(NDENetwork):
     use_reverse : bool =True #Whether to reverse the order of the input between each MADE
     seed : Optional[int] = None #Random seed to label nodes
     activation : str = 'silu' #Activation function
-    prior : Optional[Any] = None
 
     def setup(self):
         np.random.seed(self.seed)
@@ -487,24 +484,14 @@ class ConditionalMAF(NDENetwork):
     
     def log_prob(self, x, y=None, train : bool=True):
         u, log_det_sum = self.__call__(x, y, train)
-        if self.n_layers%2==1 and self.use_reverse:
-            u = jnp.flip(u, axis=-1)
-        if self.prior is None:
-            log_pdf = multivariate_normal.logpdf(u, self.mean, self.cov)
-        else:
-            log_pdf = self.prior.log_prob(u)
+        log_pdf = multivariate_normal.logpdf(u, self.mean, self.cov)
         return log_pdf + log_det_sum
     
     def sample(self, y=None, num_samples=1, key=None):
-        if self.prior is None:
-            u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
-        else:
-            u = self.prior.sample(sample_shape=(num_samples,), seed=key)
+        u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
         if y is not None and y.shape[0]==1:
             y = y*jnp.ones((num_samples, 1))
         x, _ = self.backward(u, y)
-        if self.n_layers%2==1 and self.use_reverse:
-            x = jnp.flip(x, axis=-1)
         return x
 
 

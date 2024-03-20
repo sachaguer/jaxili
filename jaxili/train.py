@@ -4,7 +4,7 @@ import time
 from copy import copy
 from typing import Dict, Any, Optional, Callable, Tuple, Iterator
 from collections import defaultdict
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import jax
 import jax.numpy as jnp
 from flax import linen as nn
@@ -305,7 +305,8 @@ class TrainerModule:
         best_eval_metrics = None
         best_epoch = None
         early_stop = EarlyStopping(min_delta, patience)
-        for epoch_idx in self.tracker(range(1, num_epochs+1), desc='Epochs'):
+        pbar = self.tracker(range(1, num_epochs+1), desc='Epochs')
+        for epoch_idx in pbar:
             train_metrics = self.train_epoch(train_loader)
             self.logger.log_metrics(train_metrics, step=epoch_idx)
             self.on_training_epoch_end(epoch_idx)
@@ -329,6 +330,8 @@ class TrainerModule:
                     print(f'Best model saved at epoch {best_epoch}')
                     print(f'Early stopping parameters: min_delta={min_delta}, patience={patience}')
                     break
+                if self.enable_progress_bar:    
+                    pbar.set_description(f"Epochs: Val loss {eval_metrics['val/loss']:.3f}/ Best val loss {early_stop.best_metric:.3f}")
         #Test best model if possible
         if test_loader is not None:
             self.load_model()
@@ -358,7 +361,7 @@ class TrainerModule:
         metrics = defaultdict(float)
         num_train_steps = len(train_loader)
         start_time = time.time()
-        for batch in self.tracker(train_loader, desc='Training', leave=False):
+        for batch in train_loader:
             self.state, step_metrics = self.train_step(self.state, batch)
             for key in step_metrics:
                 metrics['train/'+key] += step_metrics[key] / num_train_steps

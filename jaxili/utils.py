@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Sequence, Union
+import jax.numpy as jnp
 
 import torch
 import torch.utils.data as data
@@ -10,6 +11,8 @@ def numpy_collate(batch):
     elif isinstance(batch[0], (tuple, list)):
         transposed = zip(*batch)
         return [numpy_collate(samples) for samples in transposed]
+    elif isinstance(batch[0], jnp.ndarray):
+        return jnp.stack(batch)
     else:
         return np.array(batch)
     
