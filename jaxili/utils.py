@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Sequence, Union
+from typing import Sequence, Union, Any
 import jax.numpy as jnp
 
 import torch
@@ -47,3 +47,46 @@ def create_data_loader(*datasets : Sequence[data.Dataset],
                                  generator=torch.Generator().manual_seed(seed))
         loaders.append(loader)
     return loaders
+
+def check_density_estimator(estimator_arg: str):
+    """
+    Check density estimator argument to see if it belongs to the authorized network.
+
+    Parameters
+    ----------
+    estimator_arg : str
+        Density estimator argument to check.
+    """
+    if estimator_arg not in ['maf', 'mdn', 'realnvp']:
+        raise ValueError(f"Invalid density estimator argument: {estimator_arg}. Options are 'maf', 'mdn' and 'realnvp'.")
+    
+def validate_theta_x(theta: Any, x: Any):
+    """
+    Checks if the passed $(\theta, x)$ pair is valid.
+
+    We check that:
+    - $\theta$ and $x$ are jax arrays
+    - $\theta$ and $x$ have the same number of samples.
+    - $\theta$ and $x$ have dtype=float32.
+
+    Raises:
+        AssertionError if $\theta$ and $x$ are not jax arrays, do not have the same batch size or are not dtype==np.float32.
+    
+    Parameters
+    ----------
+    theta : Any
+        Parameters of the simulations.
+    x : Any
+        Simulation outputs.
+    """
+
+    assert isinstance(theta, jnp.ndarray), "theta should be a jax array."
+    assert isinstance(x, jnp.ndarray), "x should be a jax array."
+    assert theta.shape[0] == x.shape[0], (
+        f"Number of parameter sets ({theta.shape[0]}) and number of simulation outputs ({x.shape[0]}) should be the same."
+    )
+
+    assert theta.dtype == jnp.float32, "theta should have dtype float32."
+    assert x.dtype == jnp.float32, "x should have dtype float32."
+
+    return theta, x
