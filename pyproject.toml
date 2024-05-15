@@ -12,5 +12,8 @@ readme = "README.md"
 requires-python = ">=3.10, <3.11"
 urls = {Repository="https://github.com/sachaguer/jaxili"} # Documentation=""
 
-[tool.setuptools]
-packages = ["jaxili"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["jaxili*"]
+exclude = ["jaxili.tests*", "jaxili.notebooks*"]

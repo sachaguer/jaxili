@@ -1,8 +1,8 @@
 import os
 import json
 import time
-from copy import copy
-from typing import Dict, Any, Optional, Callable, Tuple, Iterator
+from copy import copy, deepcopy
+from typing import Dict, Any, Optional, Callable, Tuple, Iterator, Sequence
 from collections import defaultdict
 from tqdm import tqdm
 import jax
@@ -13,6 +13,10 @@ from flax.training.early_stopping import EarlyStopping
 import optax
 
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
+
+import jaxili
+from jaxili.model import MixtureDensityNetwork, ConditionalMAF, ConditionalRealNVP
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict
 
 class TrainState(train_state.TrainState):
     """
@@ -26,9 +30,10 @@ class TrainState(train_state.TrainState):
 class TrainerModule:
 
     def __init__(self, 
-                 model_class : nn.Module,
+                 model_class : jaxili.model.NDENetwork,
                  model_hparams : Dict[str, Any],
                  optimizer_hparams : Dict[str, Any],
+                 loss_fn : Callable,
                  exmp_input : Any,
                  seed : int = 42,
                  logger_params : Dict[str, Any] = None,
@@ -57,6 +62,7 @@ class TrainerModule:
         super().__init__()
         self.model_class = model_class
         self.model_hparams = model_hparams
+        self.loss_fn = loss_fn
         self.optimizer_hparams = optimizer_hparams
         self.enable_progress_bar = enable_progress_bar
         self.debug = debug
@@ -149,7 +155,7 @@ class TrainerModule:
         """
         self.config = {
             'model_class': self.model_class.__name__,
-            'model_hparams': self.model_hparams,
+            'model_hparams': deepcopy(self.model_hparams),
             'optimizer_hparams': self.optimizer_hparams,
             'logger_params': logger_params,
             'enable_progress_bar': self.enable_progress_bar,
@@ -157,6 +163,9 @@ class TrainerModule:
             'check_val_every_epoch': self.check_val_every_epoch,
             'seed': self.seed
         }
+
+        if 'activation' in self.model_hparams.keys():
+            self.config['model_hparams']['activation'] = self.model_hparams['activation'].__name__
         
     def run_model_init(self,
                        exmp_input : Any,
@@ -173,7 +182,7 @@ class TrainerModule:
         -------
             The initialized variable dictionary.
         """
-        return self.model.init(init_rng, *exmp_input, train=True, method='log_prob')
+        return self.model.init(init_rng, *exmp_input, method='log_prob')
     
     def print_tabulate(self, 
                        exmp_input : Any):
@@ -184,7 +193,10 @@ class TrainerModule:
         ----------
         exmp_input : An input to the model with which the shapes are inferred.
         """
-        print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input, train=True))
+        try:
+            print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input, train=True))
+        except Exception as e:
+            print(f'Could not tabulate model: {e}')
 
     def init_optimizer(self,
                        num_epochs : int,
@@ -265,13 +277,19 @@ class TrainerModule:
         """
         def train_step(state: TrainState,
                        batch : Any):
-            metrics = {}
+            loss_fn = lambda params: self.loss_fn(self.model, params, batch)
+            loss, grads = jax.value_and_grad(loss_fn)(state.params)
+            state = state.apply_gradients(grads=grads)
+            metrics = {'loss': loss}
             return state, metrics
+        
         def eval_step(state : TrainState,
                       batch : Any):
-            metrics = {}
+            loss = self.loss_fn(self.model, state.params, batch)
+            metrics = {'loss': loss}
             return state, metrics
-        raise NotImplementedError
+        
+        return train_step, eval_step
     
     def train_model(self,
                     train_loader : Iterator,
@@ -543,6 +561,7 @@ class TrainerModule:
     
     @classmethod
     def load_from_checkpoints(cls,
+                              model_class : jaxili.model.NDENetwork,
                               checkpoint : str,
                               exmp_input : Any) -> Any:
         """
@@ -563,13 +582,14 @@ class TrainerModule:
         assert os.path.isfile(hparams_file), 'Could not find hparams file.'
         with open(hparams_file, 'r') as f:
             hparams = json.load(f)
+        assert hparams['model_class'] == model_class.__name__, 'Model class does not match. Check that you are using the correct architecture.'
         hparams.pop('model_class')
-        hparams.update(hparams.pop('model_hparams'))
+        #Check if an activation function is used as a hyperparameter if the neural network.
+        if 'activation' in hparams['model_hparams'].keys():
+            hparams['model_hparams']['activation'] = jax_nn_dict[hparams['model_hparams']['activation']]
         if not hparams['logger_params']:
             hparams['logger_params'] = dict()
         hparams['logger_params']['log_dir'] = checkpoint
-        trainer = cls(exmp_input = exmp_input, **hparams)
+        trainer = cls(model_class = model_class, exmp_input = exmp_input, **hparams)
         trainer.load_model()
         return trainer
-
-    

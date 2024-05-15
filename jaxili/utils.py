@@ -89,4 +89,6 @@ def validate_theta_x(theta: Any, x: Any):
     assert theta.dtype == jnp.float32, "theta should have dtype float32."
     assert x.dtype == jnp.float32, "x should have dtype float32."
 
-    return theta, x
+    batch_size = theta.shape[0]
+    
+    return theta, x, batch_size
