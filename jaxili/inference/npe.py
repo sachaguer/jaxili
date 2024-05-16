@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 
+import jaxili
 from jaxili.utils import (
     check_density_estimator,
     validate_theta_x
@@ -17,7 +18,8 @@ class NPE():
 
     def __init__(
             self,
-            density_estimator: Union[str, Callable]='maf',
+            model_class: jaxili.model.NDENetwork,
+            model_hparams: Dict[str, Any],
             logging_level: Union[int, str] = "WARNING",
             show_progress_bar: bool = True
     ):
@@ -26,13 +28,19 @@ class NPE():
 
         Parameters
         ----------
-        density_estimator : Union[str, Callable], optional
-            Density estimator to use. Options are 'maf' (Masked Autoregressive Flow, default), 'mdn' (Mixture Density Network) and 'realnvp').
-        
+        model_class : jaxili.model.NDENetwork
+            Class of the neural density estimator to use.
+        model_hparams : Dict[str, Any]
+            Hyperparameters to use for the model.
+        logging_level: Union[int, str], optional
+            Logging level to use. Default is "WARNING".
+        show_progress_bar : bool, optional
+            Whether to show a progress bar during training. Default is True.
         """
-        check_density_estimator(density_estimator)
-
-        self._density_estimator = density_estimator #Have to build the network here...
+        self._model_class = model_class
+        self._model_hparams = model_hparams
+        self._logging_level = logging_level
+        self.show_progress_bar = show_progress_bar        
 
     
     def append_simulations(
@@ -63,6 +71,42 @@ class NPE():
         self._dataset = jdl.ArrayDataset(theta, x)
 
         return self
+    
+    def create_trainer(self,
+                       optimizer_hparams: Dict[str, Any],
+                       exmp_input: Any,
+                       seed: int = 42,
+                       logger_params : Dict[str, Any] = None,
+                       debug : bool = False,
+                       check_val_every_epoch : int = 1):
+        """
+        Create a TrainerModule for the density estimator.
+
+        Parameters
+        ----------
+        optimizer_hparams : Dict[str, Any]
+            Hyperparameters to use for the optimizer.
+        loss_fn : Callable
+            Loss function to use for training.
+        exmp_input : Any
+            Example input to use for the model.
+        seed : int, optional
+            Seed to use for the trainer. Default is 42.
+        logger_params : Dict[str, Any], optional
+            Parameters to use for the logger. Default is None.
+        debug : bool, optional
+            Whether to use debug mode. Default is False.
+        check_val_every_epoch : int, optional
+            Frequency at which to check the validation loss. Default is 1.
+        """
+
+        self.trainer = TrainerModule(
+            model_class = self._model_class,
+            model_hparams = self._model_hparams,
+            optimizer_hparams = optimizer_hparams,
+            loss_fn = loss_nll_npe,
+
+        )
     
     def train(
             self,

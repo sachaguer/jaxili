@@ -4,6 +4,7 @@ import jax
 import jaxlib
 
 from jaxili.model import ConditionalMAF, MixtureDensityNetwork, ConditionalRealNVP
+from jaxili.loss import loss_nll_nle, loss_nll_npe
 
 """
 This script contains static dictionaries that map function names to their respective functions.
@@ -30,4 +31,10 @@ jaxili_nn_dict = {
     "ConditionalMAF": ConditionalMAF,
     "MixtureDensityNetwork": MixtureDensityNetwork,
     "ConditionalRealNVP": ConditionalRealNVP,
+}
+
+#Define a dictionary containing the loss functions introduced in jaxili
+jaxili_loss_dict = {
+    'loss_nll_npe': loss_nll_npe,
+    'loss_nll_nle': loss_nll_nle,
 }

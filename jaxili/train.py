@@ -16,7 +16,7 @@ from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 
 import jaxili
 from jaxili.model import MixtureDensityNetwork, ConditionalMAF, ConditionalRealNVP
-from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict, jaxili_loss_dict
 
 class TrainState(train_state.TrainState):
     """
@@ -156,6 +156,7 @@ class TrainerModule:
         self.config = {
             'model_class': self.model_class.__name__,
             'model_hparams': deepcopy(self.model_hparams),
+            'loss_fn': self.loss_fn.__name__,
             'optimizer_hparams': self.optimizer_hparams,
             'logger_params': logger_params,
             'enable_progress_bar': self.enable_progress_bar,
@@ -163,6 +164,8 @@ class TrainerModule:
             'check_val_every_epoch': self.check_val_every_epoch,
             'seed': self.seed
         }
+
+
 
         if 'activation' in self.model_hparams.keys():
             self.config['model_hparams']['activation'] = self.model_hparams['activation'].__name__
@@ -194,7 +197,7 @@ class TrainerModule:
         exmp_input : An input to the model with which the shapes are inferred.
         """
         try:
-            print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input, train=True))
+            print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input))
         except Exception as e:
             print(f'Could not tabulate model: {e}')
 
@@ -265,7 +268,7 @@ class TrainerModule:
             self.train_step = jax.jit(train_step)
             self.eval_step = jax.jit(eval_step)
 
-    def create_function(self) -> Tuple[Callable[[TrainState, Any], Tuple[TrainState, Dict]],
+    def create_functions(self) -> Tuple[Callable[[TrainState, Any], Tuple[TrainState, Dict]],
                                        Callable[[TrainState, Any], Tuple[TrainState, Dict]]]:
         """
         Creates and returns functions for the training and evaluation step.
@@ -585,6 +588,8 @@ class TrainerModule:
         assert hparams['model_class'] == model_class.__name__, 'Model class does not match. Check that you are using the correct architecture.'
         hparams.pop('model_class')
         #Check if an activation function is used as a hyperparameter if the neural network.
+        assert hparams['loss_fn'] in jaxili_loss_dict, 'Unknown loss function.'
+        hparams['loss_fn'] = jaxili_loss_dict[hparams['loss_fn']]
         if 'activation' in hparams['model_hparams'].keys():
             hparams['model_hparams']['activation'] = jax_nn_dict[hparams['model_hparams']['activation']]
         if not hparams['logger_params']:
