@@ -8,14 +8,14 @@ from tqdm import tqdm
 import jax
 import jax.numpy as jnp
 from flax import linen as nn
-from flax.training import train_state, checkpoints
+from flax.training import train_state, checkpoints, orbax_utils
 from flax.training.early_stopping import EarlyStopping
 import optax
+import orbax.checkpoint as ocp
 
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 
 import jaxili
-from jaxili.model import MixtureDensityNetwork, ConditionalMAF, ConditionalRealNVP
 from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict, jaxili_loss_dict
 
 class TrainState(train_state.TrainState):
@@ -79,6 +79,12 @@ class TrainerModule:
         self.init_logger(logger_params)
         self.create_jitted_functions()
         self.init_model(exmp_input)
+        #Initialize checkpointer
+        options = ocp.CheckpointManagerOptions(max_to_keep=1, create=True)
+        orbax_checkpointer = ocp.PyTreeCheckpointer()
+        self.checkpoint_manager = ocp.CheckpointManager(
+            self.log_dir, orbax_checkpointer, options
+        )
 
     def init_logger(self,
                     logger_params : Optional[Dict]=None):
@@ -529,18 +535,17 @@ class TrainerModule:
         ----------
         step : Index of the step to save the model at, e.g. epoch
         """
-        checkpoints.save_checkpoint(ckpt_dir=self.log_dir,
-                                    target={'params': self.state.params,
-                                            'batch_stats': self.state.batch_stats},
-                                    step=step,
-                                    overwrite=True)
+        target = {'params': self.state.params,
+                    'batch_stats': self.state.batch_stats}
+        save_args = orbax_utils.save_args_from_target(target)
+        self.checkpoint_manager.save(step, target, save_kwargs={'save_args': save_args})
         
     def load_model(self):
         """
         Loads model and batch statistics from the logging directory
         """
-
-        state_dict = checkpoints.restore_checkpoint(ckpt_dir=self.log_dir, target=None)
+        step = self.checkpoint_manager.latest_step()
+        state_dict = self.checkpoint_manager.restore(step)
         self.state = TrainState.create(
             apply_fn=self.apply_fn,
             params=state_dict['params'],
