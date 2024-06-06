@@ -40,6 +40,7 @@ class TrainerModule:
                  enable_progress_bar : bool = True,
                  debug : bool = False,
                  check_val_every_epoch : int = 1,
+                 nde_class : str = "NPE",
                  **kwargs):
         """
         A basic Trainer module summarizing most training functionalities
@@ -68,7 +69,11 @@ class TrainerModule:
         self.debug = debug
         self.seed = seed
         self.check_val_every_epoch = check_val_every_epoch
+        self.nde_class = nde_class
+        assert (nde_class=="NPE" or nde_class=="NLE"), ("Choose a valid class of Neural Density Estimator. (NPE or NLE)")
         self.exmp_input = exmp_input
+        if self.nde_class=="NLE":
+            self.exmp_input = (self.exmp_input[1], self.exmp_input[0])
         self.generate_config(logger_params)
         self.config.update(kwargs)
         #Create an empty model. Note: no parameters yet
@@ -78,7 +83,7 @@ class TrainerModule:
         #Init trainer parts
         self.init_logger(logger_params)
         self.create_jitted_functions()
-        self.init_model(exmp_input)
+        self.init_model(self.exmp_input)
         #Initialize checkpointer
         options = ocp.CheckpointManagerOptions(max_to_keep=1, create=True)
         orbax_checkpointer = ocp.PyTreeCheckpointer()
@@ -153,7 +158,7 @@ class TrainerModule:
         """
         Initialize a default apply function for the model.
         """
-        self.apply_fn = self.model.apply
+        self.apply_fn = self.model.log_prob
 
     def generate_config(self, logger_params):
         """
@@ -296,7 +301,7 @@ class TrainerModule:
                       batch : Any):
             loss = self.loss_fn(self.model, state.params, batch)
             metrics = {'loss': loss}
-            return state, metrics
+            return metrics
         
         return train_step, eval_step
     
@@ -361,7 +366,7 @@ class TrainerModule:
                     pbar.set_description(f"Epochs: Val loss {eval_metrics['val/loss']:.3f}/ Best val loss {early_stop.best_metric:.3f}")
         #Test best model if possible
         if test_loader is not None:
-            self.load_model()
+            #self.load_model()
             test_metrics = self.eval_model(test_loader, log_prefix='test/')
             self.logger.log_metrics(test_metrics, step=epoch_idx)
             self.save_metrics('test', test_metrics)

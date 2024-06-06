@@ -154,15 +154,6 @@ class ConditionalRealNVP(NDENetwork):
             Normalizing Flow transporting a multidimensional Gaussian
             to a more complex distribution.
         """
-
-        if self.activation=='silu':
-            activation = jax.nn.silu
-        elif self.activation=='relu':
-            activation = jax.nn.relu
-        elif self.activation=='tanh':
-            activation = jax.nn.tanh
-        else:
-            raise ValueError("Activation function not recognized")
         bijector_fn  = partial(
             AffineCoupling,
             layers=self.layers,
@@ -449,8 +440,6 @@ class ConditionalMAF(NDENetwork):
             Input vector
         y : jnp.Array
             Conditionning variable
-        train : bool
-            True if the model is training, False otherwise.
         """
         log_det_sum = jnp.zeros(x.shape[0])
         for layer in self.layer_list:

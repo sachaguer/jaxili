@@ -28,7 +28,8 @@ def loss_nll_npe(model: Any, params: PyTree, batch: Any)->Array:
 
     thetas, xs = batch
 
-    return -jnp.mean(model.apply({'params': params}, thetas, xs, method='log_prob'))
+    output =  model.apply({'params': params}, thetas, xs, method='log_prob')
+    return -jnp.mean(output)
 
 def loss_nll_nle(model: Any, params: PyTree, batch: Any):
     """
