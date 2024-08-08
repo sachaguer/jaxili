@@ -463,7 +463,7 @@ class ConditionalMAF(NDENetwork):
     
     def sample(self, y=None, num_samples=1, key=None):
         u = jax.random.multivariate_normal(key, self.mean, self.cov, shape=(num_samples,))
-        if y is not None and y.shape[0]==1:
+        if y is not None:
             y = y*jnp.ones((num_samples, 1))
         x, _ = self.backward(u, y)
         return x
