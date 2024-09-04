@@ -598,7 +598,7 @@ class TrainerModule:
         assert hparams['model_class'] == model_class.__name__, 'Model class does not match. Check that you are using the correct architecture.'
         hparams.pop('model_class')
         #Check if an activation function is used as a hyperparameter if the neural network.
-        assert hparams['loss_fn'] in jaxili_loss_dict, 'Unknown loss function.'
+        assert hparams['loss_fn'] in jaxili_loss_dict, 'Unknown loss function. Check that the loss function you used comes from `jax.nn`.'
         hparams['loss_fn'] = jaxili_loss_dict[hparams['loss_fn']]
         if 'activation' in hparams['model_hparams'].keys():
             hparams['model_hparams']['activation'] = jax_nn_dict[hparams['model_hparams']['activation']]
