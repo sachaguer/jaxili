@@ -5,12 +5,37 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jaxili"
 version = "0.0.1"
-authors = [{name="Sacha Guerrini"}] # email=""
+authors = [{name = "Sacha Guerrini"}]
 description = "This package provides tools to execute and implement Implicit Likelihood Inference tools in JAX."
-dependencies = ["numpy", "jax"]
+dependencies = [
+    "numpy",
+    "jax",
+    "jupyter",
+    "matplotlib",
+    "cmake",
+    "tensorflow",
+    "tensorflow-probability",
+    "optax",
+    "flax",
+    "sbibm",
+    "torch",
+    "pytorch-lightning",
+    "optuna"
+]
 readme = "README.md"
 requires-python = ">=3.10, <3.11"
-urls = {Repository="https://github.com/sachaguer/jaxili"} # Documentation=""
+urls = {Repository = "https://github.com/sachaguer/jaxili"}
 
-[tool.setuptools]
-packages = ["jaxili"]
+[project.optional-dependencies]
+docs = [
+    "flowMC",
+    "numpydoc",
+    "emcee==3.1.4",
+    "chainconsumer==0.34.0",
+    "jax-cosmo"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["jaxili*"]
+exclude = ["jaxili.tests*", "jaxili.notebooks*"]

@@ -1,17 +1,22 @@
 import os
 import json
 import time
-from copy import copy
-from typing import Dict, Any, Optional, Callable, Tuple, Iterator
+from copy import copy, deepcopy
+from typing import Dict, Any, Optional, Callable, Tuple, Iterator, Sequence
 from collections import defaultdict
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import jax
 import jax.numpy as jnp
 from flax import linen as nn
-from flax.training import train_state, checkpoints
+from flax.training import train_state, checkpoints, orbax_utils
+from flax.training.early_stopping import EarlyStopping
 import optax
+import orbax.checkpoint as ocp
 
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
+
+import jaxili
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict, jaxili_loss_dict
 
 class TrainState(train_state.TrainState):
     """
@@ -25,15 +30,17 @@ class TrainState(train_state.TrainState):
 class TrainerModule:
 
     def __init__(self, 
-                 model_class : nn.Module,
+                 model_class : jaxili.model.NDENetwork,
                  model_hparams : Dict[str, Any],
                  optimizer_hparams : Dict[str, Any],
+                 loss_fn : Callable,
                  exmp_input : Any,
                  seed : int = 42,
                  logger_params : Dict[str, Any] = None,
                  enable_progress_bar : bool = True,
                  debug : bool = False,
                  check_val_every_epoch : int = 1,
+                 nde_class : str = "NPE",
                  **kwargs):
         """
         A basic Trainer module summarizing most training functionalities
@@ -56,12 +63,17 @@ class TrainerModule:
         super().__init__()
         self.model_class = model_class
         self.model_hparams = model_hparams
+        self.loss_fn = loss_fn
         self.optimizer_hparams = optimizer_hparams
         self.enable_progress_bar = enable_progress_bar
         self.debug = debug
         self.seed = seed
         self.check_val_every_epoch = check_val_every_epoch
+        self.nde_class = nde_class
+        assert (nde_class=="NPE" or nde_class=="NLE"), ("Choose a valid class of Neural Density Estimator. (NPE or NLE)")
         self.exmp_input = exmp_input
+        if self.nde_class=="NLE":
+            self.exmp_input = (self.exmp_input[1], self.exmp_input[0])
         self.generate_config(logger_params)
         self.config.update(kwargs)
         #Create an empty model. Note: no parameters yet
@@ -71,7 +83,13 @@ class TrainerModule:
         #Init trainer parts
         self.init_logger(logger_params)
         self.create_jitted_functions()
-        self.init_model(exmp_input)
+        self.init_model(self.exmp_input)
+        #Initialize checkpointer
+        options = ocp.CheckpointManagerOptions(max_to_keep=1, create=True)
+        orbax_checkpointer = ocp.PyTreeCheckpointer()
+        self.checkpoint_manager = ocp.CheckpointManager(
+            self.log_dir, orbax_checkpointer, options
+        )
 
     def init_logger(self,
                     logger_params : Optional[Dict]=None):
@@ -140,7 +158,7 @@ class TrainerModule:
         """
         Initialize a default apply function for the model.
         """
-        self.apply_fn = self.model.apply
+        self.apply_fn = self.model.log_prob
 
     def generate_config(self, logger_params):
         """
@@ -148,7 +166,8 @@ class TrainerModule:
         """
         self.config = {
             'model_class': self.model_class.__name__,
-            'model_hparams': self.model_hparams,
+            'model_hparams': deepcopy(self.model_hparams),
+            'loss_fn': self.loss_fn.__name__,
             'optimizer_hparams': self.optimizer_hparams,
             'logger_params': logger_params,
             'enable_progress_bar': self.enable_progress_bar,
@@ -156,6 +175,11 @@ class TrainerModule:
             'check_val_every_epoch': self.check_val_every_epoch,
             'seed': self.seed
         }
+
+
+
+        if 'activation' in self.model_hparams.keys():
+            self.config['model_hparams']['activation'] = self.model_hparams['activation'].__name__
         
     def run_model_init(self,
                        exmp_input : Any,
@@ -172,7 +196,7 @@ class TrainerModule:
         -------
             The initialized variable dictionary.
         """
-        return self.model.init(init_rng, *exmp_input, train=True, method='log_prob')
+        return self.model.init(init_rng, *exmp_input, method='log_prob')
     
     def print_tabulate(self, 
                        exmp_input : Any):
@@ -183,7 +207,10 @@ class TrainerModule:
         ----------
         exmp_input : An input to the model with which the shapes are inferred.
         """
-        print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input, train=True))
+        try:
+            print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input))
+        except Exception as e:
+            print(f'Could not tabulate model: {e}')
 
     def init_optimizer(self,
                        num_epochs : int,
@@ -221,7 +248,7 @@ class TrainerModule:
             end_value=0.01 * lr
         )
         #Clip gradients at max value, and evt. apply weight decay
-        transf = [optax.clip_by_global_norm(hparams.pop('gradient_clip', 0.1))]
+        transf = [optax.clip_by_global_norm(hparams.pop('gradient_clip', 5.0))]
         if opt_class == optax.sgd and 'weight_decay' in hparams:
             transf.append(optax.add_decayed_weights(hparams.pop('weight_decay', 0.0)))
         optimizer = optax.chain(
@@ -230,7 +257,7 @@ class TrainerModule:
         )
         #Initialize training state
         self.state = TrainState.create(
-            apply_fn=self.apply_fn,
+            apply_fn=self.state.apply_fn,
             params=self.state.params,
             batch_stats=self.state.batch_stats,
             tx=optimizer,
@@ -252,7 +279,7 @@ class TrainerModule:
             self.train_step = jax.jit(train_step)
             self.eval_step = jax.jit(eval_step)
 
-    def create_function(self) -> Tuple[Callable[[TrainState, Any], Tuple[TrainState, Dict]],
+    def create_functions(self) -> Tuple[Callable[[TrainState, Any], Tuple[TrainState, Dict]],
                                        Callable[[TrainState, Any], Tuple[TrainState, Dict]]]:
         """
         Creates and returns functions for the training and evaluation step.
@@ -264,19 +291,27 @@ class TrainerModule:
         """
         def train_step(state: TrainState,
                        batch : Any):
-            metrics = {}
+            loss_fn = lambda params: self.loss_fn(self.model, params, batch)
+            loss, grads = jax.value_and_grad(loss_fn)(state.params)
+            state = state.apply_gradients(grads=grads)
+            metrics = {'loss': loss}
             return state, metrics
+        
         def eval_step(state : TrainState,
                       batch : Any):
-            metrics = {}
-            return state, metrics
-        raise NotImplementedError
+            loss = self.loss_fn(self.model, state.params, batch)
+            metrics = {'loss': loss}
+            return metrics
+        
+        return train_step, eval_step
     
     def train_model(self,
                     train_loader : Iterator,
                     val_loader : Iterator,
                     test_loader : Optional[Iterator] = None,
-                    num_epochs : int = 500) -> Dict[str, Any]:
+                    num_epochs : int = 500,
+                    min_delta : float = 1e-3,
+                    patience : int = 20) -> Dict[str, Any]:
         """
         Starts a training loop for the given number of epochs.
 
@@ -286,6 +321,8 @@ class TrainerModule:
         val_loader : An iterator over the validation data.
         test_loader : If given, best model will be evaluated on the test set.
         num_epochs : Number of epochs for which to train the model.
+        min_delta : Minimum change in the monitored metric to qualify as an improvement.
+        patience : Number of epochs with no improvement after which training will be stopped.
 
         Returns
         -------
@@ -298,7 +335,10 @@ class TrainerModule:
         #Prepare training loop
         self.on_training_start()
         best_eval_metrics = None
-        for epoch_idx in self.tracker(range(1, num_epochs+1), desc='Epochs'):
+        best_epoch = None
+        early_stop = EarlyStopping(min_delta, patience)
+        pbar = self.tracker(range(1, num_epochs+1), desc='Epochs')
+        for epoch_idx in pbar:
             train_metrics = self.train_epoch(train_loader)
             self.logger.log_metrics(train_metrics, step=epoch_idx)
             self.on_training_epoch_end(epoch_idx)
@@ -312,11 +352,21 @@ class TrainerModule:
                 if self.is_new_model_better(eval_metrics, best_eval_metrics):
                     best_eval_metrics = eval_metrics
                     best_eval_metrics.update(train_metrics)
+                    best_epoch = epoch_idx
                     self.save_model(step=epoch_idx)
                     self.save_metrics('best_eval', best_eval_metrics)
+                early_stop = early_stop.update(eval_metrics['val/loss'])
+                if early_stop.should_stop:
+                    print(f'Neural network training stopped after {epoch_idx} epochs.')
+                    print(f'Early stopping with best validation metric: {early_stop.best_metric}')
+                    print(f'Best model saved at epoch {best_epoch}')
+                    print(f'Early stopping parameters: min_delta={min_delta}, patience={patience}')
+                    break
+                if self.enable_progress_bar:    
+                    pbar.set_description(f"Epochs: Val loss {eval_metrics['val/loss']:.3f}/ Best val loss {early_stop.best_metric:.3f}")
         #Test best model if possible
         if test_loader is not None:
-            self.load_model()
+            #self.load_model()
             test_metrics = self.eval_model(test_loader, log_prefix='test/')
             self.logger.log_metrics(test_metrics, step=epoch_idx)
             self.save_metrics('test', test_metrics)
@@ -343,7 +393,7 @@ class TrainerModule:
         metrics = defaultdict(float)
         num_train_steps = len(train_loader)
         start_time = time.time()
-        for batch in self.tracker(train_loader, desc='Training', leave=False):
+        for batch in train_loader:
             self.state, step_metrics = self.train_step(self.state, batch)
             for key in step_metrics:
                 metrics['train/'+key] += step_metrics[key] / num_train_steps
@@ -490,18 +540,17 @@ class TrainerModule:
         ----------
         step : Index of the step to save the model at, e.g. epoch
         """
-        checkpoints.save_checkpoint(ckpt_dir=self.log_dir,
-                                    target={'params': self.state.params,
-                                            'batch_stats': self.state.batch_stats},
-                                    step=step,
-                                    overwrite=True)
+        target = {'params': self.state.params,
+                    'batch_stats': self.state.batch_stats}
+        save_args = orbax_utils.save_args_from_target(target)
+        self.checkpoint_manager.save(step, target, save_kwargs={'save_args': save_args})
         
     def load_model(self):
         """
         Loads model and batch statistics from the logging directory
         """
-
-        state_dict = checkpoints.restore_checkpoint(ckpt_dir=self.log_dir, target=None)
+        step = self.checkpoint_manager.latest_step()
+        state_dict = self.checkpoint_manager.restore(step)
         self.state = TrainState.create(
             apply_fn=self.apply_fn,
             params=state_dict['params'],
@@ -525,6 +574,7 @@ class TrainerModule:
     
     @classmethod
     def load_from_checkpoints(cls,
+                              model_class : jaxili.model.NDENetwork,
                               checkpoint : str,
                               exmp_input : Any) -> Any:
         """
@@ -545,13 +595,16 @@ class TrainerModule:
         assert os.path.isfile(hparams_file), 'Could not find hparams file.'
         with open(hparams_file, 'r') as f:
             hparams = json.load(f)
+        assert hparams['model_class'] == model_class.__name__, 'Model class does not match. Check that you are using the correct architecture.'
         hparams.pop('model_class')
-        hparams.update(hparams.pop('model_hparams'))
+        #Check if an activation function is used as a hyperparameter if the neural network.
+        assert hparams['loss_fn'] in jaxili_loss_dict, 'Unknown loss function. Check that the loss function you used comes from `jax.nn`.'
+        hparams['loss_fn'] = jaxili_loss_dict[hparams['loss_fn']]
+        if 'activation' in hparams['model_hparams'].keys():
+            hparams['model_hparams']['activation'] = jax_nn_dict[hparams['model_hparams']['activation']]
         if not hparams['logger_params']:
             hparams['logger_params'] = dict()
         hparams['logger_params']['log_dir'] = checkpoint
-        trainer = cls(exmp_input = exmp_input, **hparams)
+        trainer = cls(model_class = model_class, exmp_input = exmp_input, **hparams)
         trainer.load_model()
         return trainer
-
-    
