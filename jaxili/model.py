@@ -28,6 +28,40 @@ class NDENetwork(nn.Module):
         Sample from the distribution conditioned by y.
         """
         raise NotImplementedError("sample method not implemented in tour child class of NDENetwork")
+    
+class Compressor_w_NDE(NDENetwork):
+    """
+    Compressor_w_NDE
+    
+    A parent class to implement a compressor followed by a normalizing flow.
+    This is useful to perform Implicit Likelihood Inference in large dimensions where compression
+    is required and can sometimes be done with a normalizing flow.
+    """
+
+    def compress(self, x):
+        """
+        Compress the data point x using the compressor.
+        """
+        raise NotImplementedError("compress method not implemented in your child class of Compressor_w_NDE")
+    
+    def log_prob(self, x, y=None, **kwargs):
+        """
+        Log probability of the data point x conditioned by y.
+        """
+        raise NotImplementedError("log_prob method not implemented in your child class of Compressor_w_NDE")
+    
+    def log_prob_from_compressed(self, z, y=None, **kwargs):
+        """
+        Log probability of the data point z conditioned by y. z has been previously compressed.
+        """
+        raise NotImplementedError("log_prob_from_compressed method not implemented in your child class of Compressor_w_NDE")
+    
+    def sample(self, y, num_samples, key):
+        """
+        Sample from the distribution conditioned by y.
+        """
+        raise NotImplementedError("sample method not implemented in your child class of Compressor_w_NDE")
+    
 
 class MixtureDensityNetwork(NDENetwork):
     """
@@ -469,4 +503,108 @@ class ConditionalMAF(NDENetwork):
         return x
 
 
+class NDE_Compressor(Compressor_w_NDE):
+    """
+    NDE_Compressor
+
+    A general class to implement a compressor followed by a normalizing flow implementing
+    standard methods to compute the log-probability of the target distribution or sample from it.
+    """
+    compressor: nn.Module #Compressor network
+    nde: NDENetwork #Normalizing Flow or Mixture Density network
+    compressor_hparams: dict #Hyperparameters of the Neural Density Estimator
+    nde_hparams: dict #Hyperparameters of the compressor
+
+    def setup(self):
+        #Create models for the compressor and the NDE
+        self.compressor_nn = self.compressor(**self.compressor_hparams)
+        self.nde_nn = self.nde(**self.nde_hparams)
+
+    def __call__(self, x, y, model='NPE'):
+        """
+        Returns the log-probability of the parameters y conditioned by the data point x.
         
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point
+        y : jnp.Array
+            Conditionning variable
+        
+        Returns
+        -------
+        log_prob : jnp.Array
+            Log probability of the parameters y
+        """
+        assert model in ['NPE', 'NLE'], "Model should be either 'NPE' or 'NLE'."
+        if model == 'NPE':
+            z = self.compressor_nn(y)
+            return self.nde_nn.log_prob(x, z)
+        else:
+            z = self.compressor_nn(x)
+            return self.nde_nn.log_prob(z, y)
+        
+    def log_prob(self, x, y, model='NPE'):
+        """
+        Returns the log-probability of the parameters y conditioned by the data point x.
+        
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point
+        y : jnp.Array
+            Conditionning variable
+        
+        Returns
+        -------
+        log_prob : jnp.Array
+            Log probability of the parameters y
+        """
+        return self.__call__(x, y, model)
+    
+    def log_prob_compressed(self, z, y, model='NPE'):
+        """
+        Returns the log-probability of the compressed data z conditioned by the parameters y (if NPE).
+        
+        Parameters
+        ----------
+        z : jnp.Array
+            Compressed data point
+        y : jnp.Array
+            Conditionning variable
+        
+        Returns
+        -------
+        log_prob : jnp.Array
+            Log probability of the parameters y
+        """
+        assert model in ['NPE', 'NLE'], "Model should be either 'NPE' or 'NLE'."
+        if model == 'NPE':
+            return self.nde_nn.log_prob(y, z)
+        else:
+            return self.nde_nn.log_prob(z, y)
+        
+    def sample(self, y, num_samples, key, model='NPE'):
+        """
+        Samples from the distribution conditioned by y.
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable
+        num_samples : int
+            Number of samples
+        key : jnp.Array
+            Random key
+
+        Returns
+        -------
+        samples : jnp.Array
+            num_samples samples from the distribution
+        """
+        assert model in ['NPE', 'NLE'], "Model should be either 'NPE' or 'NLE'."
+        if model == 'NPE':
+            z = self.compressor_nn(y)
+            return self.nde_nn.sample(z, num_samples, key)
+        else:
+            return self.nde_nn.sample(y, num_samples, key)
