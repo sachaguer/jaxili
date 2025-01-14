@@ -11,12 +11,34 @@ import jax
 import jax.numpy as jnp
 import tensorflow_probability as tfp
 from typing import Any, Optional, Callable
+from jaxtyping import Array
 from jax.scipy.stats import multivariate_normal
 from functools import partial
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
 tfd = tfp.distributions
+
+
+class Identity(nn.Module):
+    """
+    Identity transformation.
+    """
+
+    @nn.compact
+    def __call__(self, x):
+        return x
+    
+class Standardizer(nn.Module):
+    """
+    Standardizer transformation.
+    """
+    mean: Array
+    std: Array
+
+    @nn.compact
+    def __call__(self, x):
+        return (x - self.mean) / self.std
 
 
 class NDENetwork(nn.Module):
@@ -508,12 +530,10 @@ class MAFLayer(nn.Module):
 class ConditionalMAF(NDENetwork):
     n_in: int  # Size of the input vector
     n_cond: int  # Size of the conditionning variable
-    n_layers: int  # Number of layers (i.e. number of stacked MADEs)
-    layers: list[int]  # list of hidden dimensionsin each MADE.
-    activation: Callable  # Activation function
-    use_reverse: bool = (
-        True  # Whether to reverse the order of the input between each MADE
-    )
+    n_layers: int = 5 # Number of layers (i.e. number of stacked MADEs)
+    layers: list[int] = [50, 50]  # list of hidden dimensionsin each MADE.
+    activation: Callable = jax.nn.relu  # Activation function
+    use_reverse: bool = True  # Whether to reverse the order of the input between each MADE
     seed: Optional[int] = None  # Random seed to label nodes
 
     def setup(self):
@@ -683,3 +703,81 @@ class NDE_Compressor(Compressor_w_NDE):
             return self.nde_nn.sample(z, num_samples, key)
         else:
             return self.nde_nn.sample(y, num_samples, key)
+
+
+class NDE_w_Standardization(NDENetwork):
+    """
+    NDE_w_Standardization
+
+    This class creates an NDE network where the input data is first standardized.
+    It takes in input a neural density estimator, an embedding net and a transformation.
+    """
+
+    nde: NDENetwork  # Neural Density Estimator
+    embedding_net: nn.Module  # Embedding network
+    transformation: distrax.Bijector  # Transformation network TBC
+
+    def __call__(self, x, y, model="NPE"):
+        """
+        Returns the log-probability of x given y for NPE and y given x for NLE.
+        
+        Parameters
+        ----------
+        x : jnp.Array
+            Theta
+        y : jnp.Array
+            x
+        model : str
+            NPE or NLE
+
+        Returns
+        -------
+        log_prob : jnp.Array
+            Log probability of the parameters y
+        """
+        assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
+        if model == "NLE":
+            x, y = y, x #Learn the distribution p(y|x). Exchange the two.
+        x, logprob_std = self.transformation.inverse_and_log_det(x)
+        logprob_std = jnp.sum(logprob_std, axis=-1)
+        z = self.embedding_net(y)
+        log_prob = self.nde.log_prob(x, z)
+        return log_prob + logprob_std
+    
+    def standardize(self, x):
+        """
+        Standardize the data point x.
+        """
+        return self.transformation.inverse(x)
+    
+    def unstandardize(self, x):
+        """
+        Unstandardize the data point x.
+        """
+        return self.transformation.forward(x)
+    
+    def embedding(self, x):
+        """
+        Embed the data point x.
+        """
+        return self.embedding_net(x)
+
+    def log_prob(self, x, y=None, model="NPE"):
+        """
+        Returns the log probability of the data point x conditioned by y.
+        """
+        return self.__call__(x, y, model)
+
+    def sample(self, y, num_samples, key, model="NPE"):
+        """
+        Sample from the distribution conditioned by y.
+        """
+        assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
+        if model == "NPE":
+            z = self.embedding_net(y)
+            samples = self.nde.sample(z, num_samples, key)
+        else:
+            samples = self.nde.sample(y, num_samples, key)
+        samples = self.transformation.forward(samples)
+
+        return samples
