@@ -1,3 +1,9 @@
+"""
+Compressor.
+
+This module contains classes that implement compressors used in JaxILI.
+"""
+
 import jax
 import jax.numpy as jnp
 import flax.linen as nn
@@ -8,12 +14,13 @@ tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors
 tfd = tfp.distributions
 
+
 class MLPCompressor(nn.Module):
     """
     MLP Compressor
 
     Defines a MLP compressor to send the summary statistic to the same dimension than the parameters
-    
+
     Parameters
     ----------
     hidden_size : list
@@ -35,11 +42,12 @@ class MLPCompressor(nn.Module):
             x = self.activation(x)
         x = nn.Dense(self.output_size)(x)
         return x
-    
+
+
 class CNN2DCompressor(nn.Module):
     """
     CNN2D Compressor
-    
+
     Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters
 
     Parameters
@@ -61,8 +69,8 @@ class CNN2DCompressor(nn.Module):
         net_x = self.activation(net_x)
         net_x = nn.Conv(128, 3, 2)(net_x)
         net_x = self.activation(net_x)
-        net_x = nn.avg_pool(net_x, (16, 16), (8, 8), padding='SAME')
-        #Flatten the tensor
+        net_x = nn.avg_pool(net_x, (16, 16), (8, 8), padding="SAME")
+        # Flatten the tensor
         net_x = net_x.reshape((net_x.shape[0], -1))
         net_x = nn.Dense(64)(net_x)
         net_x = self.activation(net_x)

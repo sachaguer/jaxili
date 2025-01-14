@@ -1,3 +1,8 @@
+"""Loss.
+
+This module contains useful loss functions used in the neural network training.
+"""
+
 import jax
 import jax.numpy as jnp
 
@@ -5,10 +10,29 @@ from typing import Any
 from jaxtyping import Array, Float, PyTree
 
 MMD_BANDWIDTH_LIST = [
-    1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10, 15, 20, 25, 30, 35, 100, 1e3, 1e4, 1e5, 1e6
+    1e-6,
+    1e-5,
+    1e-4,
+    1e-3,
+    1e-2,
+    1e-1,
+    1,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    100,
+    1e3,
+    1e4,
+    1e5,
+    1e6,
 ]
 
-def loss_nll_npe(model: Any, params: PyTree, batch: Any)->Array:
+
+def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
     """
     Negative log-likelihood loss function for NPE methods
     using a given neural network as a model.
@@ -32,8 +56,9 @@ def loss_nll_npe(model: Any, params: PyTree, batch: Any)->Array:
 
     thetas, xs = batch
 
-    output =  model.apply({'params': params}, thetas, xs, method='log_prob')
+    output = model.apply({"params": params}, thetas, xs, method="log_prob")
     return -jnp.mean(output)
+
 
 def loss_nll_nle(model: Any, params: PyTree, batch: Any):
     """
@@ -59,7 +84,8 @@ def loss_nll_nle(model: Any, params: PyTree, batch: Any):
 
     thetas, xs = batch
 
-    return -jnp.mean(model.apply({'params': params}, xs, thetas, method='log_prob'))
+    return -jnp.mean(model.apply({"params": params}, xs, thetas, method="log_prob"))
+
 
 def gaussian_kernel_matrix(x, y, sigmas=None):
     """
@@ -80,12 +106,13 @@ def gaussian_kernel_matrix(x, y, sigmas=None):
     """
     if sigmas is None:
         sigmas = jnp.array(MMD_BANDWIDTH_LIST)
-    norm = lambda v : jnp.sum(v**2, axis=1)
+    norm = lambda v: jnp.sum(v**2, axis=1)
     beta = 1.0 / (2.0 * (jnp.expand_dims(sigmas, 1)))
     dist = jnp.transpose(norm(jnp.expand_dims(x, 2) - jnp.transpose(y)))
     s = jnp.matmul(beta, jnp.reshape(dist, (1, -1)))
     kernel = jnp.reshape(jnp.sum(jnp.exp(-s), axis=0), jnp.shape(dist))
     return kernel
+
 
 def mmd_kernel(x, y, kernel):
     """
@@ -105,7 +132,10 @@ def mmd_kernel(x, y, kernel):
     """
     return jnp.mean(kernel(x, x)) + jnp.mean(kernel(y, y)) - 2 * jnp.mean(kernel(x, y))
 
-def maximum_mean_discrepancy(source_samples, target_samples, kernel="gaussian", mmd_weight=1.0, minimum=0.0):
+
+def maximum_mean_discrepancy(
+    source_samples, target_samples, kernel="gaussian", mmd_weight=1.0, minimum=0.0
+):
     """
     Compute the Maximum Mean Discrepancy (MMD) between source and target samples.
 
@@ -122,14 +152,15 @@ def maximum_mean_discrepancy(source_samples, target_samples, kernel="gaussian", 
     float
         Maximum Mean Discrepancy (MMD) between source and target samples.
     """
-    assert kernel=="gaussian", "Only Gaussian kernel is supported for now"
+    assert kernel == "gaussian", "Only Gaussian kernel is supported for now"
 
-    if kernel=="gaussian":
+    if kernel == "gaussian":
         kernel_fun = gaussian_kernel_matrix
-    
+
     loss_value = mmd_kernel(source_samples, target_samples, kernel=kernel_fun)
-    loss_value = jnp.maximum(loss_value, minimum)*mmd_weight
+    loss_value = jnp.maximum(loss_value, minimum) * mmd_weight
     return loss_value
+
 
 def mmd_summary_space(summary_outputs, rng, z_dist="gaussian", kernel="gaussian"):
     """
@@ -152,8 +183,8 @@ def mmd_summary_space(summary_outputs, rng, z_dist="gaussian", kernel="gaussian"
         Maximum Mean Discrepancy (MMD) between the summary outputs and samples from a unit Gaussian distribution.
     """
 
-    assert z_dist=="gaussian", "Only Gaussian distribution is supported for now"
-    assert kernel=="gaussian", "Only Gaussian kernel is supported for now"
+    assert z_dist == "gaussian", "Only Gaussian distribution is supported for now"
+    assert kernel == "gaussian", "Only Gaussian kernel is supported for now"
 
     z_samples = jax.random.normal(rng, shape=summary_outputs.shape)
     mmd_loss = maximum_mean_discrepancy(summary_outputs, z_samples, kernel=kernel)
@@ -180,16 +211,18 @@ def loss_mmd_npe(model, params, batch):
     float
         Maximum Mean Discrepancy (MMD) loss.
     """
-    compress = lambda params, x : model.apply({'params': params}, x, method='compress')
-    nf = lambda params, theta, z : model.apply({'params': params}, z, theta, model='NPE', method='log_prob_from_compressed')
+    compress = lambda params, x: model.apply({"params": params}, x, method="compress")
+    nf = lambda params, theta, z: model.apply(
+        {"params": params}, z, theta, model="NPE", method="log_prob_from_compressed"
+    )
     theta, x = batch
 
-    #compress the data
+    # compress the data
     z = compress(params, x)
 
-    #Compute the MMD loss
-    rng_key = jax.random.PRNGKey(0) #Could probably be improved
+    # Compute the MMD loss
+    rng_key = jax.random.PRNGKey(0)  # Could probably be improved
     mmd_loss = mmd_summary_space(z, rng_key)
-    #Compute the log-probability
+    # Compute the log-probability
     log_prob = nf(params, theta, z)
     return -jnp.mean(log_prob) + mmd_loss

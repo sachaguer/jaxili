@@ -1,0 +1,12 @@
+jaxili
+======
+
+.. toctree::
+   :maxdepth: 4
+
+   compressor
+   loss
+   model
+   train
+   utils
+   validation

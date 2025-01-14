@@ -1,0 +1,583 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>jaxili package &#8212; JaxILI 0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=e1a75a79"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'jaxili';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">JaxILI 0.1 documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/jaxili.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>jaxili package</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-jaxili">
+<span id="jaxili-package"></span><h1>jaxili package<a class="headerlink" href="#module-jaxili" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="jaxili.compressor.html">jaxili.compressor module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.CNN2DCompressor"><code class="docutils literal notranslate"><span class="pre">CNN2DCompressor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.CNN2DCompressor.activation"><code class="docutils literal notranslate"><span class="pre">CNN2DCompressor.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.CNN2DCompressor.name"><code class="docutils literal notranslate"><span class="pre">CNN2DCompressor.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.CNN2DCompressor.output_size"><code class="docutils literal notranslate"><span class="pre">CNN2DCompressor.output_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.CNN2DCompressor.parent"><code class="docutils literal notranslate"><span class="pre">CNN2DCompressor.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.CNN2DCompressor.scope"><code class="docutils literal notranslate"><span class="pre">CNN2DCompressor.scope</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor"><code class="docutils literal notranslate"><span class="pre">MLPCompressor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor.activation"><code class="docutils literal notranslate"><span class="pre">MLPCompressor.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor.hidden_size"><code class="docutils literal notranslate"><span class="pre">MLPCompressor.hidden_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor.name"><code class="docutils literal notranslate"><span class="pre">MLPCompressor.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor.output_size"><code class="docutils literal notranslate"><span class="pre">MLPCompressor.output_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor.parent"><code class="docutils literal notranslate"><span class="pre">MLPCompressor.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.compressor.html#jaxili.compressor.MLPCompressor.scope"><code class="docutils literal notranslate"><span class="pre">MLPCompressor.scope</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jaxili.loss.html">jaxili.loss module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.gaussian_kernel_matrix"><code class="docutils literal notranslate"><span class="pre">gaussian_kernel_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.loss_mmd_npe"><code class="docutils literal notranslate"><span class="pre">loss_mmd_npe()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.loss_nll_nle"><code class="docutils literal notranslate"><span class="pre">loss_nll_nle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.loss_nll_npe"><code class="docutils literal notranslate"><span class="pre">loss_nll_npe()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.maximum_mean_discrepancy"><code class="docutils literal notranslate"><span class="pre">maximum_mean_discrepancy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.mmd_kernel"><code class="docutils literal notranslate"><span class="pre">mmd_kernel()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.loss.html#jaxili.loss.mmd_summary_space"><code class="docutils literal notranslate"><span class="pre">mmd_summary_space()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jaxili.model.html">jaxili.model module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling"><code class="docutils literal notranslate"><span class="pre">AffineCoupling</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling.activation"><code class="docutils literal notranslate"><span class="pre">AffineCoupling.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling.layers"><code class="docutils literal notranslate"><span class="pre">AffineCoupling.layers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling.name"><code class="docutils literal notranslate"><span class="pre">AffineCoupling.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling.parent"><code class="docutils literal notranslate"><span class="pre">AffineCoupling.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling.scope"><code class="docutils literal notranslate"><span class="pre">AffineCoupling.scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.AffineCoupling.y"><code class="docutils literal notranslate"><span class="pre">AffineCoupling.y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.compress"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.compress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.log_prob"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.log_prob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.log_prob_from_compressed"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.log_prob_from_compressed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.name"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.parent"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.sample"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.Compressor_w_NDE.scope"><code class="docutils literal notranslate"><span class="pre">Compressor_w_NDE.scope</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.activation"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.gaussian"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.gaussian</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.hidden_dims"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.hidden_dims</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.n_cond"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.n_cond</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.n_in"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.n_in</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.name"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.parent"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.random_order"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.random_order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.scope"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.seed"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMADE.setup"><code class="docutils literal notranslate"><span class="pre">ConditionalMADE.setup()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.activation"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.backward"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.backward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.layers"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.layers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.log_prob"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.log_prob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.n_cond"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.n_cond</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.n_in"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.n_in</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.n_layers"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.n_layers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.name"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.parent"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.sample"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.scope"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.seed"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.setup"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalMAF.use_reverse"><code class="docutils literal notranslate"><span class="pre">ConditionalMAF.use_reverse</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.activation"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.layers"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.layers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.log_prob"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.log_prob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.n_in"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.n_in</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.n_layers"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.n_layers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.name"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.parent"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.sample"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.ConditionalRealNVP.scope"><code class="docutils literal notranslate"><span class="pre">ConditionalRealNVP.scope</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer"><code class="docutils literal notranslate"><span class="pre">MAFLayer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.activation"><code class="docutils literal notranslate"><span class="pre">MAFLayer.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.backward"><code class="docutils literal notranslate"><span class="pre">MAFLayer.backward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.forward"><code class="docutils literal notranslate"><span class="pre">MAFLayer.forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.hidden_dims"><code class="docutils literal notranslate"><span class="pre">MAFLayer.hidden_dims</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.n_cond"><code class="docutils literal notranslate"><span class="pre">MAFLayer.n_cond</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.n_in"><code class="docutils literal notranslate"><span class="pre">MAFLayer.n_in</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.name"><code class="docutils literal notranslate"><span class="pre">MAFLayer.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.parent"><code class="docutils literal notranslate"><span class="pre">MAFLayer.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.reverse"><code class="docutils literal notranslate"><span class="pre">MAFLayer.reverse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.scope"><code class="docutils literal notranslate"><span class="pre">MAFLayer.scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MAFLayer.seed"><code class="docutils literal notranslate"><span class="pre">MAFLayer.seed</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear"><code class="docutils literal notranslate"><span class="pre">MaskedLinear</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.bias"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.bias</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.initialize_mask"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.initialize_mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.mask"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.mask</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.n_out"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.n_out</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.name"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.parent"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MaskedLinear.scope"><code class="docutils literal notranslate"><span class="pre">MaskedLinear.scope</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.activation"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.activation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.layers"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.layers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.log_prob"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.log_prob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.n_components"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.n_components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.n_data"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.n_data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.name"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.parent"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.sample"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.MixtureDensityNetwork.scope"><code class="docutils literal notranslate"><span class="pre">MixtureDensityNetwork.scope</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork"><code class="docutils literal notranslate"><span class="pre">NDENetwork</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork.log_prob"><code class="docutils literal notranslate"><span class="pre">NDENetwork.log_prob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork.name"><code class="docutils literal notranslate"><span class="pre">NDENetwork.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork.parent"><code class="docutils literal notranslate"><span class="pre">NDENetwork.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork.sample"><code class="docutils literal notranslate"><span class="pre">NDENetwork.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork.scope"><code class="docutils literal notranslate"><span class="pre">NDENetwork.scope</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.compressor"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.compressor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.compressor_hparams"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.compressor_hparams</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.log_prob"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.log_prob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.log_prob_compressed"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.log_prob_compressed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.name"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.nde"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.nde</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.nde_hparams"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.nde_hparams</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.parent"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.sample"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.scope"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.scope</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDE_Compressor.setup"><code class="docutils literal notranslate"><span class="pre">NDE_Compressor.setup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jaxili.train.html">jaxili.train module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainState"><code class="docutils literal notranslate"><span class="pre">TrainState</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainState.batch_stats"><code class="docutils literal notranslate"><span class="pre">TrainState.batch_stats</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainState.replace"><code class="docutils literal notranslate"><span class="pre">TrainState.replace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainState.rng"><code class="docutils literal notranslate"><span class="pre">TrainState.rng</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule"><code class="docutils literal notranslate"><span class="pre">TrainerModule</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.bind_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.bind_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.create_functions"><code class="docutils literal notranslate"><span class="pre">TrainerModule.create_functions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.create_jitted_functions"><code class="docutils literal notranslate"><span class="pre">TrainerModule.create_jitted_functions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.eval_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.eval_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.generate_config"><code class="docutils literal notranslate"><span class="pre">TrainerModule.generate_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.init_apply_fn"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_apply_fn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.init_logger"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_logger()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.init_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.init_optimizer"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_optimizer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.is_new_model_better"><code class="docutils literal notranslate"><span class="pre">TrainerModule.is_new_model_better()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.load_from_checkpoints"><code class="docutils literal notranslate"><span class="pre">TrainerModule.load_from_checkpoints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.load_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.load_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.on_training_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_training_epoch_end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.on_training_start"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_training_start()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.on_validation_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_validation_epoch_end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.print_tabulate"><code class="docutils literal notranslate"><span class="pre">TrainerModule.print_tabulate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.run_model_init"><code class="docutils literal notranslate"><span class="pre">TrainerModule.run_model_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.save_metrics"><code class="docutils literal notranslate"><span class="pre">TrainerModule.save_metrics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.save_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.save_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.tracker"><code class="docutils literal notranslate"><span class="pre">TrainerModule.tracker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.train_epoch"><code class="docutils literal notranslate"><span class="pre">TrainerModule.train_epoch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="jaxili.train.html#jaxili.train.TrainerModule.train_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.train_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jaxili.utils.html">jaxili.utils module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.utils.html#jaxili.utils.check_density_estimator"><code class="docutils literal notranslate"><span class="pre">check_density_estimator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.utils.html#jaxili.utils.create_data_loader"><code class="docutils literal notranslate"><span class="pre">create_data_loader()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.utils.html#jaxili.utils.numpy_collate"><code class="docutils literal notranslate"><span class="pre">numpy_collate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="jaxili.utils.html#jaxili.utils.validate_theta_x"><code class="docutils literal notranslate"><span class="pre">validate_theta_x()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jaxili.validation.html">jaxili.validation module</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Sacha Guerrini
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Sacha Guerrini.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
