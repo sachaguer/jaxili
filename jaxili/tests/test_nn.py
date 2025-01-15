@@ -65,10 +65,11 @@ def test_conditional_maf():
 def test_conditional_realnvp():
     n_in = 3
     n_cond = 5
+    n_layers = 5
     layers = [50, 50, 50]
     activation = jax.nn.relu
 
-    realnvp = ConditionalRealNVP(n_in, n_cond, layers, activation)
+    realnvp = ConditionalRealNVP(n_in, n_cond, n_layers, layers, activation)
 
     x = jnp.array(np.random.randn(10, n_in))
     cond = jnp.array(np.random.randn(10, n_cond))
@@ -103,7 +104,7 @@ def test_mixture_density_network():
     layers = [50, 50, 50]
     activation = jax.nn.relu
 
-    mdn = MixtureDensityNetwork(n_in, n_components, layers, activation)
+    mdn = MixtureDensityNetwork(n_in, n_cond, n_components, layers, activation)
 
     x = jnp.array(np.random.randn(10, n_in))
     cond = jnp.array(np.random.randn(10, n_cond))
@@ -130,12 +131,16 @@ def test_mixture_density_network():
     )
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
+
 def test_identity():
     identity = Identity()
 
     x = np.random.randn(10, 3)
 
-    assert np.isclose(identity.apply({}, x), x).all(), "Identity function is not working."
+    assert np.isclose(
+        identity.apply({}, x), x
+    ).all(), "Identity function is not working."
+
 
 def test_affine_transformation():
     n_dim = 2
@@ -154,10 +159,11 @@ def test_affine_transformation():
     npt.assert_allclose(test_forward, shifted_samples, rtol=1e-5, atol=1e-5)
     npt.assert_allclose(test_inverse, samples, rtol=1e-5, atol=1e-5)
 
+
 def test_standardizer():
     n_dim = 3
     n_samples = 1000
-    shift = np.random.randn(n_dim)*2
+    shift = np.random.randn(n_dim) * 2
     scale = np.random.randn(n_dim)
 
     samples = jax.random.normal(jax.random.PRNGKey(0), shape=(n_samples, n_dim))
@@ -173,6 +179,7 @@ def test_standardizer():
 
     npt.assert_allclose(std_samples, test_std_samples, rtol=1e-5, atol=1e-5)
 
+
 def test_network_w_standardization():
     n_in = 2
     n_cond = 5
@@ -183,7 +190,7 @@ def test_network_w_standardization():
     theta = jax.random.normal(jax.random.PRNGKey(0), shape=(10, n_in))
     x = jax.random.normal(jax.random.PRNGKey(0), shape=(10, n_cond))
 
-    shift = np.random.randn(n_in)*2
+    shift = np.random.randn(n_in) * 2
     scale = np.random.randn(n_in)
 
     shifted_theta = theta * scale + shift
@@ -197,30 +204,28 @@ def test_network_w_standardization():
         layers=layers,
         activation=activation,
         use_reverse=True,
-        seed=42
+        seed=42,
     )
 
     net_w_standard = NDE_w_Standardization(
-        nde=maf,
-        embedding_net=Identity(),
-        transformation=transformation
+        nde=maf, embedding_net=Identity(), transformation=transformation
     )
 
     params = net_w_standard.init(jax.random.PRNGKey(0), theta, x)
 
-    #Test the standardization
+    # Test the standardization
     test_theta = net_w_standard.apply(params, shifted_theta, method="standardize")
     npt.assert_allclose(test_theta, theta, rtol=1e-5, atol=1e-5)
 
-    #Test the unstandardization
+    # Test the unstandardization
     test_theta = net_w_standard.apply(params, theta, method="unstandardize")
     npt.assert_allclose(test_theta, shifted_theta, rtol=1e-5, atol=1e-5)
 
-    #Test the embedding
+    # Test the embedding
     test_embedding = net_w_standard.apply(params, x, method="embedding")
     npt.assert_allclose(test_embedding, x, rtol=1e-5, atol=1e-5)
 
-    #Test the log_prob
+    # Test the log_prob
     log_prob = net_w_standard.apply(params, theta, x, method="log_prob")
     assert log_prob.shape == (
         10,

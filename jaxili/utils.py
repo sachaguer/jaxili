@@ -6,7 +6,7 @@ Other functions allow to check the validity of the input data.
 """
 
 import numpy as np
-from typing import Sequence, Union, Any
+from typing import Sequence, Union, Any, Callable
 import jax.numpy as jnp
 
 import torch
@@ -97,8 +97,12 @@ def validate_theta_x(theta: Any, x: Any):
         Simulation outputs.
     """
 
-    assert isinstance(theta, jnp.ndarray), "theta should be a jax array."
-    assert isinstance(x, jnp.ndarray), "x should be a jax array."
+    assert isinstance(theta, jnp.ndarray) or isinstance(
+        theta, np.ndarray
+    ), "theta should be a jax array."
+    assert isinstance(x, jnp.ndarray) or isinstance(
+        x, np.ndarray
+    ), "x should be a jax array."
     assert (
         theta.shape[0] == x.shape[0]
     ), f"Number of parameter sets ({theta.shape[0]}) and number of simulation outputs ({x.shape[0]}) should be the same."
@@ -109,3 +113,59 @@ def validate_theta_x(theta: Any, x: Any):
     batch_size = theta.shape[0]
 
     return theta, x, batch_size
+
+
+def check_hparams_maf(hparams: dict):
+    """
+    Check the hyperparameters of the Masked Autoregressive Flow.
+
+    Parameters
+    ----------
+    hparams : dict
+        Dictionary with the hyperparameters of the MAF.
+    """
+    assert "n_layers" in hparams, "n_layers not found in hyperparameters."
+    assert "layers" in hparams, "layers not found in hyperparameters."
+    assert "activation" in hparams, "activation not found in hyperparameters."
+    assert "use_reverse" in hparams, "use_reverse not found in hyperparameters."
+
+    assert isinstance(hparams["n_layers"], int), "n_layers should be an int."
+    assert isinstance(hparams["layers"], list), "layers should be a list of int."
+    assert callable(hparams["activation"]), "activation should be a callable."
+    assert isinstance(hparams["use_reverse"], bool), "use_reverse should be a boolean."
+
+
+def check_hparams_realnvp(hparams: dict):
+    """
+    Check the hyperparameters of the RealNVP.
+
+    Parameters
+    ----------
+    hparams : dict
+        Dictionary with the hyperparameters of the RealNVP.
+    """
+    assert "n_layers" in hparams, "n_layers not found in hyperparameters."
+    assert "layers" in hparams, "layers not found in hyperparameters."
+    assert "activation" in hparams, "activation not found in hyperparameters."
+
+    assert isinstance(hparams["n_layers"], int), "n_layers should be an int."
+    assert isinstance(hparams["layers"], list), "layers should be a list of int."
+    assert callable(hparams["activation"]), "activation should be a callable."
+
+
+def check_hparams_mdn(hparams: dict):
+    """
+    Check the hyperparameters of the Mixture Density Network.
+
+    Parameters
+    ----------
+    hparams : dict
+        Dictionary with the hyperparameters of the MDN.
+    """
+    assert "n_components" in hparams, "n_components not found in hyperparameters."
+    assert "layers" in hparams, "layers not found in hyperparameters."
+    assert "activation" in hparams, "activation not found in hyperparameters."
+
+    assert isinstance(hparams["n_components"], int), "n_components should be an int."
+    assert isinstance(hparams["layers"], list), "layers should be a list of int."
+    assert callable(hparams["activation"]), "activation should be a callable."

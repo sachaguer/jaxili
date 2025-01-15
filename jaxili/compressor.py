@@ -17,18 +17,18 @@ tfd = tfp.distributions
 
 class MLPCompressor(nn.Module):
     """
-    MLP Compressor
+    MLP Compressor.
 
-    Defines a MLP compressor to send the summary statistic to the same dimension than the parameters
+    Defines a MLP compressor to send the summary statistic to the same dimension than the parameters.
 
     Parameters
     ----------
     hidden_size : list
-        List with the size of the hidden layers
+        List with the size of the hidden layers.
     activation : Callable
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     output_size : int
-        Size of the output layer
+        Size of the output layer.
     """
 
     hidden_size: list

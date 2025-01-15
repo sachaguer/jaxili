@@ -28,11 +28,13 @@ class Identity(nn.Module):
     @nn.compact
     def __call__(self, x):
         return x
-    
+
+
 class Standardizer(nn.Module):
     """
     Standardizer transformation.
     """
+
     mean: Array
     std: Array
 
@@ -112,9 +114,10 @@ class MixtureDensityNetwork(NDENetwork):
     The weights of each gaussian component, the mean and the covariance are learned by the network.
     """
 
-    n_data: int  # Dimension of data vector
+    n_in: int  # Dimension of the input
+    n_cond: int  # Dimension of conditionning variable
     n_components: int  # number of mixture components
-    layers: list  # list of hidden layers size
+    layers: list[int]  # list of hidden layers size
     activation: Callable  # activation function
 
     @nn.compact
@@ -143,21 +146,21 @@ class MixtureDensityNetwork(NDENetwork):
         for size in self.layers:
             y = self.activation(nn.Dense(size, kernel_init=kernel_init)(y))
         final_size = self.n_components * (
-            1 + self.n_data + self.n_data * (self.n_data + 1) // 2
+            1 + self.n_in + self.n_in * (self.n_in + 1) // 2
         )
         y = nn.Dense(final_size, kernel_init=kernel_init)(y)
         logits = jax.nn.log_softmax(y[..., : self.n_components])
-        locs = y[..., self.n_components : self.n_components * (self.n_data + 1)]
-        scale_tril = y[..., self.n_components * (self.n_data + 1) :]
+        locs = y[..., self.n_components : self.n_components * (self.n_in + 1)]
+        scale_tril = y[..., self.n_components * (self.n_in + 1) :]
 
         distribution = distrax.MixtureSameFamily(
             mixture_distribution=distrax.Categorical(logits=logits),
             components_distribution=tfd.MultivariateNormalTriL(
-                loc=jnp.reshape(locs, (-1, self.n_components, self.n_data)),
+                loc=jnp.reshape(locs, (-1, self.n_components, self.n_in)),
                 scale_tril=tfp.math.fill_triangular(
                     jnp.reshape(
                         scale_tril,
-                        (-1, self.n_components, self.n_data * (self.n_data + 1) // 2),
+                        (-1, self.n_components, self.n_in * (self.n_in + 1) // 2),
                     )
                 ),
             ),
@@ -241,6 +244,7 @@ class AffineCoupling(nn.Module):
 
 class ConditionalRealNVP(NDENetwork):
     n_in: int  # Dimension of the input
+    n_cond: int  # Dimension of the conditionning variable
     n_layers: int  # Number of layers
     layers: list[int]  # list of hidden layers size
     activation: Callable  # activation function
@@ -530,10 +534,10 @@ class MAFLayer(nn.Module):
 class ConditionalMAF(NDENetwork):
     n_in: int  # Size of the input vector
     n_cond: int  # Size of the conditionning variable
-    n_layers: int = 5 # Number of layers (i.e. number of stacked MADEs)
-    layers: list[int] = [50, 50]  # list of hidden dimensionsin each MADE.
-    activation: Callable = jax.nn.relu  # Activation function
-    use_reverse: bool = True  # Whether to reverse the order of the input between each MADE
+    n_layers: int  # Number of layers (i.e. number of stacked MADEs)
+    layers: list[int]  # list of hidden dimensionsin each MADE.
+    activation: Callable  # Activation function
+    use_reverse: bool  # Whether to reverse the order of the input between each MADE
     seed: Optional[int] = None  # Random seed to label nodes
 
     def setup(self):
@@ -720,7 +724,7 @@ class NDE_w_Standardization(NDENetwork):
     def __call__(self, x, y, model="NPE"):
         """
         Returns the log-probability of x given y for NPE and y given x for NLE.
-        
+
         Parameters
         ----------
         x : jnp.Array
@@ -737,25 +741,25 @@ class NDE_w_Standardization(NDENetwork):
         """
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
         if model == "NLE":
-            x, y = y, x #Learn the distribution p(y|x). Exchange the two.
+            x, y = y, x  # Learn the distribution p(y|x). Exchange the two.
         x, logprob_std = self.transformation.inverse_and_log_det(x)
         logprob_std = jnp.sum(logprob_std, axis=-1)
         z = self.embedding_net(y)
         log_prob = self.nde.log_prob(x, z)
         return log_prob + logprob_std
-    
+
     def standardize(self, x):
         """
         Standardize the data point x.
         """
         return self.transformation.inverse(x)
-    
+
     def unstandardize(self, x):
         """
         Unstandardize the data point x.
         """
         return self.transformation.forward(x)
-    
+
     def embedding(self, x):
         """
         Embed the data point x.
