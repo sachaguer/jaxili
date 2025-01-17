@@ -720,6 +720,7 @@ class NDE_w_Standardization(NDENetwork):
     nde: NDENetwork  # Neural Density Estimator
     embedding_net: nn.Module  # Embedding network
     transformation: distrax.Bijector  # Transformation network TBC
+    nde_hparams: dict = None  # Hyperparameters of the Neural Density Estimator
 
     def __call__(self, x, y, model="NPE"):
         """

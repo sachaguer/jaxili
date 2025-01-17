@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Callable, Dict, Optional, Union, Iterable
 from jaxtyping import Array, Float, PyTree
 
@@ -57,6 +58,7 @@ class NPE:
         logging_level: Union[int, str] = "WARNING",
         verbose: bool = True,
         model_hparams: Optional[Dict[str, Any]] = default_maf_hparams,
+        loss_fn: Callable = loss_nll_npe,
     ):
         """
         Base class for Neural Posterior Estimation (NPE) methods.
@@ -75,6 +77,7 @@ class NPE:
         self._model_class = model_class
         self._model_hparams = model_hparams
         self._logging_level = logging_level
+        self._loss_fn = loss_fn
         self.verbose = verbose
 
     def set_model_hparams(self, hparams):
@@ -88,11 +91,23 @@ class NPE:
         """
         self._model_hparams = hparams
 
+    def set_loss_fn(self, loss_fn):
+        """
+        Set the loss function to use for training.
+
+        Parameters
+        ----------
+        loss_fn : Callable
+            Loss function to use for training.
+        """
+        self._loss_fn = loss_fn
+
     def append_simulations(
         self,
         theta: Array,
         x: Array,
         train_test_split: Iterable[float] = [0.7, 0.2, 0.1],
+        key: Optional[PyTree] = None,
     ):
         """
         Store parameters and simulation outputs to use them for later training.
@@ -134,7 +149,8 @@ class NPE:
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
 
-        key = jr.PRNGKey(np.random.randint(0, 1000))
+        if key is None:
+            key = jr.PRNGKey(np.random.randint(0, 1000))
         index_permutation = jr.permutation(key, num_sims)
 
         train_idx = index_permutation[: int(train_fraction * num_sims)]
@@ -174,12 +190,19 @@ class NPE:
         seed : int
             Seed to use for the DataLoader. Default is 42.
         """
-        assert (
-            self._train_dataset is not None
-        ), "No training dataset found. Please append simulations first."
-        assert (
-            self._val_dataset is not None
-        ), "No validation dataset found. Please append simulations first."
+
+        try:
+            self._train_dataset
+        except AttributeError:
+            raise ValueError(
+                "No training dataset found. Please append simulations first."
+            )
+        try:
+            self._val_dataset
+        except AttributeError:
+            raise ValueError(
+                "No validation dataset found. Please append simulations first."
+            )
 
         train = [True, False] if self._test_dataset is None else [True, False, False]
         batch_size = kwargs.get("batch_size", 128)
@@ -219,6 +242,8 @@ class NPE:
         embedding_net : nn.Module, optional
             Neural network to use for embedding. Default is nn.Identity().
         """
+        if self.verbose:
+            print("[!] Building the neural network.")
 
         # Check if the model class and hparams are correct
         if self._model_class == ConditionalMAF:
@@ -228,13 +253,14 @@ class NPE:
         elif self._model_class == MixtureDensityNetwork:
             check_hparams_mdn(self._model_hparams)
         else:
-            raise Warning(
-                f"Model class {self.model_class} is not a base class of JaxILI.\n Check that the hyperparameters of your network are consistent."
-            )
+            warnings.warn(f"Model class {self.model_class} is not a base class of JaxILI.\n Check that the hyperparameters of your network are consistent.", Warning)
 
-        assert (
-            self._train_dataset is not None
-        ), "No training dataset found. Please append simulations first."
+        try:
+            self._train_dataset
+        except AttributeError:
+            raise ValueError(
+                "No training dataset found. Please append simulations first."
+            )
 
         # Check if z-score is required for theta.
         shift = jnp.zeros(self._dim_params)
@@ -260,20 +286,22 @@ class NPE:
         self._model_hparams["n_cond"] = self._dim_cond
         self._nde = self._model_class(**self._model_hparams)
 
-        self._model = NDE_w_Standardization(
+        model = NDE_w_Standardization(
             nde=self._nde,
             embedding_net=self._embedding_net,
             transformation=self._transformation,
         )
 
+        return model
+
     def create_trainer(
         self,
         optimizer_hparams: Dict[str, Any],
-        exmp_input: Any,
         seed: int = 42,
         logger_params: Dict[str, Any] = None,
         debug: bool = False,
         check_val_every_epoch: int = 1,
+        **kwargs,
     ):
         """
         Create a TrainerModule for the density estimator.
@@ -296,11 +324,41 @@ class NPE:
             Frequency at which to check the validation loss. Default is 1.
         """
 
+        try:
+            self._nde
+        except AttributeError:
+            z_score_theta = kwargs.get("z_score_theta", True)
+            z_score_x = kwargs.get("z_score_x", True)
+            embedding_net = kwargs.get("embedding_net", Identity())
+            _ = self._build_neural_network(
+                z_score_theta=z_score_theta,
+                z_score_x=z_score_x,
+                embedding_net=embedding_net,
+            )
+
+        nde_w_std_hparams = {
+            "nde": self._nde,
+            "embedding_net": self._embedding_net,
+            "transformation": self._transformation,
+            "nde_hparams": self._model_hparams,
+        }
+
+        exmp_input = (jnp.zeros((1, self._dim_params)), jnp.zeros((1, self._dim_cond)))
+
+        if self.verbose:
+            print("[!] Creating the Trainer module.")
+
         self.trainer = TrainerModule(
-            model_class=self._model_class,
-            model_hparams=self._model_hparams,
+            model_class=NDE_w_Standardization,
+            model_hparams=nde_w_std_hparams,
             optimizer_hparams=optimizer_hparams,
-            loss_fn=loss_nll_npe,
+            loss_fn=self._loss_fn,
+            exmp_input=exmp_input,
+            seed=seed,
+            logger_params=logger_params,
+            enable_progress_bar=self.verbose,
+            debug=debug,
+            check_val_every_epoch=check_val_every_epoch,
         )
 
     def train(
@@ -308,10 +366,8 @@ class NPE:
         training_batch_size: int = 50,
         learning_rate: float = 5e-4,
         patience: int = 20,
-        n_epoch: int = 2**31 - 1,
-        clip_max_norm: Optional[float] = 5.0,
-        key: Optional[Array] = None,
-        checkpoint_path: Optional[str] = ".",
+        num_epochs: int = 2**31 - 1,
+        check_val_every_epoch: int = 1,
         **kwargs,
     ):
         r"""
@@ -323,17 +379,76 @@ class NPE:
             Batch size to use during training. Default is 50.
         learning_rate: float, optional
             Learning rate to use during training. Default is 5e-4.
-        validation_size: float, optional
-            Fraction of the dataset to use for validation. Default is 0.1.
         patience: int, optional
             Number of epochs to wait before early stopping. Default is 20.
-        n_epoch: int, optional
+        num_epochs: int, optional
             Maximum number of epochs to train. Default is 2**31 - 1.
-        model_hparams: Optional[Dict], optional
-            Hyperparameters to use for the model. Default is None.
-        key: Optional[Array], optional
-            Random key to use for training. Default is None.
+        check_val_every_epoch: int, optional
+            Frequency at which to check the validation loss. Default is 1.
         """
 
-        # Build the trainer with correct architecture
-        self.trainer = TrainerModule()
+        try:
+            self._train_dataset
+        except AttributeError:
+            raise ValueError(
+                "No training dataset found. Please append simulations first."
+            )
+
+        # Create the dataloaders to perform the training
+        try:
+            self._train_loader
+        except AttributeError:
+            self._create_data_loader(batch_size=training_batch_size)
+
+        try:
+            metrics = self.trainer.train_model(
+                self._train_loader,
+                self._val_loader,
+                test_loader=self._test_loader,
+                num_epochs=num_epochs,
+                patience=patience,
+                **kwargs,
+            )
+        except AttributeError:
+            optimizer_hparams = {
+                "lr": learning_rate,
+                "optimizer_name": kwargs.get("optimizer_name", "adam"),
+                "gradient_clip": kwargs.get("gradient_clip", 5.0),
+                "warmup": kwargs.get("warmup", 0.1),
+                "weight_decay": kwargs.get("weight_decay", 0.0),
+            }
+
+            logger_params = {
+                "base_log_dir": kwargs.get("checkpoint_path", "checkpoints/"),
+                "log_dir": kwargs.get("log_dir", None),
+                "logger_type": kwargs.get("logger_type", "TensorBoard"),
+            }
+
+            _ = self.create_trainer(
+                optimizer_hparams=optimizer_hparams,
+                seed=kwargs.get("seed", 42),
+                logger_params=logger_params,
+                debug=kwargs.get("debug", False),
+                check_val_every_epoch=check_val_every_epoch,
+                **kwargs,
+            )
+
+            if self.verbose:
+                print("[!] Training the density estimator.")
+            metrics = self.trainer.train_model(
+                self._train_loader,
+                self._val_loader,
+                test_loader=self._test_loader,
+                num_epochs=num_epochs,
+                patience=patience,
+                min_delta=kwargs.get("min_delta", 1e-3),
+            )
+
+        if self.verbose:
+            print(f"[!] Training loss: {metrics['train/loss']}")
+            print(f"[!] Validation loss: {metrics['val/loss']}")
+            if self._test_loader is not None:
+                print(f"[!] Test loss: {metrics['test/loss']}")
+
+        density_estimator = self.trainer.bind_model()
+        return metrics, density_estimator

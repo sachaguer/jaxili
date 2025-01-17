@@ -5,6 +5,7 @@ This module implements an object to perform the training of Normalizing Flows.
 """
 
 import os
+import warnings
 import json
 import time
 from copy import copy, deepcopy
@@ -138,8 +139,11 @@ class TrainerModule:
         log_dir = self.logger.log_dir
         if not os.path.isfile(os.path.join(log_dir, "hparams.json")):
             os.makedirs(os.path.join(log_dir, "metrics/"), exist_ok=True)
-            with open(os.path.join(log_dir, "hparams.json"), "w") as f:
-                json.dump(self.config, f, indent=4)
+            try:
+                with open(os.path.join(log_dir, "hparams.json"), "w") as f:
+                    json.dump(self.config, f, indent=4)
+            except:
+                warnings.warn("Could not save hyperparameters.", Warning)
         self.log_dir = log_dir
 
     def init_model(self, exmp_input: Any):
@@ -261,6 +265,7 @@ class TrainerModule:
         transf = [optax.clip_by_global_norm(hparams.pop("gradient_clip", 5.0))]
         if opt_class == optax.sgd and "weight_decay" in hparams:
             transf.append(optax.add_decayed_weights(hparams.pop("weight_decay", 0.0)))
+        hparams.pop("weight_decay", None) #removes weight decay if the opt_class is not sgd.
         optimizer = optax.chain(*transf, opt_class(lr_schedule, **hparams))
         # Initialize training state
         self.state = TrainState.create(
@@ -322,7 +327,7 @@ class TrainerModule:
         test_loader: Optional[Iterator] = None,
         num_epochs: int = 500,
         min_delta: float = 1e-3,
-        patience: int = 20,
+        patience: int = 20
     ) -> Dict[str, Any]:
         """
         Starts a training loop for the given number of epochs.
@@ -625,6 +630,10 @@ class TrainerModule:
         if "activation" in hparams["model_hparams"].keys():
             hparams["model_hparams"]["activation"] = jax_nn_dict[
                 hparams["model_hparams"]["activation"]
+            ]
+        if "nde" in hparams["model_hparams"].keys():
+            hparams["model_hparams"]["nde"] = jaxili_nn_dict[
+                hparams["model_hparams"]["nde"]
             ]
         if not hparams["logger_params"]:
             hparams["logger_params"] = dict()
