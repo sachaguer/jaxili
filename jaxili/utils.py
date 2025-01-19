@@ -169,3 +169,16 @@ def check_hparams_mdn(hparams: dict):
     assert isinstance(hparams["n_components"], int), "n_components should be an int."
     assert isinstance(hparams["layers"], list), "layers should be a list of int."
     assert callable(hparams["activation"]), "activation should be a callable."
+
+
+def handle_non_serializable(obj):
+    """
+    Custom handler for non-serializable objects.
+    Replace or transform objects into something serializable to save metadata from training.
+
+    Parameters
+    ----------
+    obj : Any
+        Object to handle.
+    """
+    return str(obj) #Default behavior is to convert to string

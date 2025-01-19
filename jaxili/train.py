@@ -24,6 +24,7 @@ from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 
 import jaxili
 from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict, jaxili_loss_dict
+from jaxili.utils import handle_non_serializable
 
 
 class TrainState(train_state.TrainState):
@@ -80,6 +81,7 @@ class TrainerModule:
         self.enable_progress_bar = enable_progress_bar
         self.debug = debug
         self.seed = seed
+        self.key_rng = jax.random.PRNGKey(seed)
         self.check_val_every_epoch = check_val_every_epoch
         self.nde_class = nde_class
         assert (
@@ -141,7 +143,7 @@ class TrainerModule:
             os.makedirs(os.path.join(log_dir, "metrics/"), exist_ok=True)
             try:
                 with open(os.path.join(log_dir, "hparams.json"), "w") as f:
-                    json.dump(self.config, f, indent=4)
+                    json.dump(self.config, f, indent=4, default=handle_non_serializable)
             except:
                 warnings.warn("Could not save hyperparameters.", Warning)
         self.log_dir = log_dir
@@ -155,14 +157,14 @@ class TrainerModule:
         exmp_input : An input to the model with which the shapes are inferred.
         """
         # Prepare PRNG and input
-        model_rng = jax.random.PRNGKey(self.seed)
-        model_rng, init_rng = jax.random.split(model_rng)
+        init_rng, self.key_rng = jax.random.split(self.key_rng)
         exmp_input = (
             [exmp_input] if not isinstance(exmp_input, (list, tuple)) else exmp_input
         )
         # Run model initialization
         variables = self.run_model_init(exmp_input, init_rng)
         # Create default state. Optimizer is initialized later
+        model_rng, self.key_rng = jax.random.split(self.key_rng)
         self.state = TrainState(
             step=0,
             apply_fn=self.apply_fn,

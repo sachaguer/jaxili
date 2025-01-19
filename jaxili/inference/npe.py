@@ -35,6 +35,7 @@ default_maf_hparams = {
     "layers": [50, 50],
     "activation": jax.nn.relu,
     "use_reverse": True,
+    "seed": 42
 }
 
 
@@ -102,6 +103,46 @@ class NPE:
         """
         self._loss_fn = loss_fn
 
+    def set_dataset(self, dataset, type):
+        """
+        Sets the dataset to use for training, validation or testing.
+
+        Parameters
+        ----------
+        dataset : data.Dataset
+            Dataset to use.
+        type : str
+            Type of the dataset. Can be 'train', 'val' or 'test'.
+        """
+        assert type in ["train", "val", "test"], "Type should be 'train', 'val' or 'test'."
+
+        if type == "train":
+            self._train_dataset = dataset
+        elif type == "val":
+            self._val_dataset = dataset
+        elif type == "test":
+            self._test_dataset = dataset
+    
+    def set_dataloader(self, dataloader, type):
+        """
+        Sets the dataloader to use for training, validation or testing.
+
+        Parameters
+        ----------
+        dataloader : data.DataLoader
+            dataloader to use.
+        type : str
+            Type of the dataloader. Can be 'train', 'val' or 'test'.
+        """
+        assert type in ["train", "val", "test"], "Type should be 'train', 'val' or 'test'."
+
+        if type == "train":
+            self._train_dataloader = dataloader
+        elif type == "val":
+            self._val_dataloader = dataloader
+        elif type == "test":
+            self._test_dataloader = dataloader
+
     def append_simulations(
         self,
         theta: Array,
@@ -163,10 +204,11 @@ class NPE:
             test_idx = index_permutation[
                 int((train_fraction + val_fraction) * num_sims) :
             ]
-        self._train_dataset = NDEDataset(theta[train_idx], x[train_idx])
-        self._val_dataset = NDEDataset(theta[val_idx], x[val_idx])
-        self._test_dataset = (
-            NDEDataset(theta[test_idx], x[test_idx]) if is_test_set else None
+        self.set_dataset(NDEDataset(theta[train_idx], x[train_idx]), type="train")
+        self.set_dataset(NDEDataset(theta[val_idx], x[val_idx]), type="val")
+        self.set_dataset(
+            NDEDataset(theta[test_idx], x[test_idx]) if is_test_set else None,
+            type="test"
         )
 
         if self.verbose:
@@ -339,8 +381,7 @@ class NPE:
         nde_w_std_hparams = {
             "nde": self._nde,
             "embedding_net": self._embedding_net,
-            "transformation": self._transformation,
-            "nde_hparams": self._model_hparams,
+            "transformation": self._transformation
         }
 
         exmp_input = (jnp.zeros((1, self._dim_params)), jnp.zeros((1, self._dim_cond)))

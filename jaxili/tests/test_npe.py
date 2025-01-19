@@ -178,6 +178,7 @@ def test_training():
     assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0")), "The checkpoint dir does not exist. Check ~/test/."
     #assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/")), "The checkpoint dir does not exist. Check ~/test/NDE_w_Standardization/version_0."
     assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/metrics")), "The metrics dir does not exist. Check ~/test/NDE_w_Standardization/version_0."
+    assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/hparams.json")), "The hparams JSON file does not exist. Check ~/test/NDE_w_Standardization/version_0."
 
     shutil.rmtree(checkpoint_path)
 
