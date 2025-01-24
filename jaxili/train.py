@@ -267,7 +267,9 @@ class TrainerModule:
         transf = [optax.clip_by_global_norm(hparams.pop("gradient_clip", 5.0))]
         if opt_class == optax.sgd and "weight_decay" in hparams:
             transf.append(optax.add_decayed_weights(hparams.pop("weight_decay", 0.0)))
-        hparams.pop("weight_decay", None) #removes weight decay if the opt_class is not sgd.
+        hparams.pop(
+            "weight_decay", None
+        )  # removes weight decay if the opt_class is not sgd.
         optimizer = optax.chain(*transf, opt_class(lr_schedule, **hparams))
         # Initialize training state
         self.state = TrainState.create(
@@ -329,7 +331,7 @@ class TrainerModule:
         test_loader: Optional[Iterator] = None,
         num_epochs: int = 500,
         min_delta: float = 1e-3,
-        patience: int = 20
+        patience: int = 20,
     ) -> Dict[str, Any]:
         """
         Starts a training loop for the given number of epochs.

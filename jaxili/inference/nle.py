@@ -14,7 +14,6 @@ from jaxili.utils import (
     check_density_estimator,
     validate_theta_x,
     create_data_loader,
-    numpy_collate,
 )
 from jaxili.model import (
     ConditionalMAF,
@@ -28,6 +27,10 @@ from jaxili.train import TrainerModule
 from jaxili.loss import loss_nll_nle
 from jaxili.utils import *
 from jaxili.inference.npe import NDEDataset
+from jaxili.posterior import MCMCPosterior
+from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
+
+import numpyro.distributions as dist
 
 import torch.utils.data as data
 
@@ -36,7 +39,7 @@ default_maf_hparams = {
     "layers": [50, 50],
     "activation": jax.nn.relu,
     "use_reverse": True,
-    "seed": 42
+    "seed": 42,
 }
 
 
@@ -103,7 +106,11 @@ class NLE:
         type : str
             Type of the dataset. Can be 'train', 'val' or 'test'.
         """
-        assert type in ["train", "val", "test"], "Type should be 'train', 'val' or 'test'."
+        assert type in [
+            "train",
+            "val",
+            "test",
+        ], "Type should be 'train', 'val' or 'test'."
 
         if type == "train":
             self._train_dataset = dataset
@@ -111,7 +118,7 @@ class NLE:
             self._val_dataset = dataset
         elif type == "test":
             self._test_dataset = dataset
-    
+
     def set_dataloader(self, dataloader, type):
         """
         Sets the dataloader to use for training, validation or testing.
@@ -123,7 +130,11 @@ class NLE:
         type : str
             Type of the dataloader. Can be 'train', 'val' or 'test'.
         """
-        assert type in ["train", "val", "test"], "Type should be 'train', 'val' or 'test'."
+        assert type in [
+            "train",
+            "val",
+            "test",
+        ], "Type should be 'train', 'val' or 'test'."
 
         if type == "train":
             self._train_dataloader = dataloader
@@ -160,8 +171,8 @@ class NLE:
             print(f"[!] Inputs are valid.")
             print(f"[!] Appending {num_sims} simulations to the dataset.")
 
-        self._dim_params = x.shape[1] #The distribution of the data is learned.
-        self._dim_cond = theta.shape[1] #Conditionned on the parameters
+        self._dim_params = x.shape[1]  # The distribution of the data is learned.
+        self._dim_cond = theta.shape[1]  # Conditionned on the parameters
         self._num_sims = num_sims
 
         # Split the dataset into training, validation and test sets
@@ -197,7 +208,7 @@ class NLE:
         self.set_dataset(NDEDataset(theta[val_idx], x[val_idx]), type="val")
         self.set_dataset(
             NDEDataset(theta[test_idx], x[test_idx]) if is_test_set else None,
-            type="test"
+            type="test",
         )
 
         if self.verbose:
@@ -284,7 +295,10 @@ class NLE:
         elif self._model_class == MixtureDensityNetwork:
             check_hparams_mdn(self._model_hparams)
         else:
-            warnings.warn(f"Model class {self.model_class} is not a base class of JaxILI.\n Check that the hyperparameters of your network are consistent.", Warning)
+            warnings.warn(
+                f"Model class {self.model_class} is not a base class of JaxILI.\n Check that the hyperparameters of your network are consistent.",
+                Warning,
+            )
 
         try:
             self._train_dataset
@@ -306,11 +320,11 @@ class NLE:
         # Check if z-score is required for x.
         shift = jnp.zeros(self._dim_params)
         scale = jnp.ones(self._dim_params)
-        
+
         if z_score_x:
             shift = jnp.mean(self._train_dataset.x, axis=0)
             scale = jnp.std(self._train_dataset.x, axis=0)
-            
+
         self._transformation = distrax.ScalarAffine(scale=scale, shift=shift)
 
         self._model_hparams["n_in"] = self._dim_params
@@ -370,10 +384,13 @@ class NLE:
         nde_w_std_hparams = {
             "nde": self._nde,
             "embedding_net": self._embedding_net,
-            "transformation": self._transformation
+            "transformation": self._transformation,
         }
 
-        exmp_input = (jnp.zeros((1, self._dim_cond)), jnp.zeros((1, self._dim_params))) #Example will be reversed in the trainer.
+        exmp_input = (
+            jnp.zeros((1, self._dim_cond)),
+            jnp.zeros((1, self._dim_params)),
+        )  # Example will be reversed in the trainer.
 
         if self.verbose:
             print("[!] Creating the Trainer module.")
@@ -389,7 +406,7 @@ class NLE:
             enable_progress_bar=self.verbose,
             debug=debug,
             check_val_every_epoch=check_val_every_epoch,
-            nde_class="NLE"
+            nde_class="NLE",
         )
 
     def train(
@@ -483,3 +500,49 @@ class NLE:
 
         density_estimator = self.trainer.bind_model()
         return metrics, density_estimator
+
+    def build_posterior(
+        self, prior_distr: dist.Distribution, verbose: Optional[bool] = None, x: Optional[Array] = None,
+        mcmc_method: Optional[str] = 'nuts_numpyro', mcmc_kwargs: Optional[Dict[str, Any]] = nuts_numpyro_kwargs_default
+    ):
+        r"""
+        Builds the posterior distribution $p(\theta|x)$ using the trained density estimator.
+
+        Parameters
+        ----------
+        prior_distr : dist.Distribution
+            Numpyro distribution sampling the prior used to estimate the parameters.
+        verbose : bool, optional
+            Whether to print information. Default is the verbiose boolean of the trainer.
+        x : Array, optional
+            The data used to condition the posterior. Default is None.
+        mcmc_method : str, optional
+            The MCMC method to use. Default is 'nuts_numpyro'.
+        mcmc_kwargs : dict, optional
+            The jeyword arguments to sample from the posterior.
+
+        Returns
+        -------
+        posterior : NeuralPosterior
+            The posterior distribution allowing to sample and evaluate the unnormalized log-probability.
+            The sampling is performed using MCMC methods.
+        """
+        try:
+            self.trainer
+        except AttributeError:
+            raise ValueError("No trainer found. You must first create a trainer.")
+
+        if verbose is None:
+            verbose = self.verbose
+        posterior = MCMCPosterior(
+            prior_distr=prior_distr,
+            model=self.trainer.model, state=self.trainer.state, verbose=verbose, x=x,
+            mcmc_method=mcmc_method, mcmc_kwargs=mcmc_kwargs
+        )
+
+        if self.verbose:
+            print(
+                r"[!] Posterior $p(\theta| x)$ built. The class MCMCPosterior is used to sample and evaluate the log probability.\n The sampling is performed using MCMC methods."
+            )
+
+        return posterior

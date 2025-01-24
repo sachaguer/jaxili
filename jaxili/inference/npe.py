@@ -36,7 +36,7 @@ default_maf_hparams = {
     "layers": [50, 50],
     "activation": jax.nn.relu,
     "use_reverse": True,
-    "seed": 42
+    "seed": 42,
 }
 
 
@@ -115,7 +115,11 @@ class NPE:
         type : str
             Type of the dataset. Can be 'train', 'val' or 'test'.
         """
-        assert type in ["train", "val", "test"], "Type should be 'train', 'val' or 'test'."
+        assert type in [
+            "train",
+            "val",
+            "test",
+        ], "Type should be 'train', 'val' or 'test'."
 
         if type == "train":
             self._train_dataset = dataset
@@ -123,7 +127,7 @@ class NPE:
             self._val_dataset = dataset
         elif type == "test":
             self._test_dataset = dataset
-    
+
     def set_dataloader(self, dataloader, type):
         """
         Sets the dataloader to use for training, validation or testing.
@@ -135,7 +139,11 @@ class NPE:
         type : str
             Type of the dataloader. Can be 'train', 'val' or 'test'.
         """
-        assert type in ["train", "val", "test"], "Type should be 'train', 'val' or 'test'."
+        assert type in [
+            "train",
+            "val",
+            "test",
+        ], "Type should be 'train', 'val' or 'test'."
 
         if type == "train":
             self._train_dataloader = dataloader
@@ -209,7 +217,7 @@ class NPE:
         self.set_dataset(NDEDataset(theta[val_idx], x[val_idx]), type="val")
         self.set_dataset(
             NDEDataset(theta[test_idx], x[test_idx]) if is_test_set else None,
-            type="test"
+            type="test",
         )
 
         if self.verbose:
@@ -296,7 +304,10 @@ class NPE:
         elif self._model_class == MixtureDensityNetwork:
             check_hparams_mdn(self._model_hparams)
         else:
-            warnings.warn(f"Model class {self.model_class} is not a base class of JaxILI.\n Check that the hyperparameters of your network are consistent.", Warning)
+            warnings.warn(
+                f"Model class {self.model_class} is not a base class of JaxILI.\n Check that the hyperparameters of your network are consistent.",
+                Warning,
+            )
 
         try:
             self._train_dataset
@@ -382,7 +393,7 @@ class NPE:
         nde_w_std_hparams = {
             "nde": self._nde,
             "embedding_net": self._embedding_net,
-            "transformation": self._transformation
+            "transformation": self._transformation,
         }
 
         exmp_input = (jnp.zeros((1, self._dim_params)), jnp.zeros((1, self._dim_cond)))
@@ -501,11 +512,9 @@ class NPE:
 
         density_estimator = self.trainer.bind_model()
         return metrics, density_estimator
-    
+
     def build_posterior(
-        self,
-        verbose : Optional[bool] = None,
-        x : Optional[Array] = None
+        self, verbose: Optional[bool] = None, x: Optional[Array] = None
     ):
         r"""
         Builds the posterior distribution $p(\theta|x)$ using the trained density estimator.
@@ -524,17 +533,16 @@ class NPE:
             self.trainer
         except AttributeError:
             raise ValueError("No trainer found. You must first create a trainer.")
-        
+
         if verbose is None:
             verbose = self.verbose
         posterior = DirectPosterior(
-            model = self.trainer.model,
-            state = self.trainer.state,
-            verbose = verbose,
-            x = x
+            model=self.trainer.model, state=self.trainer.state, verbose=verbose, x=x
         )
 
         if self.verbose:
-            print(r"[!] Posterior $p(\theta, x)$ built. The class DirectPosterior is used to sample and evaluate the log probability.")
+            print(
+                r"[!] Posterior $p(\theta| x)$ built. The class DirectPosterior is used to sample and evaluate the log probability."
+            )
 
         return posterior

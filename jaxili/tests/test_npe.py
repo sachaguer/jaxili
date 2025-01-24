@@ -43,7 +43,9 @@ def test_append_simulations():
     assert (
         inference._dim_params == theta_train.shape[1]
     ), "The number of parameters is wrong."
-    assert inference._dim_cond == x_train.shape[1], "The number of the conditionning variable is wrong."
+    assert (
+        inference._dim_cond == x_train.shape[1]
+    ), "The number of the conditionning variable is wrong."
     assert inference._num_sims == train_set_size, "The number of simulations is wrong."
 
     assert inference._train_dataset is not None, "The training dataset is None."
@@ -58,7 +60,9 @@ def test_append_simulations():
     assert (
         inference._dim_params == theta_train.shape[1]
     ), "The number of parameters is wrong."
-    assert inference._dim_cond == x_train.shape[1], "The number of the conditionning variable is wrong."
+    assert (
+        inference._dim_cond == x_train.shape[1]
+    ), "The number of the conditionning variable is wrong."
     assert inference._num_sims == train_set_size, "The number of simulations is wrong."
 
     assert inference._train_dataset is not None, "The training dataset is None."
@@ -121,7 +125,9 @@ def test_build_neural_network():
 
     params = model.init(jax.random.PRNGKey(0), theta_train, x_train)
 
-    test_theta = model.apply(params, inference._train_dataset.theta, method="standardize")
+    test_theta = model.apply(
+        params, inference._train_dataset.theta, method="standardize"
+    )
 
     npt.assert_allclose(standardized_theta, test_theta, rtol=1e-5, atol=1e-5)
 
@@ -131,15 +137,32 @@ def test_build_neural_network():
     standardized_x = (inference._train_dataset.x - shift_x) / scale_x
     npt.assert_allclose(standardized_x, test_embedding, rtol=1e-5, atol=1e-5)
 
-    log_prob = model.apply(params, inference._train_dataset.theta, inference._train_dataset.x, method="log_prob")
-    assert log_prob.shape[0] == len(inference._train_dataset), "The shape of the output of log_prob method is wrong."
+    log_prob = model.apply(
+        params,
+        inference._train_dataset.theta,
+        inference._train_dataset.x,
+        method="log_prob",
+    )
+    assert log_prob.shape[0] == len(
+        inference._train_dataset
+    ), "The shape of the output of log_prob method is wrong."
 
-    samples = model.apply(params, inference._train_dataset.x[0], num_samples=10_000, key=jax.random.PRNGKey(0), method="sample")
+    samples = model.apply(
+        params,
+        inference._train_dataset.x[0],
+        num_samples=10_000,
+        key=jax.random.PRNGKey(0),
+        method="sample",
+    )
 
-    assert samples.shape == (10_000, inference._dim_params), "The shape of the samples is wrong."
+    assert samples.shape == (
+        10_000,
+        inference._dim_params,
+    ), "The shape of the samples is wrong."
+
 
 def test_training():
-    #Test if the training pipeline runs without troubleshot
+    # Test if the training pipeline runs without troubleshot
     learning_rate = 5e-4
     gradient_clip = 5.0
     warmup = 0.1
@@ -165,21 +188,34 @@ def test_training():
     assert metrics is not None, "The metrics are None."
     assert density_estimator is not None, "The density estimator is None."
 
-    #Test if the density estimator can return a log_prob
+    # Test if the density estimator can return a log_prob
     log_prob = density_estimator.log_prob(theta_train[0:10], x_train[0:10])
-    assert log_prob.shape == (10,), "The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (
+        10,
+    ), "The shape of the output of log_prob method is wrong."
 
-    #Test if the density estimator can return samples
-    samples = density_estimator.sample(x_train[0], num_samples=10_000, key=jax.random.PRNGKey(0))
-    assert samples.shape == (10_000, inference._dim_params), "The shape of the samples is wrong."
+    # Test if the density estimator can return samples
+    samples = density_estimator.sample(
+        x_train[0], num_samples=10_000, key=jax.random.PRNGKey(0)
+    )
+    assert samples.shape == (
+        10_000,
+        inference._dim_params,
+    ), "The shape of the samples is wrong."
 
-    #Test if the checkpoints have been saved
-    assert os.path.exists(os.path.join(checkpoint_path)), "The checkpoint log dir does not exist. Check ~/test."
-    assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0")), "The checkpoint dir does not exist. Check ~/test/."
-    #assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/")), "The checkpoint dir does not exist. Check ~/test/NDE_w_Standardization/version_0."
-    assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/metrics")), "The metrics dir does not exist. Check ~/test/NDE_w_Standardization/version_0."
-    assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/hparams.json")), "The hparams JSON file does not exist. Check ~/test/NDE_w_Standardization/version_0."
+    # Test if the checkpoints have been saved
+    assert os.path.exists(
+        os.path.join(checkpoint_path)
+    ), "The checkpoint log dir does not exist. Check ~/test."
+    assert os.path.exists(
+        os.path.join(checkpoint_path, "NDE_w_Standardization/version_0")
+    ), "The checkpoint dir does not exist. Check ~/test/."
+    # assert os.path.exists(os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/")), "The checkpoint dir does not exist. Check ~/test/NDE_w_Standardization/version_0."
+    assert os.path.exists(
+        os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/metrics")
+    ), "The metrics dir does not exist. Check ~/test/NDE_w_Standardization/version_0."
+    assert os.path.exists(
+        os.path.join(checkpoint_path, "NDE_w_Standardization/version_0/hparams.json")
+    ), "The hparams JSON file does not exist. Check ~/test/NDE_w_Standardization/version_0."
 
     shutil.rmtree(checkpoint_path)
-
-

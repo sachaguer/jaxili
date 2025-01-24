@@ -4,6 +4,7 @@ from jaxtyping import Array
 from jaxili.model import NDENetwork
 from jaxili.train import TrainState
 
+
 class NeuralPosterior:
     r"""
     Posterior $p(\theta|x)$ with `log_prob()` and `sample()` methods.
@@ -11,11 +12,11 @@ class NeuralPosterior:
     """
 
     def __init__(
-            self,
-            model : NDENetwork,
-            state : TrainState,
-            verbose: bool = False,
-            x: Optional[Array] = None
+        self,
+        model: NDENetwork,
+        state: TrainState,
+        verbose: bool = False,
+        x: Optional[Array] = None,
     ):
         """
         Parameters
@@ -32,21 +33,21 @@ class NeuralPosterior:
         self.verbose = verbose
         self.x = x
 
-    @abstractmethod 
+    @abstractmethod
     def sample(
         self,
         num_samples: int,
         key: Array,
         x: Array,
         mcmc_method: Optional[str] = None,
-        mcmc_kwargs: Optional[Dict[str, Any]] = None
+        mcmc_kwargs: Optional[Dict[str, Any]] = None,
     ):
         """
         See docstrings of the child classes for more details.
         """
         pass
 
-    @abstractmethod 
+    @abstractmethod
     def unnormalized_log_prob(
         self,
         theta: Array,

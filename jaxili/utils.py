@@ -181,4 +181,4 @@ def handle_non_serializable(obj):
     obj : Any
         Object to handle.
     """
-    return str(obj) #Default behavior is to convert to string
+    return str(obj)  # Default behavior is to convert to string

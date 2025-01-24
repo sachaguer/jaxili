@@ -6,6 +6,7 @@ from jaxili.train import TrainState
 from jaxtyping import Array
 from typing import Optional
 
+
 class DirectPosterior(NeuralPosterior):
     r"""
     Posterior $p(\theta|x)$ with `log_prob()` and `sample()` methods.
@@ -13,11 +14,11 @@ class DirectPosterior(NeuralPosterior):
     """
 
     def __init__(
-            self,
-            model : NDENetwork,
-            state : TrainState,
-            verbose: bool = False,
-            x: Optional[Array] = None
+        self,
+        model: NDENetwork,
+        state: TrainState,
+        verbose: bool = False,
+        x: Optional[Array] = None,
     ):
         """
         Parameters
@@ -31,15 +32,10 @@ class DirectPosterior(NeuralPosterior):
         """
         super().__init__(model, state, verbose, x)
 
-    def sample(
-        self,
-        num_samples: int,
-        key: Array,
-        x: Optional[Array] = None
-    ):
+    def sample(self, num_samples: int, key: Array, x: Optional[Array] = None):
         r"""
         Sample from the posterior.
-        
+
         Parameters
         ----------
         num_samples : int
@@ -48,7 +44,7 @@ class DirectPosterior(NeuralPosterior):
             The random key used to generate the samples.
         x : Array
             The data used to condition the posterior.
-        
+
         Returns
         -------
         theta : Array
@@ -57,28 +53,26 @@ class DirectPosterior(NeuralPosterior):
         if x is None:
             x = self.x
             if x is None:
-                raise ValueError("Please set the default data `x` using `set_default_x()` or provide `x` as an argument.")
+                raise ValueError(
+                    "Please set the default data `x` using `set_default_x()` or provide `x` as an argument."
+                )
         params = self.state.params
         samples = self.model.apply(
-            {'params': params}, x, num_samples, key, method='sample'
+            {"params": params}, x, num_samples, key, method="sample"
         )
         return samples
-    
-    def unnormalized_log_prob(
-        self,
-        theta: Array,
-        x: Optional[Array] = None
-    ):
+
+    def unnormalized_log_prob(self, theta: Array, x: Optional[Array] = None):
         r"""
         Compute the unnormalized log probability of the posterior.
-        
+
         Parameters
         ----------
         theta : Array
             The parameters to evaluate the log probability.
         x : Array
             The data used to condition the posterior.
-        
+
         Returns
         -------
         log_prob : Array
@@ -87,15 +81,17 @@ class DirectPosterior(NeuralPosterior):
         if x is None:
             x = self.x
             if x is None:
-                raise ValueError("Please set the default data `x` using `set_default_x()` or provide `x` as an argument.")
+                raise ValueError(
+                    "Please set the default data `x` using `set_default_x()` or provide `x` as an argument."
+                )
         params = self.state.params
         if len(x.shape) == 1:
             x = jnp.expand_dims(x, axis=0)
         if (x.shape[0] == 1) and (theta.shape[0] > 1):
             x = jnp.repeat(x, theta.shape[0], axis=0)
-        elif (x.shape[0] != theta.shape[0]):
-            raise ValueError("The batch size of `x` must be the same as the batch size of parameters `theta`.")
-        log_prob = self.model.apply(
-            {'params': params}, x, theta, method='log_prob'
-        )
+        elif x.shape[0] != theta.shape[0]:
+            raise ValueError(
+                "The batch size of `x` must be the same as the batch size of parameters `theta`."
+            )
+        log_prob = self.model.apply({"params": params}, theta, x, method="log_prob")
         return log_prob
