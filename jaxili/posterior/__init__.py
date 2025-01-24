@@ -1,0 +1,3 @@
+from jaxili.posterior.base_posterior import NeuralPosterior
+from jaxili.posterior.direct_posterior import DirectPosterior
+from jaxili.posterior.mcmc_posterior import MCMCPosterior

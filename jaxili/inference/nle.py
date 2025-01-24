@@ -25,9 +25,9 @@ from jaxili.model import (
     NDE_w_Standardization,
 )
 from jaxili.train import TrainerModule
-from jaxili.loss import loss_nll_npe
+from jaxili.loss import loss_nll_nle
 from jaxili.utils import *
-from jaxili.posterior import DirectPosterior
+from jaxili.inference.npe import NDEDataset
 
 import torch.utils.data as data
 
@@ -40,19 +40,7 @@ default_maf_hparams = {
 }
 
 
-class NDEDataset(data.Dataset):
-    def __init__(self, theta: Array, x: Array):
-        self.theta = theta
-        self.x = x
-
-    def __len__(self):
-        return len(self.theta)
-
-    def __getitem__(self, idx):
-        return self.theta[idx], self.x[idx]
-
-
-class NPE:
+class NLE:
 
     def __init__(
         self,
@@ -60,10 +48,10 @@ class NPE:
         logging_level: Union[int, str] = "WARNING",
         verbose: bool = True,
         model_hparams: Optional[Dict[str, Any]] = default_maf_hparams,
-        loss_fn: Callable = loss_nll_npe,
+        loss_fn: Callable = loss_nll_nle,
     ):
         """
-        Base class for Neural Posterior Estimation (NPE) methods.
+        Base class for Neural Likelihood Estimation (NLE) methods.
 
         Parameters
         ----------
@@ -172,8 +160,8 @@ class NPE:
             print(f"[!] Inputs are valid.")
             print(f"[!] Appending {num_sims} simulations to the dataset.")
 
-        self._dim_params = theta.shape[1]
-        self._dim_cond = x.shape[1]
+        self._dim_params = x.shape[1] #The distribution of the data is learned.
+        self._dim_cond = theta.shape[1] #Conditionned on the parameters
         self._num_sims = num_sims
 
         # Split the dataset into training, validation and test sets
@@ -306,24 +294,24 @@ class NPE:
             )
 
         # Check if z-score is required for theta.
-        shift = jnp.zeros(self._dim_params)
-        scale = jnp.ones(self._dim_params)
-
         if z_score_theta:
             shift = jnp.mean(self._train_dataset.theta, axis=0)
             scale = jnp.std(self._train_dataset.theta, axis=0)
-
-        self._transformation = distrax.ScalarAffine(scale=scale, shift=shift)
-
-        # Check if z-score is required for x.
-        if z_score_x:
-            shift = jnp.mean(self._train_dataset.x, axis=0)
-            scale = jnp.std(self._train_dataset.x, axis=0)
             standardizer = Standardizer(shift, scale)
         else:
             standardizer = Identity()
 
         self._embedding_net = nn.Sequential([standardizer, embedding_net])
+
+        # Check if z-score is required for x.
+        shift = jnp.zeros(self._dim_params)
+        scale = jnp.ones(self._dim_params)
+        
+        if z_score_x:
+            shift = jnp.mean(self._train_dataset.x, axis=0)
+            scale = jnp.std(self._train_dataset.x, axis=0)
+            
+        self._transformation = distrax.ScalarAffine(scale=scale, shift=shift)
 
         self._model_hparams["n_in"] = self._dim_params
         self._model_hparams["n_cond"] = self._dim_cond
@@ -385,7 +373,7 @@ class NPE:
             "transformation": self._transformation
         }
 
-        exmp_input = (jnp.zeros((1, self._dim_params)), jnp.zeros((1, self._dim_cond)))
+        exmp_input = (jnp.zeros((1, self._dim_cond)), jnp.zeros((1, self._dim_params))) #Example will be reversed in the trainer.
 
         if self.verbose:
             print("[!] Creating the Trainer module.")
@@ -401,6 +389,7 @@ class NPE:
             enable_progress_bar=self.verbose,
             debug=debug,
             check_val_every_epoch=check_val_every_epoch,
+            nde_class="NLE"
         )
 
     def train(
@@ -427,13 +416,6 @@ class NPE:
             Maximum number of epochs to train. Default is 2**31 - 1.
         check_val_every_epoch: int, optional
             Frequency at which to check the validation loss. Default is 1.
-
-        Returns:
-        --------
-        metrics : Dict[str, float]
-            Dictionary containing the training, validation and test losses.
-        density_estimator : ...
-            The trained density estimator.
         """
 
         try:
@@ -473,7 +455,7 @@ class NPE:
                 "logger_type": kwargs.get("logger_type", "TensorBoard"),
             }
 
-            self.create_trainer(
+            _ = self.create_trainer(
                 optimizer_hparams=optimizer_hparams,
                 seed=kwargs.get("seed", 42),
                 logger_params=logger_params,
@@ -501,40 +483,3 @@ class NPE:
 
         density_estimator = self.trainer.bind_model()
         return metrics, density_estimator
-    
-    def build_posterior(
-        self,
-        verbose : Optional[bool] = None,
-        x : Optional[Array] = None
-    ):
-        r"""
-        Builds the posterior distribution $p(\theta|x)$ using the trained density estimator.
-
-        Parameters
-        ----------
-        x : Array, optional
-            The data used to condition the posterior. Default is None.
-
-        Returns
-        -------
-        posterior : NeuralPosterior
-            The posterior distribution allowing to sample and evaluate the unnormalized log-probability.
-        """
-        try:
-            self.trainer
-        except AttributeError:
-            raise ValueError("No trainer found. You must first create a trainer.")
-        
-        if verbose is None:
-            verbose = self.verbose
-        posterior = DirectPosterior(
-            model = self.trainer.model,
-            state = self.trainer.state,
-            verbose = verbose,
-            x = x
-        )
-
-        if self.verbose:
-            print(r"[!] Posterior $p(\theta, x)$ built. The class DirectPosterior is used to sample and evaluate the log probability.")
-
-        return posterior
