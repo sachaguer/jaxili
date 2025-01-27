@@ -10,9 +10,12 @@ from jaxili.inference import NPE, NLE
 from jaxili.inference.npe import default_maf_hparams
 from jaxili.model import NDENetwork
 from jaxili.posterior import DirectPosterior
+from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
 from jaxili.train import TrainState
 
 import sbibm
+
+import numpyro.distributions as dist
 
 task = sbibm.get_task("gaussian_linear_uniform")
 simulator = task.get_simulator()
@@ -94,5 +97,83 @@ def test_direct_posterior():
         10_000,
         theta_train[0].shape[0],
     ), "The shape of the samples is wrong."
+
+    shutil.rmtree(checkpoint_path)
+
+def test_mcmc_posterior():
+
+    checkpoint_path = "~/tests/"
+    checkpoint_path = os.path.expanduser(checkpoint_path)
+
+    inference = NLE()
+
+    inference = inference.append_simulations(theta_train, x_train)
+
+    optimizer_hparams = {"lr": 5e-4}
+
+    logger_params = {
+        "base_log_dir": checkpoint_path,
+    }
+
+    inference.create_trainer(
+        optimizer_hparams=optimizer_hparams,
+        logger_params=logger_params,
+    )
+
+    posterior = inference.build_posterior(prior_distr=dist.Uniform(low=-1.0*jnp.ones(10), high=1.0*jnp.ones(10)))
+
+    assert posterior.mcmc_method == "nuts_numpyro", "The default mcmc method is wrong."
+    assert posterior.mcmc_kwargs == nuts_numpyro_kwargs_default, "The default mcmc kwargs are wrong."
+
+    #Test if the density estimator returns a log_prior
+    log_prior = posterior.log_prior(theta_train[0:10])
+    assert log_prior.shape == (
+        10,
+    ), "The shape of the output of log_prior method is wrong."
+
+    #Test if the density estimator returns a log_likelihood
+    log_likelihood = posterior.log_likelihood(x_train[0:10], theta_train[0:10])
+    assert log_likelihood.shape == (
+        10,
+    ), "The shape of the output of log_likelihood method is wrong."
+
+    #Test if the density estimator returns a log_prob
+    log_prob = posterior.unnormalized_log_prob(theta_train[0:10], x_train[0:10])
+    assert log_prob.shape == (
+        10,
+    ), "The shape of the output of log_prob method is wrong."
+
+    #Sample using NUTS numpyro
+    samples = posterior.sample(
+        x=x_train[0].reshape((1, -1)), num_samples=2_000, key=jax.random.PRNGKey(0)
+    )
+    assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
+
+    #Sample using HMC numpyro
+    posterior.set_mcmc_method("hmc_numpyro")
+    samples = posterior.sample(
+        x=x_train[0].reshape((1, -1)), num_samples=2_000, key=jax.random.PRNGKey(0)
+    )
+    assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
+
+    #Sample using NUTS blackjax
+    posterior.set_mcmc_method("nuts_blackjax")
+    samples = posterior.sample(
+        x=x_train[0].reshape((1, -1)), num_samples=2_000, key=jax.random.PRNGKey(0)
+    )
+    assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
+    
+    #Sample using HMC blackjax
+    posterior.set_mcmc_method("hmc_blackjax") 
+    samples = posterior.sample(
+        x=x_train[0].reshape((1, -1)), num_samples=2_000, key=jax.random.PRNGKey(0)
+    )
+    assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
+
+    # Test if the correct Error are returned.
+    try:
+        posterior.set_mcmc_method('wrong_method')
+    except AssertionError:
+        pass
 
     shutil.rmtree(checkpoint_path)

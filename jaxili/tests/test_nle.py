@@ -218,3 +218,4 @@ def test_training():
     ), "The hparams JSON file does not exist. Check ~/test/NDE_w_Standardization/version_0."
 
     shutil.rmtree(checkpoint_path)
+
