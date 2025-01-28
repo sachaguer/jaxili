@@ -12,12 +12,14 @@ import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS, HMC
 
-import blackjax
+from flowMC.nfmodel.rqSpline import MaskedCouplingRQSpline
+from flowMC.proposal.MALA import MALA
+from flowMC.Sampler import Sampler
+
+implemented_method = ["nuts_numpyro", "hmc_numpyro"]
 
 nuts_numpyro_kwargs_default = {}
 hmc_numpyro_kwargs_default = {}
-hmc_blackjax_kwargs_default = {}
-nuts_blackjax_kwargs_default = {}
 mala_flowmc_kwargs_default = {}
 
 
@@ -25,7 +27,7 @@ mala_flowmc_kwargs_default = {}
 class MCMCPosterior(NeuralPosterior):
     r"""
     Likelihood $p(x|\theta)$ with `log_prob()` and `sample()` methods.
-    The class wraps the trained neural network using Neural Likelihood Estimation (NPE).
+    The class wraps the trained neural network using Neural Likelihood Estimation (NLE).
     Sampling is performed using Markov Chain Monte Carlo (MCMC) methods to get samples from the posterior.
     """
 
@@ -65,7 +67,7 @@ class MCMCPosterior(NeuralPosterior):
             print(f"MCMC kwargs: {mcmc_kwargs}")
         self.set_prior(prior_distr)
 
-    def sample(self, x: Array, num_samples: int, key: Array):
+    def sample(self, num_samples: int, key: Array, x : Optional[Array] = None):
         r"""
         Sample from the posterior using MCMC.
 
@@ -77,7 +79,12 @@ class MCMCPosterior(NeuralPosterior):
             The number of samples to draw.
         key : Array
             The random key used to generate the samples.
-        """ 
+        """
+        if x is None:
+            try:
+                x = self.x
+            except:
+                raise ValueError("The data x must be specified or loaded in the posterior with `set_default_x()`.")
         self.mcmc_kwargs.update({"num_samples": num_samples})
         num_chains = self.mcmc_kwargs.get("num_chains", 1)
         sample_key, key = jax.random.split(key)
@@ -86,10 +93,10 @@ class MCMCPosterior(NeuralPosterior):
             samples = self._nuts_numpyro(x, key, self.mcmc_kwargs)
         elif self.mcmc_method == "hmc_numpyro":
             samples = self._hmc_numpyro(x, key, self.mcmc_kwargs)
-        elif self.mcmc_method == "hmc_blackjax":
-            samples = self._hmc_blackjax(x, key, initial_states, self.mcmc_kwargs)
-        elif self.mcmc_method == "nuts_blackjax":
-            samples = self._nuts_blackjax(x, key, initial_states, self.mcmc_kwargs)
+        elif self.mcmc_method == "mala_flowmc":
+            samples = self._mala_flowmc(x, key, initial_states, self.mcmc_kwargs)
+        else:
+            raise NotImplementedError(f"The MCMC method {self.mcmc_method} is not implemented. Check print_implemented_methods().")
         self.mcmc_kwargs.pop("num_samples")
 
         return samples
@@ -176,41 +183,6 @@ class MCMCPosterior(NeuralPosterior):
             numpyro.factor("log_likelihood", likelihood)
 
         return model
-    
-    def _blackjax_inference_loop_multiple_chains(
-        self, rng_key: Array, kernel: Any, initial_state: Array, num_samples: int, num_chains: int
-    ):
-        """
-        Function implementing the inference loop for multiple chains in Blackjax.
-
-        Parameters
-        ----------
-        rng_key : Array
-            The random key used to generate the samples.
-        kernel : Any
-            The transition kernel.
-        initial_state : Array
-            The initial state of the MCMC sampler.
-        num_samples : int
-            The number of samples to draw.
-        num_chains : int
-            The number of chains to run.
-
-        Returns
-        -------
-        states : Array
-            The samples from the posterior.
-        """
-        @jax.jit
-        def one_step(states, rng_key):
-            keys = jax.random.split(rng_key, num_chains)
-            states, _ = jax.vmap(kernel)(keys, states)
-            return states, states
-        
-        keys = jax.random.split(rng_key, num_samples)
-        _, states = jax.lax.scan(one_step, initial_state, keys)
-
-        return states
 
     def _nuts_numpyro(
         self,
@@ -287,115 +259,79 @@ class MCMCPosterior(NeuralPosterior):
 
         samples = mcmc.get_samples()['theta']
 
-        return samples
-
-    def _hmc_blackjax(
-        self,
-        x : Array,
-        key : Array,
-        initial_state : Array,
-        mcmc_kwargs: Optional[dict] = hmc_blackjax_kwargs_default
-
-    ):
-        """
-        Perform MCMC sampling using the Hamiltonian Monte Carlo (HMC) in Blackjax.
-
-        Parameters
-        ----------
-        x : Array
-            The data used to condition the posterior.
-        key : Array
-            The random key used to generate the samples.
-        initial_state : Array
-            The initial state of the MCMC sampler.
-        mcmc_kwargs: dict
-            The keyword arguments for the MCMC method. (Default: hmc_blackjax_kwargs_default)
-
-        Returns
-        -------
-        samples : Array
-            The samples from the posterior.
-        """
-        def log_prob(theta):
-            logprob = self.unnormalized_log_prob(theta, x)
-            return jnp.sum(logprob)
-        
-        #Fetch the hyperparameters to create the kernel
-        step_size = mcmc_kwargs.get("step_size", 1e-3)
-        num_integration_steps = mcmc_kwargs.get("num_integration_steps", 60)
-        inverse_mass_matrix = mcmc_kwargs.get("inverse_mass_matrix", jnp.ones(10))
-        hmc = blackjax.hmc(log_prob, step_size=step_size, inverse_mass_matrix=inverse_mass_matrix, num_integration_steps=num_integration_steps)
-
-        #Initialize the state and the kernel
-        num_chains = mcmc_kwargs.get("num_chains", 1)
-        initial_state = jnp.expand_dims(initial_state, axis=1)
-        initial_state = jax.vmap(hmc.init, in_axes=(0))(initial_state)
-        hmc_kernel = jax.jit(hmc.step)
-
-        #Run the inference loop
-        num_samples = mcmc_kwargs.get("num_samples", 2000)
-        states = self._blackjax_inference_loop_multiple_chains(
-            key, hmc_kernel, initial_state, num_samples, num_chains
-        )
-        samples = states.position.squeeze()
-
-        return samples
-
-    def _nuts_blackjax(
-        self,
-        x : Array,
-        key : Array,
-        initial_state : Array,
-        mcmc_kwargs: Optional[dict] = nuts_blackjax_kwargs_default
-
-    ):
-        """
-        Perform MCMC sampling using the No-U-Turn Sampler (NUTS) in Blackjax.
-
-        Parameters
-        ----------
-        x : Array
-            The data used to condition the posterior.
-        key : Array
-            The random key used to generate the samples.
-        initial_state : Array
-            The initial state of the MCMC sampler.
-        mcmc_kwargs: dict
-            The keyword arguments for the MCMC method. (Default: nuts_blackjax_kwargs_default)
-
-        Returns
-        -------
-        samples : Array
-            The samples from the posterior.
-        """
-        def log_prob(theta):
-            logprob = self.unnormalized_log_prob(theta, x)
-            return jnp.sum(logprob)
-        
-        #Fetch the hyperparameters to create the kernel
-        step_size = mcmc_kwargs.get("step_size", 1e-3)
-        inverse_mass_matrix = mcmc_kwargs.get("inverse_mass_matrix", jnp.ones(10))
-        nuts = blackjax.nuts(log_prob, step_size=step_size, inverse_mass_matrix=inverse_mass_matrix)
-
-        #Initialize the state and the kernel
-        num_chains = mcmc_kwargs.get("num_chains", 1)
-        initial_state = jnp.expand_dims(initial_state, axis=1)
-        initial_state = jax.vmap(nuts.init, in_axes=(0))(initial_state)
-        nuts_kernel = jax.jit(nuts.step)
-
-        #Run the inference loop
-        num_samples = mcmc_kwargs.get("num_samples", 2000)
-        states = self._blackjax_inference_loop_multiple_chains(
-            key, nuts_kernel, initial_state, num_samples, num_chains
-        )
-        samples = states.position.squeeze()
-
-        return samples
+        return samples    
 
     def _mala_flowmc(
         self,
+        x : Array,
+        key : Array,
+        initial_state : Array,
+        mcmc_kwargs: Optional[dict] = mala_flowmc_kwargs_default
     ):
-        pass
+        """
+        Perform MCMC sampling using the Metropolis-Adjusted Langevin Algorithm (MALA) in FlowMC.
+        Current version does not work. Will be updated in future releases.
+
+        Parameters
+        ----------
+        x : Array
+            The data used to condition the posterior.
+        key : Array
+            The random key used to generate the samples.
+        initial_state : Array
+            The initial state of the MCMC sampler.
+        mcmc_kwargs: dict
+            The keyword arguments for the MCMC method. (Default: mala_flowmc_kwargs_default)
+
+        Returns
+        -------
+        samples : Array
+            The samples from the posterior.
+        """        
+        num_samples = mcmc_kwargs.get("num_samples", 2000)
+        num_chains = mcmc_kwargs.get("num_chains", 1)
+        n_dim = self.prior_distr.sample(sample_shape=(1,), key=key).shape[0]  # Get the dimension of the parameters (we can probably do better)
+        #We can probably inherit this property from the trainer module.
+
+        #Setup the Normalizing Flow
+        n_layers = mcmc_kwargs.get("n_layers", 3)
+        hidden_size = mcmc_kwargs.get("hidden_size", [64, 64])
+        num_bins = mcmc_kwargs.get("num_bins", 8) #Number of bins in the spline
+
+        nf_key, key = jax.random.split(key)
+        model = MaskedCouplingRQSpline(n_dim, n_layers, hidden_size, num_bins, nf_key)
+
+        #Setup the MALA kernel
+        step_size = mcmc_kwargs.get("step_size", 1e-1)
+        local_sampler = MALA(self.unnormalized_log_prob, True, step_size=step_size)
+
+        #Create the sampler
+        n_local_steps = mcmc_kwargs.get("n_local_steps", 50)
+        n_global_steps = mcmc_kwargs.get("n_global_steps", 50)
+        n_epochs = mcmc_kwargs.get("n_epochs", 30)
+        learning_rate = mcmc_kwargs.get("learning_rate", 1e-2)
+        nf_sampler = Sampler(
+            n_dim,
+            key,
+            x,
+            local_sampler,
+            model,
+            n_local_steps=n_local_steps,
+            n_global_steps=n_global_steps,
+            n_epochs=n_epochs,
+            learning_rate=learning_rate,
+            batch_size=num_samples,
+            n_chains=num_chains,
+        )
+
+        #Sample!
+        initial_state = jnp.expand_dims(initial_state, axis=1)
+        nf_sampler.sample(initial_state, x)
+        chains, log_prob, local_accs, global_accs = nf_sampler.get_sampler_state().values()
+        chains = chains.squeeze()
+        return chains
+        
+
 
 
     def set_default_x(self, x: Array):
@@ -414,7 +350,8 @@ class MCMCPosterior(NeuralPosterior):
         """
         Set the MCMC method to use.
         """
-        assert mcmc_method in ["nuts_numpyro", "hmc_numpyro", "nuts_blackjax", "hmc_blackjax"], f"Invalid MCMC method: {mcmc_method}. Implemented methods are: ['nuts_numpyro', 'hmc_numpyro', 'nuts_blackjax', 'hmc_blackjax']."
+        if mcmc_method not in implemented_method:
+            raise NotImplementedError(f"The MCMC method {mcmc_method} is not implemented. Check print_implemented_methods().")
         self.mcmc_method = mcmc_method
 
     def set_mcmc_kwargs(self, mcmc_kwargs: dict):
@@ -422,3 +359,9 @@ class MCMCPosterior(NeuralPosterior):
         Set the keyword arguments for the MCMC method.
         """
         self.mcmc_kwargs = mcmc_kwargs
+
+    def print_implemented_methods(self):
+        """
+        Print the implemented MCMC methods.
+        """
+        print(f"Implemented MCMC methods: {implemented_method}")

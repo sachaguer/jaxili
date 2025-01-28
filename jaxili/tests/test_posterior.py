@@ -156,20 +156,6 @@ def test_mcmc_posterior():
     )
     assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
 
-    #Sample using NUTS blackjax
-    posterior.set_mcmc_method("nuts_blackjax")
-    samples = posterior.sample(
-        x=x_train[0].reshape((1, -1)), num_samples=2_000, key=jax.random.PRNGKey(0)
-    )
-    assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
-    
-    #Sample using HMC blackjax
-    posterior.set_mcmc_method("hmc_blackjax") 
-    samples = posterior.sample(
-        x=x_train[0].reshape((1, -1)), num_samples=2_000, key=jax.random.PRNGKey(0)
-    )
-    assert samples.shape == (2_000, theta_train[0].shape[0]), "The shape of the samples is wrong."
-
     # Test if the correct Error are returned.
     try:
         posterior.set_mcmc_method('wrong_method')
