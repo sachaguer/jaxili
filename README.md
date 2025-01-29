@@ -56,6 +56,8 @@ samples = posterior.sample(x=observation, num_samples=..., key=...) #You have to
 
 ## Training a conditional MAF
 
+If you really want to control the architecture of the network you can use the following code to train e.g. a Masked Autoregressive Flow (MAF).
+
 ```python
 import jax
 import jax.numpy
