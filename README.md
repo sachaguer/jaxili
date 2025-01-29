@@ -12,7 +12,49 @@ Install `jaxili` using `PyPI`:
 $ pip install jaxili
 ```
 
-## First example: training a conditional MAF
+## First example: performing Neural Posterior Estimation
+
+```python
+from jaxili.inference import NPE
+```
+
+First fetch the data you want to train on:
+
+```python
+theta, x = ... #Theta corresponds to the parameter to be infered and x to the simulator output given theta.
+```
+
+Then create an inference object, add the simulations and train:
+
+```python
+inference = NPE()
+inference.append_simulations(theta, x)
+
+learning_rate = ... #Choose your learning rate
+num_epochs = ... #Choose the number of epochs
+batch_size = ... #Choose the batch size
+checkpoint_path = ... #Choose the checkpoint path
+checkpoint_path = os.path.abspath(checkpoint_path) #Beware, this should be an absolute path.
+
+metrics, density_estimator = inference.train(
+    training_batch_size=batch_size,
+    learning_rate=learning_rate,
+    checkpoint_path=checkpoint_path,
+    num_epochs=num_epochs
+)
+```
+
+You can then fetch the posterior to sample from it.
+
+```python
+posterior = inference.build_posterior()
+
+observation = ... #The observation should have the shape [1, data vector size].
+samples = posterior.sample(x=observation, num_samples=..., key=...) #You have to give a PRNGKey and specify the number of samples.
+```
+
+
+## Training a conditional MAF
 
 ```python
 import jax
