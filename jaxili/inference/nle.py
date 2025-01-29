@@ -1,38 +1,28 @@
 import warnings
-from typing import Any, Callable, Dict, Optional, Union, Iterable
-from jaxtyping import Array, Float, PyTree
+from typing import Any, Callable, Dict, Iterable, Optional, Union
 
-import numpy as np
+import distrax
+import flax.linen as nn
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-import flax.linen as nn
-import distrax
+import numpy as np
+import numpyro.distributions as dist
+import torch.utils.data as data
+from jaxtyping import Array, Float, PyTree
 
 import jaxili
-from jaxili.utils import (
-    check_density_estimator,
-    validate_theta_x,
-    create_data_loader,
-)
-from jaxili.model import (
-    ConditionalMAF,
-    ConditionalRealNVP,
-    MixtureDensityNetwork,
-    Identity,
-    Standardizer,
-    NDE_w_Standardization,
-)
-from jaxili.train import TrainerModule
-from jaxili.loss import loss_nll_nle
-from jaxili.utils import *
 from jaxili.inference.npe import NDEDataset
+from jaxili.loss import loss_nll_nle
+from jaxili.model import (ConditionalMAF, ConditionalRealNVP, Identity,
+                          MixtureDensityNetwork, NDE_w_Standardization,
+                          Standardizer)
 from jaxili.posterior import MCMCPosterior
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
-
-import numpyro.distributions as dist
-
-import torch.utils.data as data
+from jaxili.train import TrainerModule
+from jaxili.utils import *
+from jaxili.utils import (check_density_estimator, create_data_loader,
+                          validate_theta_x)
 
 default_maf_hparams = {
     "n_layers": 5,
@@ -502,8 +492,12 @@ class NLE:
         return metrics, density_estimator
 
     def build_posterior(
-        self, prior_distr: dist.Distribution, verbose: Optional[bool] = None, x: Optional[Array] = None,
-        mcmc_method: Optional[str] = 'nuts_numpyro', mcmc_kwargs: Optional[Dict[str, Any]] = nuts_numpyro_kwargs_default
+        self,
+        prior_distr: dist.Distribution,
+        verbose: Optional[bool] = None,
+        x: Optional[Array] = None,
+        mcmc_method: Optional[str] = "nuts_numpyro",
+        mcmc_kwargs: Optional[Dict[str, Any]] = nuts_numpyro_kwargs_default,
     ):
         r"""
         Builds the posterior distribution $p(\theta|x)$ using the trained density estimator.
@@ -536,8 +530,12 @@ class NLE:
             verbose = self.verbose
         posterior = MCMCPosterior(
             prior_distr=prior_distr,
-            model=self.trainer.model, state=self.trainer.state, verbose=verbose, x=x,
-            mcmc_method=mcmc_method, mcmc_kwargs=mcmc_kwargs
+            model=self.trainer.model,
+            state=self.trainer.state,
+            verbose=verbose,
+            x=x,
+            mcmc_method=mcmc_method,
+            mcmc_kwargs=mcmc_kwargs,
         )
 
         if self.verbose:

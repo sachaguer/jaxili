@@ -5,10 +5,10 @@ Some functions are used to format the input data for the training.
 Other functions allow to check the validity of the input data.
 """
 
-import numpy as np
-from typing import Sequence, Union, Any, Callable
-import jax.numpy as jnp
+from typing import Any, Callable, Sequence, Union
 
+import jax.numpy as jnp
+import numpy as np
 import torch
 import torch.utils.data as data
 

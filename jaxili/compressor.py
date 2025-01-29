@@ -4,11 +4,12 @@ Compressor.
 This module contains classes that implement compressors used in JaxILI.
 """
 
+from typing import Any, Callable
+
+import flax.linen as nn
 import jax
 import jax.numpy as jnp
-import flax.linen as nn
 import tensorflow_probability as tfp
-from typing import Any, Callable
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors

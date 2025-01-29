@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>train &#8212; JaxILI 0.0.2 documentation</title>
+    <title>train &#8212; JaxILI 0.1 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=f131489c"></script>
+    <script src="../_static/documentation_options.js?v=e1a75a79"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -124,7 +124,7 @@
   
   
   
-    <p class="title logo__title">JaxILI 0.0.2 documentation</p>
+    <p class="title logo__title">JaxILI 0.1 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -241,25 +241,28 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
 <span class="kn">import</span> <span class="nn">jax</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
-<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
-<span class="kn">from</span> <span class="nn">flax.training</span> <span class="kn">import</span> <span class="n">train_state</span><span class="p">,</span> <span class="n">checkpoints</span><span class="p">,</span> <span class="n">orbax_utils</span>
-<span class="kn">from</span> <span class="nn">flax.training.early_stopping</span> <span class="kn">import</span> <span class="n">EarlyStopping</span>
 <span class="kn">import</span> <span class="nn">optax</span>
 <span class="kn">import</span> <span class="nn">orbax.checkpoint</span> <span class="k">as</span> <span class="nn">ocp</span>
-
+<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
+<span class="kn">from</span> <span class="nn">flax.training</span> <span class="kn">import</span> <span class="n">checkpoints</span><span class="p">,</span> <span class="n">orbax_utils</span><span class="p">,</span> <span class="n">train_state</span>
+<span class="kn">from</span> <span class="nn">flax.training.early_stopping</span> <span class="kn">import</span> <span class="n">EarlyStopping</span>
 <span class="kn">from</span> <span class="nn">pytorch_lightning.loggers</span> <span class="kn">import</span> <span class="n">TensorBoardLogger</span><span class="p">,</span> <span class="n">WandbLogger</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">import</span> <span class="nn">jaxili</span>
-<span class="kn">from</span> <span class="nn">jaxili.inventory.func_dict</span> <span class="kn">import</span> <span class="n">jax_nn_dict</span><span class="p">,</span> <span class="n">jaxili_nn_dict</span><span class="p">,</span> <span class="n">jaxili_loss_dict</span>
+<span class="kn">from</span> <span class="nn">jaxili.inventory.func_dict</span> <span class="kn">import</span> <span class="p">(</span><span class="n">jax_nn_dict</span><span class="p">,</span> <span class="n">jaxili_loss_dict</span><span class="p">,</span>
+                                        <span class="n">jaxili_nn_dict</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">jaxili.utils</span> <span class="kn">import</span> <span class="n">handle_non_serializable</span>
 
 
 <div class="viewcode-block" id="TrainState">
@@ -321,6 +324,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_progress_bar</span> <span class="o">=</span> <span class="n">enable_progress_bar</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">check_val_every_epoch</span> <span class="o">=</span> <span class="n">check_val_every_epoch</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nde_class</span> <span class="o">=</span> <span class="n">nde_class</span>
         <span class="k">assert</span> <span class="p">(</span>
@@ -382,8 +386,11 @@
         <span class="n">log_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log_dir</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;hparams.json&quot;</span><span class="p">)):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;metrics/&quot;</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;hparams.json&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="s2">&quot;hparams.json&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">handle_non_serializable</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not save hyperparameters.&quot;</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">=</span> <span class="n">log_dir</span></div>
 
 
@@ -398,14 +405,14 @@
 <span class="sd">        exmp_input : An input to the model with which the shapes are inferred.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Prepare PRNG and input</span>
-        <span class="n">model_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
-        <span class="n">model_rng</span><span class="p">,</span> <span class="n">init_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">model_rng</span><span class="p">)</span>
+        <span class="n">init_rng</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span><span class="p">)</span>
         <span class="n">exmp_input</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">[</span><span class="n">exmp_input</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exmp_input</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="n">exmp_input</span>
         <span class="p">)</span>
         <span class="c1"># Run model initialization</span>
         <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_model_init</span><span class="p">(</span><span class="n">exmp_input</span><span class="p">,</span> <span class="n">init_rng</span><span class="p">)</span>
         <span class="c1"># Create default state. Optimizer is initialized later</span>
+        <span class="n">model_rng</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">TrainState</span><span class="p">(</span>
             <span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">apply_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_fn</span><span class="p">,</span>
@@ -511,18 +518,26 @@
         <span class="c1"># Initialize learning rate scheduler</span>
         <span class="c1"># A cosine decay scheduler is used, but others are also possible</span>
         <span class="n">lr</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span>
-        <span class="n">warmup</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;warmup&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">warmup</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s2">&quot;warmup&quot;</span><span class="p">,</span> <span class="n">num_steps_per_epoch</span>
+        <span class="p">)</span>  <span class="c1"># By default linear warmup during the first epoch</span>
+        <span class="n">decay_steps</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s2">&quot;decay_steps&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_epochs</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">num_steps_per_epoch</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">lr_schedule</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">warmup_cosine_decay_schedule</span><span class="p">(</span>
-            <span class="n">init_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">init_value</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">lr</span><span class="p">,</span>
             <span class="n">peak_value</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
             <span class="n">warmup_steps</span><span class="o">=</span><span class="n">warmup</span><span class="p">,</span>
-            <span class="n">decay_steps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">num_epochs</span> <span class="o">*</span> <span class="n">num_steps_per_epoch</span><span class="p">),</span>
+            <span class="n">decay_steps</span><span class="o">=</span><span class="n">decay_steps</span><span class="p">,</span>
             <span class="n">end_value</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">lr</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># Clip gradients at max value, and evt. apply weight decay</span>
         <span class="n">transf</span> <span class="o">=</span> <span class="p">[</span><span class="n">optax</span><span class="o">.</span><span class="n">clip_by_global_norm</span><span class="p">(</span><span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;gradient_clip&quot;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">))]</span>
         <span class="k">if</span> <span class="n">opt_class</span> <span class="o">==</span> <span class="n">optax</span><span class="o">.</span><span class="n">sgd</span> <span class="ow">and</span> <span class="s2">&quot;weight_decay&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">:</span>
             <span class="n">transf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">optax</span><span class="o">.</span><span class="n">add_decayed_weights</span><span class="p">(</span><span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;weight_decay&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)))</span>
+        <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s2">&quot;weight_decay&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="p">)</span>  <span class="c1"># removes weight decay if the opt_class is not sgd.</span>
         <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">transf</span><span class="p">,</span> <span class="n">opt_class</span><span class="p">(</span><span class="n">lr_schedule</span><span class="p">,</span> <span class="o">**</span><span class="n">hparams</span><span class="p">))</span>
         <span class="c1"># Initialize training state</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">TrainState</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
@@ -932,6 +947,10 @@
         <span class="k">if</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;model_hparams&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;model_hparams&quot;</span><span class="p">][</span><span class="s2">&quot;activation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jax_nn_dict</span><span class="p">[</span>
                 <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;model_hparams&quot;</span><span class="p">][</span><span class="s2">&quot;activation&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;nde&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;model_hparams&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;model_hparams&quot;</span><span class="p">][</span><span class="s2">&quot;nde&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaxili_nn_dict</span><span class="p">[</span>
+                <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;model_hparams&quot;</span><span class="p">][</span><span class="s2">&quot;nde&quot;</span><span class="p">]</span>
             <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;logger_params&quot;</span><span class="p">]:</span>
             <span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;logger_params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>

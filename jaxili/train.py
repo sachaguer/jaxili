@@ -4,26 +4,27 @@ This module implements an object to perform the training of Normalizing Flows.
 
 """
 
-import os
-import warnings
 import json
+import os
 import time
-from copy import copy, deepcopy
-from typing import Dict, Any, Optional, Callable, Tuple, Iterator, Sequence
+import warnings
 from collections import defaultdict
-from tqdm import tqdm
+from copy import copy, deepcopy
+from typing import Any, Callable, Dict, Iterator, Optional, Sequence, Tuple
+
 import jax
 import jax.numpy as jnp
-from flax import linen as nn
-from flax.training import train_state, checkpoints, orbax_utils
-from flax.training.early_stopping import EarlyStopping
 import optax
 import orbax.checkpoint as ocp
-
+from flax import linen as nn
+from flax.training import checkpoints, orbax_utils, train_state
+from flax.training.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
+from tqdm import tqdm
 
 import jaxili
-from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict, jaxili_loss_dict
+from jaxili.inventory.func_dict import (jax_nn_dict, jaxili_loss_dict,
+                                        jaxili_nn_dict)
 from jaxili.utils import handle_non_serializable
 
 
@@ -255,12 +256,17 @@ class TrainerModule:
         # Initialize learning rate scheduler
         # A cosine decay scheduler is used, but others are also possible
         lr = hparams.pop("lr", 1e-3)
-        warmup = hparams.pop("warmup", 0.1)
+        warmup = hparams.pop(
+            "warmup", num_steps_per_epoch
+        )  # By default linear warmup during the first epoch
+        decay_steps = hparams.pop(
+            "decay_steps", int(num_epochs // 2 * num_steps_per_epoch)
+        )
         lr_schedule = optax.warmup_cosine_decay_schedule(
-            init_value=0.0,
+            init_value=0.01 * lr,
             peak_value=lr,
             warmup_steps=warmup,
-            decay_steps=int(num_epochs * num_steps_per_epoch),
+            decay_steps=decay_steps,
             end_value=0.01 * lr,
         )
         # Clip gradients at max value, and evt. apply weight decay

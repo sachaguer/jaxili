@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>utils &#8212; JaxILI 0.0.2 documentation</title>
+    <title>utils &#8212; JaxILI 0.1 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=f131489c"></script>
+    <script src="../_static/documentation_options.js?v=e1a75a79"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -124,7 +124,7 @@
   
   
   
-    <p class="title logo__title">JaxILI 0.0.2 documentation</p>
+    <p class="title logo__title">JaxILI 0.1 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -242,10 +242,10 @@
 <span class="sd">Other functions allow to check the validity of the input data.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
-<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.utils.data</span> <span class="k">as</span> <span class="nn">data</span>
 
@@ -345,8 +345,12 @@
 <span class="sd">        Simulation outputs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;theta should be a jax array.&quot;</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;x should be a jax array.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">theta</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">),</span> <span class="s2">&quot;theta should be a jax array.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">),</span> <span class="s2">&quot;x should be a jax array.&quot;</span>
     <span class="k">assert</span> <span class="p">(</span>
         <span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Number of parameter sets (</span><span class="si">{</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) and number of simulation outputs (</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) should be the same.&quot;</span>
@@ -357,6 +361,87 @@
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">theta</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">batch_size</span></div>
+
+
+
+<div class="viewcode-block" id="check_hparams_maf">
+<a class="viewcode-back" href="../utils.html#utils.check_hparams_maf">[docs]</a>
+<span class="k">def</span> <span class="nf">check_hparams_maf</span><span class="p">(</span><span class="n">hparams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the hyperparameters of the Masked Autoregressive Flow.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hparams : dict</span>
+<span class="sd">        Dictionary with the hyperparameters of the MAF.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;n_layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;n_layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;activation not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;use_reverse&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;use_reverse not found in hyperparameters.&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;n_layers&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;n_layers should be an int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;layers should be a list of int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">callable</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">]),</span> <span class="s2">&quot;activation should be a callable.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;use_reverse&quot;</span><span class="p">],</span> <span class="nb">bool</span><span class="p">),</span> <span class="s2">&quot;use_reverse should be a boolean.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="check_hparams_realnvp">
+<a class="viewcode-back" href="../utils.html#utils.check_hparams_realnvp">[docs]</a>
+<span class="k">def</span> <span class="nf">check_hparams_realnvp</span><span class="p">(</span><span class="n">hparams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the hyperparameters of the RealNVP.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hparams : dict</span>
+<span class="sd">        Dictionary with the hyperparameters of the RealNVP.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;n_layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;n_layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;activation not found in hyperparameters.&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;n_layers&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;n_layers should be an int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;layers should be a list of int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">callable</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">]),</span> <span class="s2">&quot;activation should be a callable.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="check_hparams_mdn">
+<a class="viewcode-back" href="../utils.html#utils.check_hparams_mdn">[docs]</a>
+<span class="k">def</span> <span class="nf">check_hparams_mdn</span><span class="p">(</span><span class="n">hparams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the hyperparameters of the Mixture Density Network.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hparams : dict</span>
+<span class="sd">        Dictionary with the hyperparameters of the MDN.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;n_components&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;n_components not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;activation not found in hyperparameters.&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;n_components&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;n_components should be an int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;layers should be a list of int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">callable</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">]),</span> <span class="s2">&quot;activation should be a callable.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="handle_non_serializable">
+<a class="viewcode-back" href="../utils.html#utils.handle_non_serializable">[docs]</a>
+<span class="k">def</span> <span class="nf">handle_non_serializable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom handler for non-serializable objects.</span>
+<span class="sd">    Replace or transform objects into something serializable to save metadata from training.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Object to handle.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>  <span class="c1"># Default behavior is to convert to string</span></div>
 
 </pre></div>
 

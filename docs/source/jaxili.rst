@@ -6,6 +6,15 @@ jaxili package
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   jaxili.inference
+   jaxili.posterior
+
 Submodules
 ----------
 

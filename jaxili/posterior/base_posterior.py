@@ -1,6 +1,8 @@
 from abc import abstractmethod
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from jaxtyping import Array
+
 from jaxili.model import NDENetwork
 from jaxili.train import TrainState
 

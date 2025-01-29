@@ -235,19 +235,43 @@
                 <article class="bd-article">
                   
   <h1>Source code for jaxili.loss</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">jax</span>
+<span></span><span class="sd">&quot;&quot;&quot;Loss.</span>
+
+<span class="sd">This module contains useful loss functions used in the neural network training.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">jax</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">jaxtyping</span> <span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">PyTree</span>
 
 <span class="n">MMD_BANDWIDTH_LIST</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="mf">1e-6</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">,</span> <span class="mf">1e4</span><span class="p">,</span> <span class="mf">1e5</span><span class="p">,</span> <span class="mf">1e6</span>
+    <span class="mf">1e-6</span><span class="p">,</span>
+    <span class="mf">1e-5</span><span class="p">,</span>
+    <span class="mf">1e-4</span><span class="p">,</span>
+    <span class="mf">1e-3</span><span class="p">,</span>
+    <span class="mf">1e-2</span><span class="p">,</span>
+    <span class="mf">1e-1</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">,</span>
+    <span class="mi">10</span><span class="p">,</span>
+    <span class="mi">15</span><span class="p">,</span>
+    <span class="mi">20</span><span class="p">,</span>
+    <span class="mi">25</span><span class="p">,</span>
+    <span class="mi">30</span><span class="p">,</span>
+    <span class="mi">35</span><span class="p">,</span>
+    <span class="mi">100</span><span class="p">,</span>
+    <span class="mf">1e3</span><span class="p">,</span>
+    <span class="mf">1e4</span><span class="p">,</span>
+    <span class="mf">1e5</span><span class="p">,</span>
+    <span class="mf">1e6</span><span class="p">,</span>
 <span class="p">]</span>
+
 
 <div class="viewcode-block" id="loss_nll_npe">
 <a class="viewcode-back" href="../../jaxili.loss.html#jaxili.loss.loss_nll_npe">[docs]</a>
-<span class="k">def</span> <span class="nf">loss_nll_npe</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">Array</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">loss_nll_npe</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Negative log-likelihood loss function for NPE methods</span>
 <span class="sd">    using a given neural network as a model.</span>
@@ -271,8 +295,9 @@
 
     <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span> <span class="o">=</span> <span class="n">batch</span>
 
-    <span class="n">output</span> <span class="o">=</span>  <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;log_prob&#39;</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;log_prob&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="loss_nll_nle">
@@ -301,7 +326,8 @@
 
     <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span> <span class="o">=</span> <span class="n">batch</span>
 
-    <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">xs</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;log_prob&#39;</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">xs</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;log_prob&quot;</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="gaussian_kernel_matrix">
@@ -325,12 +351,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">sigmas</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">sigmas</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">MMD_BANDWIDTH_LIST</span><span class="p">)</span>
-    <span class="n">norm</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">v</span> <span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">v</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">v</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">beta</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">sigmas</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
     <span class="n">dist</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
     <span class="n">kernel</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">s</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">dist</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">kernel</span></div>
+
 
 
 <div class="viewcode-block" id="mmd_kernel">
@@ -354,9 +381,12 @@
     <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">kernel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">kernel</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">kernel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span></div>
 
 
+
 <div class="viewcode-block" id="maximum_mean_discrepancy">
 <a class="viewcode-back" href="../../jaxili.loss.html#jaxili.loss.maximum_mean_discrepancy">[docs]</a>
-<span class="k">def</span> <span class="nf">maximum_mean_discrepancy</span><span class="p">(</span><span class="n">source_samples</span><span class="p">,</span> <span class="n">target_samples</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">mmd_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">maximum_mean_discrepancy</span><span class="p">(</span>
+    <span class="n">source_samples</span><span class="p">,</span> <span class="n">target_samples</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">mmd_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the Maximum Mean Discrepancy (MMD) between source and target samples.</span>
 
@@ -373,14 +403,15 @@
 <span class="sd">    float</span>
 <span class="sd">        Maximum Mean Discrepancy (MMD) between source and target samples.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">kernel</span><span class="o">==</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian kernel is supported for now&quot;</span>
+    <span class="k">assert</span> <span class="n">kernel</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian kernel is supported for now&quot;</span>
 
-    <span class="k">if</span> <span class="n">kernel</span><span class="o">==</span><span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">kernel</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
         <span class="n">kernel_fun</span> <span class="o">=</span> <span class="n">gaussian_kernel_matrix</span>
-    
+
     <span class="n">loss_value</span> <span class="o">=</span> <span class="n">mmd_kernel</span><span class="p">(</span><span class="n">source_samples</span><span class="p">,</span> <span class="n">target_samples</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel_fun</span><span class="p">)</span>
-    <span class="n">loss_value</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">loss_value</span><span class="p">,</span> <span class="n">minimum</span><span class="p">)</span><span class="o">*</span><span class="n">mmd_weight</span>
+    <span class="n">loss_value</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">loss_value</span><span class="p">,</span> <span class="n">minimum</span><span class="p">)</span> <span class="o">*</span> <span class="n">mmd_weight</span>
     <span class="k">return</span> <span class="n">loss_value</span></div>
+
 
 
 <div class="viewcode-block" id="mmd_summary_space">
@@ -406,8 +437,8 @@
 <span class="sd">        Maximum Mean Discrepancy (MMD) between the summary outputs and samples from a unit Gaussian distribution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">assert</span> <span class="n">z_dist</span><span class="o">==</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian distribution is supported for now&quot;</span>
-    <span class="k">assert</span> <span class="n">kernel</span><span class="o">==</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian kernel is supported for now&quot;</span>
+    <span class="k">assert</span> <span class="n">z_dist</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian distribution is supported for now&quot;</span>
+    <span class="k">assert</span> <span class="n">kernel</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian kernel is supported for now&quot;</span>
 
     <span class="n">z_samples</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">rng</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">summary_outputs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="n">mmd_loss</span> <span class="o">=</span> <span class="n">maximum_mean_discrepancy</span><span class="p">(</span><span class="n">summary_outputs</span><span class="p">,</span> <span class="n">z_samples</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">)</span>
@@ -437,17 +468,19 @@
 <span class="sd">    float</span>
 <span class="sd">        Maximum Mean Discrepancy (MMD) loss.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">compress</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">,</span> <span class="n">x</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">x</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;compress&#39;</span><span class="p">)</span>
-    <span class="n">nf</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">z</span> <span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">z</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;NPE&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;log_prob_from_compressed&#39;</span><span class="p">)</span>
+    <span class="n">compress</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">x</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;compress&quot;</span><span class="p">)</span>
+    <span class="n">nf</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">z</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;log_prob_from_compressed&quot;</span>
+    <span class="p">)</span>
     <span class="n">theta</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">batch</span>
 
-    <span class="c1">#compress the data</span>
+    <span class="c1"># compress the data</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">compress</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="c1">#Compute the MMD loss</span>
-    <span class="n">rng_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1">#Could probably be improved</span>
+    <span class="c1"># Compute the MMD loss</span>
+    <span class="n">rng_key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Could probably be improved</span>
     <span class="n">mmd_loss</span> <span class="o">=</span> <span class="n">mmd_summary_space</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">rng_key</span><span class="p">)</span>
-    <span class="c1">#Compute the log-probability</span>
+    <span class="c1"># Compute the log-probability</span>
     <span class="n">log_prob</span> <span class="o">=</span> <span class="n">nf</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
     <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">log_prob</span><span class="p">)</span> <span class="o">+</span> <span class="n">mmd_loss</span></div>
 

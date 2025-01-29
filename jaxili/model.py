@@ -4,16 +4,17 @@ This module contains classes to implement normalizing flows using neural network
 
 """
 
-from flax import linen as nn
+from functools import partial
+from typing import Any, Callable, Optional
+
 import distrax
-import numpy as np
 import jax
 import jax.numpy as jnp
+import numpy as np
 import tensorflow_probability as tfp
-from typing import Any, Optional, Callable
-from jaxtyping import Array
+from flax import linen as nn
 from jax.scipy.stats import multivariate_normal
-from functools import partial
+from jaxtyping import Array
 
 tfp = tfp.experimental.substrates.jax
 tfb = tfp.bijectors

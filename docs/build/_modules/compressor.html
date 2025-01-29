@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>compressor &#8212; JaxILI 0.0.2 documentation</title>
+    <title>compressor &#8212; JaxILI 0.1 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=f131489c"></script>
+    <script src="../_static/documentation_options.js?v=e1a75a79"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -124,7 +124,7 @@
   
   
   
-    <p class="title logo__title">JaxILI 0.0.2 documentation</p>
+    <p class="title logo__title">JaxILI 0.1 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -241,11 +241,12 @@
 <span class="sd">This module contains classes that implement compressors used in JaxILI.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="kn">import</span> <span class="nn">flax.linen</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">jax</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
-<span class="kn">import</span> <span class="nn">flax.linen</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">tensorflow_probability</span> <span class="k">as</span> <span class="nn">tfp</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="n">tfp</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">experimental</span><span class="o">.</span><span class="n">substrates</span><span class="o">.</span><span class="n">jax</span>
 <span class="n">tfb</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">bijectors</span>
@@ -256,18 +257,18 @@
 <a class="viewcode-back" href="../compressor.html#compressor.MLPCompressor">[docs]</a>
 <span class="k">class</span> <span class="nc">MLPCompressor</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    MLP Compressor</span>
+<span class="sd">    MLP Compressor.</span>
 
-<span class="sd">    Defines a MLP compressor to send the summary statistic to the same dimension than the parameters</span>
+<span class="sd">    Defines a MLP compressor to send the summary statistic to the same dimension than the parameters.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    hidden_size : list</span>
-<span class="sd">        List with the size of the hidden layers</span>
+<span class="sd">        List with the size of the hidden layers.</span>
 <span class="sd">    activation : Callable</span>
 <span class="sd">        Activation function. Preferably from `jax.nn` or `jax.nn.activation`.</span>
 <span class="sd">    output_size : int</span>
-<span class="sd">        Size of the output layer</span>
+<span class="sd">        Size of the output layer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">list</span>

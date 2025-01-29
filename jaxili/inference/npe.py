@@ -1,35 +1,25 @@
 import warnings
-from typing import Any, Callable, Dict, Optional, Union, Iterable
-from jaxtyping import Array, Float, PyTree
+from typing import Any, Callable, Dict, Iterable, Optional, Union
 
-import numpy as np
+import distrax
+import flax.linen as nn
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-import flax.linen as nn
-import distrax
+import numpy as np
+import torch.utils.data as data
+from jaxtyping import Array, Float, PyTree
 
 import jaxili
-from jaxili.utils import (
-    check_density_estimator,
-    validate_theta_x,
-    create_data_loader,
-    numpy_collate,
-)
-from jaxili.model import (
-    ConditionalMAF,
-    ConditionalRealNVP,
-    MixtureDensityNetwork,
-    Identity,
-    Standardizer,
-    NDE_w_Standardization,
-)
-from jaxili.train import TrainerModule
 from jaxili.loss import loss_nll_npe
-from jaxili.utils import *
+from jaxili.model import (ConditionalMAF, ConditionalRealNVP, Identity,
+                          MixtureDensityNetwork, NDE_w_Standardization,
+                          Standardizer)
 from jaxili.posterior import DirectPosterior
-
-import torch.utils.data as data
+from jaxili.train import TrainerModule
+from jaxili.utils import *
+from jaxili.utils import (check_density_estimator, create_data_loader,
+                          numpy_collate, validate_theta_x)
 
 default_maf_hparams = {
     "n_layers": 5,

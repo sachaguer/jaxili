@@ -443,14 +443,14 @@
 <dt class="sig sig-object py" id="compressor.MLPCompressor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">compressor.</span></span><span class="sig-name descname"><span class="pre">MLPCompressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_size:</span> <span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation:</span> <span class="pre">~typing.Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/compressor.html#MLPCompressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#compressor.MLPCompressor" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>MLP Compressor</p>
-<p>Defines a MLP compressor to send the summary statistic to the same dimension than the parameters</p>
+<p>MLP Compressor.</p>
+<p>Defines a MLP compressor to send the summary statistic to the same dimension than the parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>hidden_size</strong> (<em>list</em>) – List with the size of the hidden layers</p></li>
+<li><p><strong>hidden_size</strong> (<em>list</em>) – List with the size of the hidden layers.</p></li>
 <li><p><strong>activation</strong> (<em>Callable</em>) – Activation function. Preferably from <cite>jax.nn</cite> or <cite>jax.nn.activation</cite>.</p></li>
-<li><p><strong>output_size</strong> (<em>int</em>) – Size of the output layer</p></li>
+<li><p><strong>output_size</strong> (<em>int</em>) – Size of the output layer.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>

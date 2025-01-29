@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>model &#8212; JaxILI 0.0.2 documentation</title>
+    <title>model &#8212; JaxILI 0.1 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=f131489c"></script>
+    <script src="../_static/documentation_options.js?v=e1a75a79"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -124,7 +124,7 @@
   
   
   
-    <p class="title logo__title">JaxILI 0.0.2 documentation</p>
+    <p class="title logo__title">JaxILI 0.1 documentation</p>
   
 </a></div>
         <div class="sidebar-primary-item">
@@ -241,19 +241,50 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
 <span class="kn">import</span> <span class="nn">distrax</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">jax</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow_probability</span> <span class="k">as</span> <span class="nn">tfp</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
 <span class="kn">from</span> <span class="nn">jax.scipy.stats</span> <span class="kn">import</span> <span class="n">multivariate_normal</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">jaxtyping</span> <span class="kn">import</span> <span class="n">Array</span>
 
 <span class="n">tfp</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">experimental</span><span class="o">.</span><span class="n">substrates</span><span class="o">.</span><span class="n">jax</span>
 <span class="n">tfb</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">bijectors</span>
 <span class="n">tfd</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span>
+
+
+<div class="viewcode-block" id="Identity">
+<a class="viewcode-back" href="../model.html#model.Identity">[docs]</a>
+<span class="k">class</span> <span class="nc">Identity</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identity transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+
+<div class="viewcode-block" id="Standardizer">
+<a class="viewcode-back" href="../model.html#model.Standardizer">[docs]</a>
+<span class="k">class</span> <span class="nc">Standardizer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standardizer transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mean</span><span class="p">:</span> <span class="n">Array</span>
+    <span class="n">std</span><span class="p">:</span> <span class="n">Array</span>
+
+    <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span></div>
+
 
 
 <div class="viewcode-block" id="NDENetwork">
@@ -353,9 +384,10 @@
 <span class="sd">    The weights of each gaussian component, the mean and the covariance are learned by the network.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">n_data</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of data vector</span>
+    <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of the input</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of conditionning variable</span>
     <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># number of mixture components</span>
-    <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span>  <span class="c1"># list of hidden layers size</span>
+    <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden layers size</span>
     <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># activation function</span>
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
@@ -384,21 +416,21 @@
         <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
             <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">kernel_init</span><span class="p">)(</span><span class="n">y</span><span class="p">))</span>
         <span class="n">final_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span>
-            <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">final_size</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">kernel_init</span><span class="p">)(</span><span class="n">y</span><span class="p">)</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">])</span>
-        <span class="n">locs</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
-        <span class="n">scale_tril</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="n">locs</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">scale_tril</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:]</span>
 
         <span class="n">distribution</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">MixtureSameFamily</span><span class="p">(</span>
             <span class="n">mixture_distribution</span><span class="o">=</span><span class="n">distrax</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">),</span>
             <span class="n">components_distribution</span><span class="o">=</span><span class="n">tfd</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span>
-                <span class="n">loc</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">)),</span>
+                <span class="n">loc</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">)),</span>
                 <span class="n">scale_tril</span><span class="o">=</span><span class="n">tfp</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">fill_triangular</span><span class="p">(</span>
                     <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
                         <span class="n">scale_tril</span><span class="p">,</span>
-                        <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span>
+                        <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span>
                     <span class="p">)</span>
                 <span class="p">),</span>
             <span class="p">),</span>
@@ -494,6 +526,7 @@
 <a class="viewcode-back" href="../model.html#model.ConditionalRealNVP">[docs]</a>
 <span class="k">class</span> <span class="nc">ConditionalRealNVP</span><span class="p">(</span><span class="n">NDENetwork</span><span class="p">):</span>
     <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of the input</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of the conditionning variable</span>
     <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Number of layers</span>
     <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden layers size</span>
     <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># activation function</span>
@@ -816,9 +849,7 @@
     <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Number of layers (i.e. number of stacked MADEs)</span>
     <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden dimensionsin each MADE.</span>
     <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># Activation function</span>
-    <span class="n">use_reverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="kc">True</span>  <span class="c1"># Whether to reverse the order of the input between each MADE</span>
-    <span class="p">)</span>
+    <span class="n">use_reverse</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># Whether to reverse the order of the input between each MADE</span>
     <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Random seed to label nodes</span>
 
 <div class="viewcode-block" id="ConditionalMAF.setup">
@@ -1014,6 +1045,102 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NDE_w_Standardization">
+<a class="viewcode-back" href="../model.html#model.NDE_w_Standardization">[docs]</a>
+<span class="k">class</span> <span class="nc">NDE_w_Standardization</span><span class="p">(</span><span class="n">NDENetwork</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    NDE_w_Standardization</span>
+
+<span class="sd">    This class creates an NDE network where the input data is first standardized.</span>
+<span class="sd">    It takes in input a neural density estimator, an embedding net and a transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nde</span><span class="p">:</span> <span class="n">NDENetwork</span>  <span class="c1"># Neural Density Estimator</span>
+    <span class="n">embedding_net</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>  <span class="c1"># Embedding network</span>
+    <span class="n">transformation</span><span class="p">:</span> <span class="n">distrax</span><span class="o">.</span><span class="n">Bijector</span>  <span class="c1"># Transformation network TBC</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the log-probability of x given y for NPE and y given x for NLE.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : jnp.Array</span>
+<span class="sd">            Theta</span>
+<span class="sd">        y : jnp.Array</span>
+<span class="sd">            x</span>
+<span class="sd">        model : str</span>
+<span class="sd">            NPE or NLE</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        log_prob : jnp.Array</span>
+<span class="sd">            Log probability of the parameters y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NLE&quot;</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span>  <span class="c1"># Learn the distribution p(y|x). Exchange the two.</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">logprob_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">inverse_and_log_det</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">logprob_std</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">logprob_std</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">log_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">log_prob</span> <span class="o">+</span> <span class="n">logprob_std</span>
+
+<div class="viewcode-block" id="NDE_w_Standardization.standardize">
+<a class="viewcode-back" href="../model.html#model.NDE_w_Standardization.standardize">[docs]</a>
+    <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Standardize the data point x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.unstandardize">
+<a class="viewcode-back" href="../model.html#model.NDE_w_Standardization.unstandardize">[docs]</a>
+    <span class="k">def</span> <span class="nf">unstandardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Unstandardize the data point x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.embedding">
+<a class="viewcode-back" href="../model.html#model.NDE_w_Standardization.embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Embed the data point x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.log_prob">
+<a class="viewcode-back" href="../model.html#model.NDE_w_Standardization.log_prob">[docs]</a>
+    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the log probability of the data point x conditioned by y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.sample">
+<a class="viewcode-back" href="../model.html#model.NDE_w_Standardization.sample">[docs]</a>
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample from the distribution conditioned by y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NPE&quot;</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">samples</span></div>
 </div>
 
 </pre></div>

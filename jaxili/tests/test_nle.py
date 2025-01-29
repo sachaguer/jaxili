@@ -5,12 +5,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import numpy.testing as npt
-
-from jaxili.inference.nle import NLE
-from jaxili.inference.nle import default_maf_hparams
-from jaxili.model import ConditionalMAF
-
 import sbibm
+
+from jaxili.inference.nle import NLE, default_maf_hparams
+from jaxili.model import ConditionalMAF
 
 task = sbibm.get_task("slcp")
 simulator = task.get_simulator()
@@ -218,4 +216,3 @@ def test_training():
     ), "The hparams JSON file does not exist. Check ~/test/NDE_w_Standardization/version_0."
 
     shutil.rmtree(checkpoint_path)
-

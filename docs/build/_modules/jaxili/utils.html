@@ -235,12 +235,20 @@
                 <article class="bd-article">
                   
   <h1>Source code for jaxili.utils</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
+<span></span><span class="sd">&quot;&quot;&quot;Utils.</span>
+
+<span class="sd">This module contains utility functions used in the JaxILI package.</span>
+<span class="sd">Some functions are used to format the input data for the training.</span>
+<span class="sd">Other functions allow to check the validity of the input data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.utils.data</span> <span class="k">as</span> <span class="nn">data</span>
+
 
 <div class="viewcode-block" id="numpy_collate">
 <a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.numpy_collate">[docs]</a>
@@ -255,14 +263,17 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></div>
 
-    
+
+
 <div class="viewcode-block" id="create_data_loader">
 <a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.create_data_loader">[docs]</a>
-<span class="k">def</span> <span class="nf">create_data_loader</span><span class="p">(</span><span class="o">*</span><span class="n">datasets</span> <span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">],</span>
-                       <span class="n">train</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">batch_size</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
-                       <span class="n">num_workers</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-                       <span class="n">seed</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_data_loader</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">datasets</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">],</span>
+    <span class="n">train</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates data loaders used in JAX for a set of datasets.</span>
 
@@ -279,16 +290,19 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
         <span class="n">train</span> <span class="o">=</span> <span class="p">[</span><span class="n">train</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">is_train</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
-        <span class="n">loader</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span>
-                                 <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-                                 <span class="n">shuffle</span><span class="o">=</span><span class="n">is_train</span><span class="p">,</span>
-                                 <span class="n">drop_last</span><span class="o">=</span><span class="n">is_train</span><span class="p">,</span>
-                                 <span class="n">collate_fn</span><span class="o">=</span><span class="n">numpy_collate</span><span class="p">,</span>
-                                 <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
-                                 <span class="n">persistent_workers</span><span class="o">=</span><span class="n">is_train</span><span class="p">,</span>
-                                 <span class="n">generator</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
+        <span class="n">loader</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+            <span class="n">dataset</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">shuffle</span><span class="o">=</span><span class="n">is_train</span><span class="p">,</span>
+            <span class="n">drop_last</span><span class="o">=</span><span class="n">is_train</span><span class="p">,</span>
+            <span class="n">collate_fn</span><span class="o">=</span><span class="n">numpy_collate</span><span class="p">,</span>
+            <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+            <span class="n">persistent_workers</span><span class="o">=</span><span class="n">is_train</span><span class="p">,</span>
+            <span class="n">generator</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="n">loaders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loader</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">loaders</span></div>
+
 
 
 <div class="viewcode-block" id="check_density_estimator">
@@ -302,10 +316,13 @@
 <span class="sd">    estimator_arg : str</span>
 <span class="sd">        Density estimator argument to check.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">estimator_arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;maf&#39;</span><span class="p">,</span> <span class="s1">&#39;mdn&#39;</span><span class="p">,</span> <span class="s1">&#39;realnvp&#39;</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid density estimator argument: </span><span class="si">{</span><span class="n">estimator_arg</span><span class="si">}</span><span class="s2">. Options are &#39;maf&#39;, &#39;mdn&#39; and &#39;realnvp&#39;.&quot;</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">estimator_arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;maf&quot;</span><span class="p">,</span> <span class="s2">&quot;mdn&quot;</span><span class="p">,</span> <span class="s2">&quot;realnvp&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Invalid density estimator argument: </span><span class="si">{</span><span class="n">estimator_arg</span><span class="si">}</span><span class="s2">. Options are &#39;maf&#39;, &#39;mdn&#39; and &#39;realnvp&#39;.&quot;</span>
+        <span class="p">)</span></div>
 
-    
+
+
 <div class="viewcode-block" id="validate_theta_x">
 <a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.validate_theta_x">[docs]</a>
 <span class="k">def</span> <span class="nf">validate_theta_x</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
@@ -319,7 +336,7 @@
 
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError if $\theta$ and $x$ are not jax arrays, do not have the same batch size or are not dtype==np.float32.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    theta : Any</span>
@@ -328,18 +345,103 @@
 <span class="sd">        Simulation outputs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;theta should be a jax array.&quot;</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s2">&quot;x should be a jax array.&quot;</span>
-    <span class="k">assert</span> <span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Number of parameter sets (</span><span class="si">{</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) and number of simulation outputs (</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) should be the same.&quot;</span>
-    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">theta</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">),</span> <span class="s2">&quot;theta should be a jax array.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">),</span> <span class="s2">&quot;x should be a jax array.&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Number of parameter sets (</span><span class="si">{</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) and number of simulation outputs (</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">) should be the same.&quot;</span>
 
     <span class="k">assert</span> <span class="n">theta</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;theta should have dtype float32.&quot;</span>
     <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;x should have dtype float32.&quot;</span>
 
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    
+
     <span class="k">return</span> <span class="n">theta</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">batch_size</span></div>
+
+
+
+<div class="viewcode-block" id="check_hparams_maf">
+<a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.check_hparams_maf">[docs]</a>
+<span class="k">def</span> <span class="nf">check_hparams_maf</span><span class="p">(</span><span class="n">hparams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the hyperparameters of the Masked Autoregressive Flow.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hparams : dict</span>
+<span class="sd">        Dictionary with the hyperparameters of the MAF.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;n_layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;n_layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;activation not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;use_reverse&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;use_reverse not found in hyperparameters.&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;n_layers&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;n_layers should be an int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;layers should be a list of int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">callable</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">]),</span> <span class="s2">&quot;activation should be a callable.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;use_reverse&quot;</span><span class="p">],</span> <span class="nb">bool</span><span class="p">),</span> <span class="s2">&quot;use_reverse should be a boolean.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="check_hparams_realnvp">
+<a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.check_hparams_realnvp">[docs]</a>
+<span class="k">def</span> <span class="nf">check_hparams_realnvp</span><span class="p">(</span><span class="n">hparams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the hyperparameters of the RealNVP.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hparams : dict</span>
+<span class="sd">        Dictionary with the hyperparameters of the RealNVP.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;n_layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;n_layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;activation not found in hyperparameters.&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;n_layers&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;n_layers should be an int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;layers should be a list of int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">callable</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">]),</span> <span class="s2">&quot;activation should be a callable.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="check_hparams_mdn">
+<a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.check_hparams_mdn">[docs]</a>
+<span class="k">def</span> <span class="nf">check_hparams_mdn</span><span class="p">(</span><span class="n">hparams</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the hyperparameters of the Mixture Density Network.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hparams : dict</span>
+<span class="sd">        Dictionary with the hyperparameters of the MDN.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;n_components&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;n_components not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;layers not found in hyperparameters.&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;activation&quot;</span> <span class="ow">in</span> <span class="n">hparams</span><span class="p">,</span> <span class="s2">&quot;activation not found in hyperparameters.&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;n_components&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">),</span> <span class="s2">&quot;n_components should be an int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">),</span> <span class="s2">&quot;layers should be a list of int.&quot;</span>
+    <span class="k">assert</span> <span class="nb">callable</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">&quot;activation&quot;</span><span class="p">]),</span> <span class="s2">&quot;activation should be a callable.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="handle_non_serializable">
+<a class="viewcode-back" href="../../jaxili.utils.html#jaxili.utils.handle_non_serializable">[docs]</a>
+<span class="k">def</span> <span class="nf">handle_non_serializable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom handler for non-serializable objects.</span>
+<span class="sd">    Replace or transform objects into something serializable to save metadata from training.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Object to handle.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>  <span class="c1"># Default behavior is to convert to string</span></div>
 
 </pre></div>
 

@@ -1,10 +1,11 @@
-import jax.numpy as jnp
-
-from jaxili.posterior import NeuralPosterior
-from jaxili.model import NDENetwork
-from jaxili.train import TrainState
-from jaxtyping import Array
 from typing import Optional
+
+import jax.numpy as jnp
+from jaxtyping import Array
+
+from jaxili.model import NDENetwork
+from jaxili.posterior import NeuralPosterior
+from jaxili.train import TrainState
 
 
 class DirectPosterior(NeuralPosterior):

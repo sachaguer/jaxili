@@ -1,5 +1,6 @@
-from jaxili.utils import *
 import jax
+
+from jaxili.utils import *
 
 
 def test_check_density_estimator():

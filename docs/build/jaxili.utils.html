@@ -280,7 +280,11 @@
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_density_estimator"><code class="docutils literal notranslate"><span class="pre">check_density_estimator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_hparams_maf"><code class="docutils literal notranslate"><span class="pre">check_hparams_maf()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_hparams_mdn"><code class="docutils literal notranslate"><span class="pre">check_hparams_mdn()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_hparams_realnvp"><code class="docutils literal notranslate"><span class="pre">check_hparams_realnvp()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.create_data_loader"><code class="docutils literal notranslate"><span class="pre">create_data_loader()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.handle_non_serializable"><code class="docutils literal notranslate"><span class="pre">handle_non_serializable()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.numpy_collate"><code class="docutils literal notranslate"><span class="pre">numpy_collate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.validate_theta_x"><code class="docutils literal notranslate"><span class="pre">validate_theta_x()</span></code></a></li>
 </ul>
@@ -296,6 +300,10 @@
                   
   <section id="module-jaxili.utils">
 <span id="jaxili-utils-module"></span><h1>jaxili.utils module<a class="headerlink" href="#module-jaxili.utils" title="Link to this heading">#</a></h1>
+<p>Utils.</p>
+<p>This module contains utility functions used in the JaxILI package.
+Some functions are used to format the input data for the training.
+Other functions allow to check the validity of the input data.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="jaxili.utils.check_density_estimator">
 <span class="sig-prename descclassname"><span class="pre">jaxili.utils.</span></span><span class="sig-name descname"><span class="pre">check_density_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator_arg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/utils.html#check_density_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.utils.check_density_estimator" title="Link to this definition">#</a></dt>
@@ -303,6 +311,39 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>estimator_arg</strong> (<em>str</em>) – Density estimator argument to check.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxili.utils.check_hparams_maf">
+<span class="sig-prename descclassname"><span class="pre">jaxili.utils.</span></span><span class="sig-name descname"><span class="pre">check_hparams_maf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/utils.html#check_hparams_maf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.utils.check_hparams_maf" title="Link to this definition">#</a></dt>
+<dd><p>Check the hyperparameters of the Masked Autoregressive Flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hparams</strong> (<em>dict</em>) – Dictionary with the hyperparameters of the MAF.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxili.utils.check_hparams_mdn">
+<span class="sig-prename descclassname"><span class="pre">jaxili.utils.</span></span><span class="sig-name descname"><span class="pre">check_hparams_mdn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/utils.html#check_hparams_mdn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.utils.check_hparams_mdn" title="Link to this definition">#</a></dt>
+<dd><p>Check the hyperparameters of the Mixture Density Network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hparams</strong> (<em>dict</em>) – Dictionary with the hyperparameters of the MDN.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxili.utils.check_hparams_realnvp">
+<span class="sig-prename descclassname"><span class="pre">jaxili.utils.</span></span><span class="sig-name descname"><span class="pre">check_hparams_realnvp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/utils.html#check_hparams_realnvp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.utils.check_hparams_realnvp" title="Link to this definition">#</a></dt>
+<dd><p>Check the hyperparameters of the RealNVP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hparams</strong> (<em>dict</em>) – Dictionary with the hyperparameters of the RealNVP.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -322,6 +363,18 @@
 <li><p><strong>num_workers</strong> (<em>Number</em><em> of </em><em>workers for each datasets.</em>)</p></li>
 <li><p><strong>seed</strong> (<em>Seed to initalize the workers and shuffling with</em>)</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="jaxili.utils.handle_non_serializable">
+<span class="sig-prename descclassname"><span class="pre">jaxili.utils.</span></span><span class="sig-name descname"><span class="pre">handle_non_serializable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/utils.html#handle_non_serializable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.utils.handle_non_serializable" title="Link to this definition">#</a></dt>
+<dd><p>Custom handler for non-serializable objects.
+Replace or transform objects into something serializable to save metadata from training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>Any</em>) – Object to handle.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -383,7 +436,11 @@
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_density_estimator"><code class="docutils literal notranslate"><span class="pre">check_density_estimator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_hparams_maf"><code class="docutils literal notranslate"><span class="pre">check_hparams_maf()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_hparams_mdn"><code class="docutils literal notranslate"><span class="pre">check_hparams_mdn()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.check_hparams_realnvp"><code class="docutils literal notranslate"><span class="pre">check_hparams_realnvp()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.create_data_loader"><code class="docutils literal notranslate"><span class="pre">create_data_loader()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.handle_non_serializable"><code class="docutils literal notranslate"><span class="pre">handle_non_serializable()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.numpy_collate"><code class="docutils literal notranslate"><span class="pre">numpy_collate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jaxili.utils.validate_theta_x"><code class="docutils literal notranslate"><span class="pre">validate_theta_x()</span></code></a></li>
 </ul>

@@ -3,10 +3,10 @@
 This module contains useful loss functions used in the neural network training.
 """
 
+from typing import Any
+
 import jax
 import jax.numpy as jnp
-
-from typing import Any
 from jaxtyping import Array, Float, PyTree
 
 MMD_BANDWIDTH_LIST = [

@@ -235,19 +235,56 @@
                 <article class="bd-article">
                   
   <h1>Source code for jaxili.model</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
+<span></span><span class="sd">&quot;&quot;&quot;Model.</span>
+
+<span class="sd">This module contains classes to implement normalizing flows using neural networks.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
 <span class="kn">import</span> <span class="nn">distrax</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">jax</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 <span class="kn">import</span> <span class="nn">tensorflow_probability</span> <span class="k">as</span> <span class="nn">tfp</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">jaxtyping</span> <span class="kn">import</span> <span class="n">Array</span>
 <span class="kn">from</span> <span class="nn">jax.scipy.stats</span> <span class="kn">import</span> <span class="n">multivariate_normal</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span> 
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
 <span class="n">tfp</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">experimental</span><span class="o">.</span><span class="n">substrates</span><span class="o">.</span><span class="n">jax</span>
 <span class="n">tfb</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">bijectors</span>
 <span class="n">tfd</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span>
+
+
+<div class="viewcode-block" id="Identity">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.Identity">[docs]</a>
+<span class="k">class</span> <span class="nc">Identity</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identity transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+
+<div class="viewcode-block" id="Standardizer">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.Standardizer">[docs]</a>
+<span class="k">class</span> <span class="nc">Standardizer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standardizer transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mean</span><span class="p">:</span> <span class="n">Array</span>
+    <span class="n">std</span><span class="p">:</span> <span class="n">Array</span>
+
+    <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span></div>
+
+
 
 <div class="viewcode-block" id="NDENetwork">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDENetwork">[docs]</a>
@@ -256,13 +293,16 @@
 <span class="sd">    A Normalizing Flow parent class to implement normalizing flows using</span>
 <span class="sd">    neural networks.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="NDENetwork.log_prob">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDENetwork.log_prob">[docs]</a>
     <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Log probability of the data point x conditioned by y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;log_prob method not implemented in your child class of NDENetwork&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;log_prob method not implemented in your child class of NDENetwork&quot;</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="NDENetwork.sample">
@@ -271,16 +311,19 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sample from the distribution conditioned by y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;sample method not implemented in tour child class of NDENetwork&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;sample method not implemented in tour child class of NDENetwork&quot;</span>
+        <span class="p">)</span></div>
 </div>
 
-    
+
+
 <div class="viewcode-block" id="Compressor_w_NDE">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.Compressor_w_NDE">[docs]</a>
 <span class="k">class</span> <span class="nc">Compressor_w_NDE</span><span class="p">(</span><span class="n">NDENetwork</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compressor_w_NDE</span>
-<span class="sd">    </span>
+
 <span class="sd">    A parent class to implement a compressor followed by a normalizing flow.</span>
 <span class="sd">    This is useful to perform Implicit Likelihood Inference in large dimensions where compression</span>
 <span class="sd">    is required and can sometimes be done with a normalizing flow.</span>
@@ -292,37 +335,45 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compress the data point x using the compressor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;compress method not implemented in your child class of Compressor_w_NDE&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;compress method not implemented in your child class of Compressor_w_NDE&quot;</span>
+        <span class="p">)</span></div>
 
-    
+
 <div class="viewcode-block" id="Compressor_w_NDE.log_prob">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.Compressor_w_NDE.log_prob">[docs]</a>
     <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Log probability of the data point x conditioned by y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;log_prob method not implemented in your child class of Compressor_w_NDE&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;log_prob method not implemented in your child class of Compressor_w_NDE&quot;</span>
+        <span class="p">)</span></div>
 
-    
+
 <div class="viewcode-block" id="Compressor_w_NDE.log_prob_from_compressed">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.Compressor_w_NDE.log_prob_from_compressed">[docs]</a>
     <span class="k">def</span> <span class="nf">log_prob_from_compressed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Log probability of the data point z conditioned by y. z has been previously compressed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;log_prob_from_compressed method not implemented in your child class of Compressor_w_NDE&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;log_prob_from_compressed method not implemented in your child class of Compressor_w_NDE&quot;</span>
+        <span class="p">)</span></div>
 
-    
+
 <div class="viewcode-block" id="Compressor_w_NDE.sample">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.Compressor_w_NDE.sample">[docs]</a>
     <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sample from the distribution conditioned by y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;sample method not implemented in your child class of Compressor_w_NDE&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;sample method not implemented in your child class of Compressor_w_NDE&quot;</span>
+        <span class="p">)</span></div>
 </div>
 
-    
+
 
 <div class="viewcode-block" id="MixtureDensityNetwork">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.MixtureDensityNetwork">[docs]</a>
@@ -331,10 +382,12 @@
 <span class="sd">    A Mixture of Gaussian Density modeled using neural networks.</span>
 <span class="sd">    The weights of each gaussian component, the mean and the covariance are learned by the network.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">n_data</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Dimension of data vector</span>
-    <span class="n">n_components</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#number of mixture components</span>
-    <span class="n">layers</span> <span class="p">:</span> <span class="nb">list</span> <span class="c1">#list of hidden layers size</span>
-    <span class="n">activation</span> <span class="p">:</span> <span class="n">Callable</span> <span class="c1">#activation function</span>
+
+    <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of the input</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of conditionning variable</span>
+    <span class="n">n_components</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># number of mixture components</span>
+    <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden layers size</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># activation function</span>
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -353,21 +406,33 @@
 <span class="sd">        distribution : tfd.Distribution</span>
 <span class="sd">            Mixture of Gaussian distribution</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kernel_init</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kernel_init&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">variance_scaling</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fan_in&#39;</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">))</span>
+        <span class="n">kernel_init</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;kernel_init&quot;</span><span class="p">,</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">variance_scaling</span><span class="p">(</span>
+                <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;fan_in&quot;</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
         <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
             <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">kernel_init</span><span class="p">)(</span><span class="n">y</span><span class="p">))</span>
-        <span class="n">final_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">final_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">final_size</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">kernel_init</span><span class="p">)(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">logits</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">])</span>
-        <span class="n">locs</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
-        <span class="n">scale_tril</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="o">+</span><span class="mi">1</span><span class="p">):]</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">])</span>
+        <span class="n">locs</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">scale_tril</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:]</span>
 
         <span class="n">distribution</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">MixtureSameFamily</span><span class="p">(</span>
             <span class="n">mixture_distribution</span><span class="o">=</span><span class="n">distrax</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">),</span>
             <span class="n">components_distribution</span><span class="o">=</span><span class="n">tfd</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span>
-                <span class="n">loc</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="p">)),</span>
-                <span class="n">scale_tril</span><span class="o">=</span><span class="n">tfp</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">fill_triangular</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">scale_tril</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_data</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">)))</span>
-            <span class="p">)</span>
+                <span class="n">loc</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">)),</span>
+                <span class="n">scale_tril</span><span class="o">=</span><span class="n">tfp</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">fill_triangular</span><span class="p">(</span>
+                    <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                        <span class="n">scale_tril</span><span class="p">,</span>
+                        <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">distribution</span>
@@ -421,33 +486,49 @@
 </div>
 
 
+
 <div class="viewcode-block" id="AffineCoupling">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.AffineCoupling">[docs]</a>
 <span class="k">class</span> <span class="nc">AffineCoupling</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="n">y</span> <span class="p">:</span> <span class="n">Any</span> <span class="c1">#Conditionning variable</span>
-    <span class="n">layers</span> <span class="p">:</span> <span class="nb">list</span> <span class="c1">#list of hidden layers size</span>
-    <span class="n">activation</span> <span class="p">:</span> <span class="nb">callable</span> <span class="c1">#activation function</span>
+    <span class="n">y</span><span class="p">:</span> <span class="n">Any</span>  <span class="c1"># Conditionning variable</span>
+    <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span>  <span class="c1"># list of hidden layers size</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="nb">callable</span>  <span class="c1"># activation function</span>
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">output_units</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">):</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">layer_size</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.001</span><span class="p">))(</span><span class="n">x</span><span class="p">))</span>
-        
-        <span class="c1">#Shift and Scale parameters</span>
-        <span class="n">shift</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">output_units</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.001</span><span class="p">))(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">scale</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">output_units</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.001</span><span class="p">))(</span><span class="n">x</span><span class="p">))</span> <span class="o">+</span> <span class="mf">1e-3</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+                    <span class="n">layer_size</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+                <span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Shift and Scale parameters</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">output_units</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+                    <span class="n">output_units</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+                <span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="mf">1e-3</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">tfb</span><span class="o">.</span><span class="n">Chain</span><span class="p">([</span><span class="n">tfb</span><span class="o">.</span><span class="n">Shift</span><span class="p">(</span><span class="n">shift</span><span class="p">),</span> <span class="n">tfb</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">scale</span><span class="p">)])</span></div>
 
-    
+
+
 <div class="viewcode-block" id="ConditionalRealNVP">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalRealNVP">[docs]</a>
 <span class="k">class</span> <span class="nc">ConditionalRealNVP</span><span class="p">(</span><span class="n">NDENetwork</span><span class="p">):</span>
-    <span class="n">n_in</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Dimension of the input</span>
-    <span class="n">n_layers</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Number of layers</span>
-    <span class="n">layers</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="c1">#list of hidden layers size</span>
-    <span class="n">activation</span> <span class="p">:</span> <span class="n">Callable</span> <span class="c1">#activation function</span>
+    <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of the input</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Dimension of the conditionning variable</span>
+    <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Number of layers</span>
+    <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden layers size</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># activation function</span>
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -465,30 +546,27 @@
 <span class="sd">            Normalizing Flow transporting a multidimensional Gaussian</span>
 <span class="sd">            to a more complex distribution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bijector_fn</span>  <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
-            <span class="n">AffineCoupling</span><span class="p">,</span>
-            <span class="n">layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">,</span>
-            <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span>
+        <span class="n">bijector_fn</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="n">AffineCoupling</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span>
         <span class="p">)</span>
-        <span class="n">base_distribution</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">MultivariateNormalDiag</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">))</span>
+        <span class="n">base_distribution</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">MultivariateNormalDiag</span><span class="p">(</span>
+            <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">chain</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">tfb</span><span class="o">.</span><span class="n">Permute</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])(</span>
                     <span class="n">tfb</span><span class="o">.</span><span class="n">RealNVP</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">bijector_fn</span><span class="o">=</span><span class="n">bijector_fn</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;b</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">bijector_fn</span><span class="o">=</span><span class="n">bijector_fn</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;b</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers</span><span class="p">)</span>
             <span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="n">nvp</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">Transformed</span><span class="p">(</span>
-            <span class="n">base_distribution</span><span class="p">,</span>
-            <span class="n">bijector</span><span class="o">=</span><span class="n">chain</span>
-        <span class="p">)</span>
+        <span class="n">nvp</span> <span class="o">=</span> <span class="n">distrax</span><span class="o">.</span><span class="n">Transformed</span><span class="p">(</span><span class="n">base_distribution</span><span class="p">,</span> <span class="n">bijector</span><span class="o">=</span><span class="n">chain</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">nvp</span>
-    
+
 <div class="viewcode-block" id="ConditionalRealNVP.sample">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalRealNVP.sample">[docs]</a>
     <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -533,11 +611,14 @@
 
 
 
-<span class="c1">#Reproduce implementation of MADE and MAFs from https://github.com/e-hulten/maf/blob/master/made.py</span>
+<span class="c1"># Reproduce implementation of MADE and MAFs from https://github.com/e-hulten/maf/blob/master/made.py</span>
+
 
 <div class="viewcode-block" id="MaskedLinear">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.MaskedLinear">[docs]</a>
-<span class="k">class</span> <span class="nc">MaskedLinear</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span> <span class="c1">#Check if there is no issue when you jit a loss using such a network. Note: Mask will not change after initialisation.</span>
+<span class="k">class</span> <span class="nc">MaskedLinear</span><span class="p">(</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>
+<span class="p">):</span>  <span class="c1"># Check if there is no issue when you jit a loss using such a network. Note: Mask will not change after initialisation.</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Linear transformation with masked out elements.</span>
 
@@ -550,13 +631,14 @@
 <span class="sd">    bias : bool</span>
 <span class="sd">        Whether to include bias. Default True.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">n_out</span> <span class="p">:</span> <span class="nb">int</span>
-    <span class="n">bias</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">mask</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="MaskedLinear.initialize_mask">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.MaskedLinear.initialize_mask">[docs]</a>
-    <span class="k">def</span> <span class="nf">initialize_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span> <span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">initialize_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal method to initialize mask&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span></div>
 
@@ -564,72 +646,79 @@
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply masked linear transformation&quot;&quot;&quot;</span>
-        <span class="n">layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_out</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.01</span><span class="p">))</span>
-        <span class="n">is_initialized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_variable</span><span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="s1">&#39;Dense_0&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">is_initialized</span><span class="p">:</span> 
-            <span class="n">w</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;kernel&#39;</span><span class="p">]</span>
-            <span class="n">b</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_out</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+            <span class="n">kernel_init</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">truncated_normal</span><span class="p">(</span><span class="mf">0.01</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">is_initialized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_variable</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="s2">&quot;Dense_0&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_initialized</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;kernel&quot;</span><span class="p">]</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">][</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">*</span><span class="n">w</span><span class="p">)</span><span class="o">+</span><span class="n">b</span></div>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span></div>
+
 
 
 <div class="viewcode-block" id="ConditionalMADE">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMADE">[docs]</a>
 <span class="k">class</span> <span class="nc">ConditionalMADE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="n">n_in</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Size of the input vector</span>
-    <span class="n">hidden_dims</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="c1">#list of hidden dimensions</span>
-    <span class="n">activation</span> <span class="p">:</span> <span class="n">Callable</span> <span class="c1">#Activation function</span>
-    <span class="n">n_cond</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span><span class="mi">0</span> <span class="c1">#Size of the conditionning variable. 0 if None.</span>
-    <span class="n">gaussian</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1">#whether the output are mean and variance of a Gaussian conditional</span>
-    <span class="n">random_order</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1">#Whether to use random order of the input for masking</span>
-    <span class="n">seed</span> <span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#Random seed to label nodes</span>
-    
+    <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Size of the input vector</span>
+    <span class="n">hidden_dims</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden dimensions</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># Activation function</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Size of the conditionning variable. 0 if None.</span>
+    <span class="n">gaussian</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="kc">True</span>  <span class="c1"># whether the output are mean and variance of a Gaussian conditional</span>
+    <span class="p">)</span>
+    <span class="n">random_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Whether to use random order of the input for masking</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Random seed to label nodes</span>
 
 <div class="viewcode-block" id="ConditionalMADE.setup">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMADE.setup">[docs]</a>
     <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        
+
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_out</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussian</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_out</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussian</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span>
         <span class="n">masks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">mask_matrix</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">dim_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_out</span><span class="p">]</span>
+        <span class="n">dim_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_out</span><span class="p">]</span>
 
-        <span class="c1">#Make layers and activation functions</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dim_list</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MaskedLinear</span><span class="p">(</span><span class="n">dim_list</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="c1"># Make layers and activation functions</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dim_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MaskedLinear</span><span class="p">(</span><span class="n">dim_list</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">)</span>
-        <span class="c1">#Last hidden layer to output layer</span>
+        <span class="c1"># Last hidden layer to output layer</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MaskedLinear</span><span class="p">(</span><span class="n">dim_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="c1">#Create masks</span>
+        <span class="c1"># Create masks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_create_masks</span><span class="p">(</span><span class="n">mask_matrix</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">layers</span><span class="p">)</span>
-        <span class="c1">#Create model</span>
+        <span class="c1"># Create model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">layers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_create_masks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask_matrix</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">masks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">layers</span> <span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_masks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask_matrix</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">masks</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create masks for the model&quot;&quot;&quot;</span>
-        <span class="n">L</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">)</span> <span class="c1">#Number of hidden layers</span>
-        <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span> <span class="c1">#Number of input parameters</span>
-        <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span> <span class="c1">#Number of conditionning parameters</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">)</span>  <span class="c1"># Number of hidden layers</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_in</span>  <span class="c1"># Number of input parameters</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span>  <span class="c1"># Number of conditionning parameters</span>
 
-        <span class="c1">#Whather to use random or natural order of the input</span>
+        <span class="c1"># Whather to use random or natural order of the input</span>
         <span class="n">masks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">D</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_order</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
 
-        <span class="c1">#Set the connectivity number for the hidden layers</span>
+        <span class="c1"># Set the connectivity number for the hidden layers</span>
         <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
-            <span class="n">low</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">l</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="c1">#Get the lowest index in the previous layer</span>
-            <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="c1">#The size of the current hidden layer</span>
-            <span class="n">masks</span><span class="p">[</span><span class="n">l</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">D</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
-        
-        <span class="c1">#Order of the output layer is the same as the input layer</span>
-        <span class="n">masks</span><span class="p">[</span><span class="n">L</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">l</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>  <span class="c1"># Get the lowest index in the previous layer</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>  <span class="c1"># The size of the current hidden layer</span>
+            <span class="n">masks</span><span class="p">[</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">D</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
 
-        <span class="c1">#Create mask matric for input -&gt; hidden_layer_1</span>
+        <span class="c1"># Order of the output layer is the same as the input layer</span>
+        <span class="n">masks</span><span class="p">[</span><span class="n">L</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Create mask matric for input -&gt; hidden_layer_1</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">m_next</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_next</span><span class="p">)))</span>
@@ -639,36 +728,35 @@
         <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">M</span><span class="p">,</span> <span class="n">M_cond</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">mask_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">M</span><span class="p">))</span>
 
-
-        <span class="c1">#Create mask matrix for hidden_layer_1 -&gt; ... -&gt; last_hidden_layers</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+        <span class="c1"># Create mask matrix for hidden_layer_1 -&gt; ... -&gt; last_hidden_layers</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">m_next</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
-            <span class="c1">#Initialise mask matrix</span>
+            <span class="n">m_next</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Initialise mask matrix</span>
             <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_next</span><span class="p">)))</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m_next</span><span class="p">)):</span>
-                <span class="c1">#Compare m_next[j] to each element of m</span>
+                <span class="c1"># Compare m_next[j] to each element of m</span>
                 <span class="n">M</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span> <span class="o">&lt;=</span> <span class="n">m_next</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-            <span class="c1">#append matrix to mask list</span>
+            <span class="c1"># append matrix to mask list</span>
             <span class="n">mask_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">M</span><span class="p">))</span>
 
-        <span class="c1">#Create mask matrix for last_hidden_layer -&gt; output</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">m_next</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Create mask matrix for last_hidden_layer -&gt; output</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">m_next</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_next</span><span class="p">)))</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)):</span>
-            <span class="c1">#Compare m_next[j] to each element of m</span>
+            <span class="c1"># Compare m_next[j] to each element of m</span>
             <span class="n">M</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">m_next</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-        <span class="c1">#append matrix to mask list</span>
+        <span class="c1"># append matrix to mask list</span>
         <span class="n">mask_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">M</span><span class="p">))</span>
 
-        <span class="c1">#If the output is Gaussian, double the number of output (mu, sigma)</span>
-        <span class="c1">#Pairwise identical mask</span>
+        <span class="c1"># If the output is Gaussian, double the number of output (mu, sigma)</span>
+        <span class="c1"># Pairwise identical mask</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussian</span><span class="p">:</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">mask_matrix</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">mask_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
-        <span class="c1">#Initialize the MaskedLinear layers with weights</span>
+        <span class="c1"># Initialize the MaskedLinear layers with weights</span>
         <span class="n">mask_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">mask_matrix</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">MaskedLinear</span><span class="p">):</span>
@@ -692,42 +780,42 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
-        
+
+
 <div class="viewcode-block" id="MAFLayer">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.MAFLayer">[docs]</a>
 <span class="k">class</span> <span class="nc">MAFLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="n">n_in</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Size of the input vector</span>
-    <span class="n">n_cond</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Size of the conditionning variable</span>
-    <span class="n">hidden_dims</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="c1">#list of hidden dimensions</span>
-    <span class="n">reverse</span> <span class="p">:</span> <span class="nb">bool</span> <span class="c1">#Whether to reverse the order of the input</span>
-    <span class="n">activation</span> <span class="p">:</span> <span class="n">Callable</span> <span class="c1">#Activation function</span>
-    <span class="n">seed</span> <span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#Random seed to label nodes</span>
+    <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Size of the input vector</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Size of the conditionning variable</span>
+    <span class="n">hidden_dims</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden dimensions</span>
+    <span class="n">reverse</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># Whether to reverse the order of the input</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># Activation function</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Random seed to label nodes</span>
 
 <div class="viewcode-block" id="MAFLayer.forward">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.MAFLayer.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="n">mu</span><span class="p">,</span> <span class="n">logp</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">mu</span><span class="p">)</span><span class="o">*</span><span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">logp</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">logp</span><span class="p">)</span>
         <span class="n">u</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverse</span> <span class="k">else</span> <span class="n">u</span>
-        <span class="n">log_det</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">logp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">log_det</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">logp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">u</span><span class="p">,</span> <span class="n">log_det</span></div>
 
-    
+
 <div class="viewcode-block" id="MAFLayer.backward">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.MAFLayer.backward">[docs]</a>
     <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">u</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverse</span> <span class="k">else</span> <span class="n">u</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">):</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
             <span class="n">mu</span><span class="p">,</span> <span class="n">logp</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">mod_logp</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">logp</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">at</span><span class="p">[:,</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">mu</span><span class="p">[:,</span><span class="n">dim</span><span class="p">]</span><span class="o">+</span><span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">mod_logp</span><span class="p">[:,</span><span class="n">dim</span><span class="p">])</span><span class="o">*</span><span class="n">u</span><span class="p">[:,</span><span class="n">dim</span><span class="p">])</span>
+            <span class="n">mod_logp</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">logp</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">at</span><span class="p">[:,</span> <span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">mu</span><span class="p">[:,</span> <span class="n">dim</span><span class="p">]</span> <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">mod_logp</span><span class="p">[:,</span> <span class="n">dim</span><span class="p">])</span> <span class="o">*</span> <span class="n">u</span><span class="p">[:,</span> <span class="n">dim</span><span class="p">])</span>
         <span class="n">log_det</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mod_logp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">log_det</span></div>
 
-        
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -741,21 +829,27 @@
 <span class="sd">        y : jnp.Array</span>
 <span class="sd">            Conditionning variable</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">ConditionalMADE</span><span class="p">(</span><span class="n">n_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">,</span> <span class="n">n_cond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">)(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">ConditionalMADE</span><span class="p">(</span>
+            <span class="n">n_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">,</span>
+            <span class="n">hidden_dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">,</span>
+            <span class="n">n_cond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">,</span>
+        <span class="p">)(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div>
 
-        
+
+
 <div class="viewcode-block" id="ConditionalMAF">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMAF">[docs]</a>
 <span class="k">class</span> <span class="nc">ConditionalMAF</span><span class="p">(</span><span class="n">NDENetwork</span><span class="p">):</span>
-    <span class="n">n_in</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Size of the input vector</span>
-    <span class="n">n_cond</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Size of the conditionning variable</span>
-    <span class="n">n_layers</span> <span class="p">:</span> <span class="nb">int</span> <span class="c1">#Number of layers (i.e. number of stacked MADEs)</span>
-    <span class="n">layers</span> <span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="c1">#list of hidden dimensionsin each MADE.</span>
-    <span class="n">activation</span> <span class="p">:</span> <span class="n">Callable</span> <span class="c1">#Activation function</span>
-    <span class="n">use_reverse</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span><span class="kc">True</span> <span class="c1">#Whether to reverse the order of the input between each MADE</span>
-    <span class="n">seed</span> <span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#Random seed to label nodes</span>
-    
+    <span class="n">n_in</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Size of the input vector</span>
+    <span class="n">n_cond</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Size of the conditionning variable</span>
+    <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Number of layers (i.e. number of stacked MADEs)</span>
+    <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>  <span class="c1"># list of hidden dimensionsin each MADE.</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="n">Callable</span>  <span class="c1"># Activation function</span>
+    <span class="n">use_reverse</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># Whether to reverse the order of the input between each MADE</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Random seed to label nodes</span>
 
 <div class="viewcode-block" id="ConditionalMAF.setup">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMAF.setup">[docs]</a>
@@ -765,7 +859,12 @@
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers</span><span class="p">):</span>
             <span class="n">layer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="n">MAFLayer</span><span class="p">(</span>
-                    <span class="n">n_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">,</span> <span class="n">n_cond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_reverse</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span>
+                    <span class="n">n_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in</span><span class="p">,</span>
+                    <span class="n">n_cond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">,</span>
+                    <span class="n">hidden_dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">,</span>
+                    <span class="n">reverse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_reverse</span><span class="p">,</span>
+                    <span class="n">seed</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layer_list</span> <span class="o">=</span> <span class="n">layer_list</span>
@@ -790,20 +889,20 @@
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_list</span><span class="p">:</span>
             <span class="n">x</span><span class="p">,</span> <span class="n">log_det</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
             <span class="n">log_det_sum</span> <span class="o">+=</span> <span class="n">log_det</span>
-            <span class="c1">#x = nn.BatchNorm(use_running_average=not train)(x)</span>
+            <span class="c1"># x = nn.BatchNorm(use_running_average=not train)(x)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">log_det_sum</span>
-    
+
 <div class="viewcode-block" id="ConditionalMAF.backward">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMAF.backward">[docs]</a>
     <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">log_det_sum</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="c1">#backward pass</span>
+        <span class="c1"># backward pass</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_list</span><span class="p">):</span>
             <span class="n">u</span><span class="p">,</span> <span class="n">log_det</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
             <span class="n">log_det_sum</span> <span class="o">+=</span> <span class="n">log_det</span>
         <span class="k">return</span> <span class="n">u</span><span class="p">,</span> <span class="n">log_det_sum</span></div>
 
-    
+
 <div class="viewcode-block" id="ConditionalMAF.log_prob">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMAF.log_prob">[docs]</a>
     <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -811,13 +910,15 @@
         <span class="n">log_pdf</span> <span class="o">=</span> <span class="n">multivariate_normal</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">log_pdf</span> <span class="o">+</span> <span class="n">log_det_sum</span></div>
 
-    
+
 <div class="viewcode-block" id="ConditionalMAF.sample">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.ConditionalMAF.sample">[docs]</a>
     <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">u</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,))</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,)</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">*</span><span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">num_samples</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">num_samples</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div>
 </div>
@@ -833,56 +934,57 @@
 <span class="sd">    A general class to implement a compressor followed by a normalizing flow implementing</span>
 <span class="sd">    standard methods to compute the log-probability of the target distribution or sample from it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">compressor</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="c1">#Compressor network</span>
-    <span class="n">nde</span><span class="p">:</span> <span class="n">NDENetwork</span> <span class="c1">#Normalizing Flow or Mixture Density network</span>
-    <span class="n">compressor_hparams</span><span class="p">:</span> <span class="nb">dict</span> <span class="c1">#Hyperparameters of the Neural Density Estimator</span>
-    <span class="n">nde_hparams</span><span class="p">:</span> <span class="nb">dict</span> <span class="c1">#Hyperparameters of the compressor</span>
+
+    <span class="n">compressor</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>  <span class="c1"># Compressor network</span>
+    <span class="n">nde</span><span class="p">:</span> <span class="n">NDENetwork</span>  <span class="c1"># Normalizing Flow or Mixture Density network</span>
+    <span class="n">compressor_hparams</span><span class="p">:</span> <span class="nb">dict</span>  <span class="c1"># Hyperparameters of the Neural Density Estimator</span>
+    <span class="n">nde_hparams</span><span class="p">:</span> <span class="nb">dict</span>  <span class="c1"># Hyperparameters of the compressor</span>
 
 <div class="viewcode-block" id="NDE_Compressor.setup">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_Compressor.setup">[docs]</a>
     <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#Create models for the compressor and the NDE</span>
+        <span class="c1"># Create models for the compressor and the NDE</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compressor_nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">compressor_hparams</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">nde_hparams</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;NPE&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the log-probability of the parameters y conditioned by the data point x.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x : jnp.Array</span>
 <span class="sd">            Data point</span>
 <span class="sd">        y : jnp.Array</span>
 <span class="sd">            Conditionning variable</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        log_prob : jnp.Array</span>
 <span class="sd">            Log probability of the parameters y</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;NPE&#39;</span><span class="p">,</span> <span class="s1">&#39;NLE&#39;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
-        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;NPE&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NPE&quot;</span><span class="p">:</span>
             <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor_nn</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor_nn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        
+
 <div class="viewcode-block" id="NDE_Compressor.log_prob">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_Compressor.log_prob">[docs]</a>
-    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;NPE&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the log-probability of the parameters y conditioned by the data point x.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x : jnp.Array</span>
 <span class="sd">            Data point</span>
 <span class="sd">        y : jnp.Array</span>
 <span class="sd">            Conditionning variable</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        log_prob : jnp.Array</span>
@@ -890,35 +992,35 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span></div>
 
-    
+
 <div class="viewcode-block" id="NDE_Compressor.log_prob_compressed">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_Compressor.log_prob_compressed">[docs]</a>
-    <span class="k">def</span> <span class="nf">log_prob_compressed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;NPE&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_prob_compressed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the log-probability of the compressed data z conditioned by the parameters y (if NPE).</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        z : jnp.Array</span>
 <span class="sd">            Compressed data point</span>
 <span class="sd">        y : jnp.Array</span>
 <span class="sd">            Conditionning variable</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        log_prob : jnp.Array</span>
 <span class="sd">            Log probability of the parameters y</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;NPE&#39;</span><span class="p">,</span> <span class="s1">&#39;NLE&#39;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
-        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;NPE&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NPE&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
-        
+
 <div class="viewcode-block" id="NDE_Compressor.sample">
 <a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_Compressor.sample">[docs]</a>
-    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;NPE&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Samples from the distribution conditioned by y.</span>
 
@@ -936,12 +1038,108 @@
 <span class="sd">        samples : jnp.Array</span>
 <span class="sd">            num_samples samples from the distribution</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;NPE&#39;</span><span class="p">,</span> <span class="s1">&#39;NLE&#39;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
-        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;NPE&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NPE&quot;</span><span class="p">:</span>
             <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor_nn</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde_nn</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NDE_w_Standardization">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_w_Standardization">[docs]</a>
+<span class="k">class</span> <span class="nc">NDE_w_Standardization</span><span class="p">(</span><span class="n">NDENetwork</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    NDE_w_Standardization</span>
+
+<span class="sd">    This class creates an NDE network where the input data is first standardized.</span>
+<span class="sd">    It takes in input a neural density estimator, an embedding net and a transformation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nde</span><span class="p">:</span> <span class="n">NDENetwork</span>  <span class="c1"># Neural Density Estimator</span>
+    <span class="n">embedding_net</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>  <span class="c1"># Embedding network</span>
+    <span class="n">transformation</span><span class="p">:</span> <span class="n">distrax</span><span class="o">.</span><span class="n">Bijector</span>  <span class="c1"># Transformation network TBC</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the log-probability of x given y for NPE and y given x for NLE.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : jnp.Array</span>
+<span class="sd">            Theta</span>
+<span class="sd">        y : jnp.Array</span>
+<span class="sd">            x</span>
+<span class="sd">        model : str</span>
+<span class="sd">            NPE or NLE</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        log_prob : jnp.Array</span>
+<span class="sd">            Log probability of the parameters y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NLE&quot;</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span>  <span class="c1"># Learn the distribution p(y|x). Exchange the two.</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">logprob_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">inverse_and_log_det</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">logprob_std</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">logprob_std</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">log_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">log_prob</span> <span class="o">+</span> <span class="n">logprob_std</span>
+
+<div class="viewcode-block" id="NDE_w_Standardization.standardize">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_w_Standardization.standardize">[docs]</a>
+    <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Standardize the data point x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">inverse</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.unstandardize">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_w_Standardization.unstandardize">[docs]</a>
+    <span class="k">def</span> <span class="nf">unstandardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Unstandardize the data point x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.embedding">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_w_Standardization.embedding">[docs]</a>
+    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Embed the data point x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.log_prob">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_w_Standardization.log_prob">[docs]</a>
+    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the log probability of the data point x conditioned by y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NDE_w_Standardization.sample">
+<a class="viewcode-back" href="../../jaxili.model.html#jaxili.model.NDE_w_Standardization.sample">[docs]</a>
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;NPE&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample from the distribution conditioned by y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NPE&quot;</span><span class="p">,</span> <span class="s2">&quot;NLE&quot;</span><span class="p">],</span> <span class="s2">&quot;Model should be either &#39;NPE&#39; or &#39;NLE&#39;.&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;NPE&quot;</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nde</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformation</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">samples</span></div>
 </div>
 
 </pre></div>

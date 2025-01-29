@@ -5,11 +5,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import numpy.testing as npt
+import sbibm
 
 from jaxili.inference.npe import NPE, default_maf_hparams
 from jaxili.model import ConditionalMAF
-
-import sbibm
 
 task = sbibm.get_task("gaussian_linear_uniform")
 simulator = task.get_simulator()
