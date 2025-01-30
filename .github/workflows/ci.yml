@@ -17,16 +17,16 @@ jobs:
         python-version: ["3.12"]
 
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Check Python version
         run: python --version
-
-      - name: Change to the repository root directory
-        run: cd ..
 
       - name: Install dependencies
         run: python -m pip install ".[lint, test]"
