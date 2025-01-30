@@ -14,7 +14,7 @@ dependencies = [
     "matplotlib",
     "cmake",
     "tensorflow",
-    "tensorflow-probability",
+    "tensorflow-probability==0.24.0",
     "tf_keras",
     "optax",
     "distrax",
