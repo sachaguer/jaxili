@@ -15,6 +15,7 @@ dependencies = [
     "cmake",
     "tensorflow",
     "tensorflow-probability",
+    "tf_keras",
     "optax",
     "distrax",
     "flax",
