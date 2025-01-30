@@ -25,11 +25,17 @@ jobs:
       - name: Check Python version
         run: python --version
 
+      - name: Check path
+        run: pwd
+
+      - name: Check files
+        run: ls -la
+
       - name: Install dependencies
         run: python -m pip install ".[lint, test]"
       
       - name: Run tests
-        run: python -m pytest --verbose
+        run: python -m pytest
 
       - name: Run linting tests
         run: |
