@@ -23,8 +23,7 @@ from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from tqdm import tqdm
 
 import jaxili
-from jaxili.inventory.func_dict import (jax_nn_dict, jaxili_loss_dict,
-                                        jaxili_nn_dict)
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_loss_dict, jaxili_nn_dict
 from jaxili.utils import handle_non_serializable
 
 

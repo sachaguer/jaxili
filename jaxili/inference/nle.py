@@ -14,15 +14,19 @@ from jaxtyping import Array, Float, PyTree
 import jaxili
 from jaxili.inference.npe import NDEDataset
 from jaxili.loss import loss_nll_nle
-from jaxili.model import (ConditionalMAF, ConditionalRealNVP, Identity,
-                          MixtureDensityNetwork, NDE_w_Standardization,
-                          Standardizer)
+from jaxili.model import (
+    ConditionalMAF,
+    ConditionalRealNVP,
+    Identity,
+    MixtureDensityNetwork,
+    NDE_w_Standardization,
+    Standardizer,
+)
 from jaxili.posterior import MCMCPosterior
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
 from jaxili.train import TrainerModule
 from jaxili.utils import *
-from jaxili.utils import (check_density_estimator, create_data_loader,
-                          validate_theta_x)
+from jaxili.utils import check_density_estimator, create_data_loader, validate_theta_x
 
 default_maf_hparams = {
     "n_layers": 5,

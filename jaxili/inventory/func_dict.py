@@ -4,8 +4,7 @@ import jax
 import jaxlib
 
 from jaxili.loss import loss_nll_nle, loss_nll_npe
-from jaxili.model import (ConditionalMAF, ConditionalRealNVP,
-                          MixtureDensityNetwork)
+from jaxili.model import ConditionalMAF, ConditionalRealNVP, MixtureDensityNetwork
 
 """
 This script contains static dictionaries that map function names to their respective functions.
