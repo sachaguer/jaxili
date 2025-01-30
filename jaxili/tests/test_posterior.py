@@ -168,7 +168,7 @@ def test_mcmc_posterior():
     # Test if the correct Error are returned.
     try:
         posterior.set_mcmc_method("wrong_method")
-    except AssertionError:
+    except NotImplementedError:
         pass
 
     shutil.rmtree(checkpoint_path)

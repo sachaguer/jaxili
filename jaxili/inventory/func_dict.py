@@ -31,7 +31,8 @@ jax_nn_dict = {
     for name, func in inspect.getmembers(jax.nn, is_jax_nn_activation_function)
 }
 
-jax_nn_dict.pop("__getattr__")
+if "__getattr__" in jax_nn_dict.keys():
+    jax_nn_dict.pop("__getattr__")
 
 # Define a dictionary containing Neural Network from jaxili
 

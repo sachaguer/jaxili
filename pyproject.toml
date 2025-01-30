@@ -19,11 +19,13 @@ dependencies = [
     "distrax",
     "flax",
     "sbibm",
+    "sbi==0.23.3",
     "torch",
     "pytorch-lightning",
     "optuna",
     "numpyro",
-    "flowMC"
+    "flowMC",
+    "getdist"
 ]
 readme = "README.md"
 requires-python = ">=3.10, <3.13"
