@@ -1,3 +1,9 @@
+"""
+NPE.
+
+This module provides the Neural Posterior Estimation (NPE) class to train a neural density estimator to perform NPE.
+"""
+
 import warnings
 from typing import Any, Callable, Dict, Iterable, Optional, Union
 
@@ -40,18 +46,78 @@ default_maf_hparams = {
 
 
 class NDEDataset(data.Dataset):
+    """
+    Dataset class for Neural Density Estimation. It stores the parameters and simulation outputs.
+
+    Examples
+    --------
+    >>> from jaxili.inference import NDEDataset
+    >>> theta = np.random.randn(100, 2)
+    >>> x = np.random.randn(100, 2)
+    >>> dataset = NDEDataset(theta, x)
+    >>> len(dataset) #returns the length of the dataset
+    >>> dataset[0] #returns the first element of the dataset
+    >>> dataset.theta #returns the parameters
+    >>> dataset.x #returns the simulation outputs
+    """
+
     def __init__(self, theta: Array, x: Array):
+        """
+        Initialize the dataset.
+
+        Parameters
+        ----------
+        theta : Array
+            Parameters of the simulations.
+        x : Array
+            Simulation outputs.
+        """
         self.theta = theta
         self.x = x
 
     def __len__(self):
+        """
+        Return the length of the dataset.
+
+        Returns
+        -------
+        int
+            Length of the dataset.
+        """
         return len(self.theta)
 
     def __getitem__(self, idx):
+        """
+        Return the element at the given index.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the element to return.
+
+        Returns
+        -------
+        Tuple[Array, Array]
+            Tuple containing the parameters and simulation outputs.
+        """
         return self.theta[idx], self.x[idx]
 
 
 class NPE:
+    """
+    NPE.
+
+    Base class for Neural Posterior Estimation (NPE) methods.
+    Default configuration used a `ConditionalMAF` to learn the posterior function.
+
+    Examples
+    --------
+    >>> from jaxili.inference import NPE
+    >>> inference = NPE()
+    >>> theta, x = ...  # Load parameters and simulation outputs
+    >>> inference.append_simulations(theta, x) #Push your simulations in the trainer
+    >>> inference.train() #Train your density estimator
+    """
 
     def __init__(
         self,
@@ -62,7 +128,7 @@ class NPE:
         loss_fn: Callable = loss_nll_npe,
     ):
         """
-        Base class for Neural Posterior Estimation (NPE) methods.
+        Initialize class for Neural Posterior Estimation (NPE) methods.
 
         Parameters
         ----------
@@ -105,7 +171,7 @@ class NPE:
 
     def set_dataset(self, dataset, type):
         """
-        Sets the dataset to use for training, validation or testing.
+        Set the dataset to use for training, validation or testing.
 
         Parameters
         ----------
@@ -129,7 +195,7 @@ class NPE:
 
     def set_dataloader(self, dataloader, type):
         """
-        Sets the dataloader to use for training, validation or testing.
+        Set the dataloader to use for training, validation or testing.
 
         Parameters
         ----------
@@ -163,8 +229,8 @@ class NPE:
 
         Data is stored in a Dataset object from `jax-dataloader`
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         theta : Array
             Parameters of the simulations.
         x : Array
@@ -229,7 +295,7 @@ class NPE:
 
     def _create_data_loader(self, **kwargs):
         """
-        Creates DataLoaders for the training, validation and test datasets. Can only be executed after appending simulations.
+        Create DataLoaders for the training, validation and test datasets. Can only be executed after appending simulations.
 
         Parameters
         ----------
@@ -240,7 +306,6 @@ class NPE:
         seed : int
             Seed to use for the DataLoader. Default is 42.
         """
-
         try:
             self._train_dataset
         except AttributeError:
@@ -376,7 +441,6 @@ class NPE:
         check_val_every_epoch : int, optional
             Frequency at which to check the validation loss. Default is 1.
         """
-
         try:
             self._nde
         except AttributeError:
@@ -438,14 +502,13 @@ class NPE:
         check_val_every_epoch: int, optional
             Frequency at which to check the validation loss. Default is 1.
 
-        Returns:
-        --------
+        Returns
+        -------
         metrics : Dict[str, float]
             Dictionary containing the training, validation and test losses.
-        density_estimator : ...
+        density_estimator : nn.Module
             The trained density estimator.
         """
-
         try:
             self._train_dataset
         except AttributeError:
@@ -516,7 +579,7 @@ class NPE:
         self, verbose: Optional[bool] = None, x: Optional[Array] = None
     ):
         r"""
-        Builds the posterior distribution $p(\theta|x)$ using the trained density estimator.
+        Build the posterior distribution $p(\theta|x)$ using the trained density estimator.
 
         Parameters
         ----------

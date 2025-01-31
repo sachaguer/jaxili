@@ -18,7 +18,7 @@ tfd = tfp.distributions
 
 class MLPCompressor(nn.Module):
     """
-    MLP Compressor.
+    Base class of a MLP Compressor.
 
     Defines a MLP compressor to send the summary statistic to the same dimension than the parameters.
 
@@ -38,6 +38,19 @@ class MLPCompressor(nn.Module):
 
     @nn.compact
     def __call__(self, x):
+        """
+        Forward pass of the MLP Compressor.
+
+        Parameters
+        ----------
+        x : jnp.array
+            Input data.
+
+        Returns
+        -------
+        jnp.array
+            Compressed data.
+        """
         for size in self.hidden_size:
             x = nn.Dense(size)(x)
             x = self.activation(x)
@@ -47,9 +60,9 @@ class MLPCompressor(nn.Module):
 
 class CNN2DCompressor(nn.Module):
     """
-    CNN2D Compressor
+    Base class of a CNN2D Compressor.
 
-    Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters
+    Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters.
 
     Parameters
     ----------
@@ -64,6 +77,19 @@ class CNN2DCompressor(nn.Module):
 
     @nn.compact
     def __call__(self, inputs):
+        """
+        Forward pass of the CNN2D Compressor.
+
+        Parameters
+        ----------
+        inputs : jnp.array
+            Input data.
+
+        Returns
+        -------
+        jnp.array
+            Compressed data.
+        """
         net_x = nn.Conv(32, 3, 2)(inputs)
         net_x = self.activation(net_x)
         net_x = nn.Conv(64, 3, 2)(net_x)

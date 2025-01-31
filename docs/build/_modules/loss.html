@@ -273,10 +273,9 @@
 <a class="viewcode-back" href="../loss.html#loss.loss_nll_npe">[docs]</a>
 <span class="k">def</span> <span class="nf">loss_nll_npe</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Negative log-likelihood loss function for NPE methods</span>
-<span class="sd">    using a given neural network as a model.</span>
-<span class="sd">    In NPE, the log-probability is given by the density estimator in</span>
-<span class="sd">    parameter space conditioned on the data.</span>
+<span class="sd">    Negative log-likelihood loss function for NPE methods using a given neural network as a model.</span>
+
+<span class="sd">    In NPE, the log-probability is given by the density estimator in parameter space conditioned on the data. The batch should take the form of a Tuple of Arrays were the first one corresponds to the parameters and the second to the simulation outputs.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -292,7 +291,6 @@
 <span class="sd">    Array</span>
 <span class="sd">        Mean of the negative log-likelihood loss across the batch.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span> <span class="o">=</span> <span class="n">batch</span>
 
     <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;log_prob&quot;</span><span class="p">)</span>
@@ -304,13 +302,12 @@
 <a class="viewcode-back" href="../loss.html#loss.loss_nll_nle">[docs]</a>
 <span class="k">def</span> <span class="nf">loss_nll_nle</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Negative log-likelihood loss function for NLE methods</span>
-<span class="sd">    using a given neural network as a model.</span>
-<span class="sd">    In NPE, the log-probability is given by the density estimator in</span>
-<span class="sd">    parameter space conditioned on the data.</span>
+<span class="sd">    Negative log-likelihood loss function for NLE methods using a given neural network as a model.</span>
 
-<span class="sd">    Parameter</span>
-<span class="sd">    ---------</span>
+<span class="sd">    In NLE, the log-probability is given by the density estimator in observation space conditioned on the parameter. The batch should take the form of a Tuple of Arrays were the first one corresponds to the parameters and the second to the simulation outputs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
 <span class="sd">    model : Any</span>
 <span class="sd">        Neural network model from `jaxili.model`.</span>
 <span class="sd">    params : PyTree</span>
@@ -323,7 +320,6 @@
 <span class="sd">    Array</span>
 <span class="sd">        Mean of the negative log-likelihood loss across the batch.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">thetas</span><span class="p">,</span> <span class="n">xs</span> <span class="o">=</span> <span class="n">batch</span>
 
     <span class="k">return</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">},</span> <span class="n">xs</span><span class="p">,</span> <span class="n">thetas</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;log_prob&quot;</span><span class="p">))</span></div>
@@ -334,7 +330,7 @@
 <a class="viewcode-back" href="../loss.html#loss.gaussian_kernel_matrix">[docs]</a>
 <span class="k">def</span> <span class="nf">gaussian_kernel_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">sigmas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes a Gaussian radial basis functions (RBFs) between the samples of x and y.</span>
+<span class="sd">    Compute a Gaussian radial basis functions (RBFs) between the samples of x and y.</span>
 
 <span class="sd">    We create a sum of multiple Gaussian kernels each having a width sigma_i.</span>
 
@@ -364,7 +360,7 @@
 <a class="viewcode-back" href="../loss.html#loss.mmd_kernel">[docs]</a>
 <span class="k">def</span> <span class="nf">mmd_kernel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes the Maximum Mean Discrepancy (MMD) between samples of x and y.</span>
+<span class="sd">    Compute the Maximum Mean Discrepancy (MMD) between samples of x and y.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -436,7 +432,6 @@
 <span class="sd">    float</span>
 <span class="sd">        Maximum Mean Discrepancy (MMD) between the summary outputs and samples from a unit Gaussian distribution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">assert</span> <span class="n">z_dist</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian distribution is supported for now&quot;</span>
     <span class="k">assert</span> <span class="n">kernel</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;Only Gaussian kernel is supported for now&quot;</span>
 
@@ -450,7 +445,7 @@
 <a class="viewcode-back" href="../loss.html#loss.loss_mmd_npe">[docs]</a>
 <span class="k">def</span> <span class="nf">loss_mmd_npe</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes the Maximum Mean Discrepancy (MMD) loss for Neural Posterior Estimation.</span>
+<span class="sd">    Compute the Maximum Mean Discrepancy (MMD) loss for Neural Posterior Estimation.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

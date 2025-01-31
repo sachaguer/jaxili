@@ -4,6 +4,7 @@ This module contains classes to implement normalizing flows using neural network
 
 """
 
+from abc import abstractmethod
 from functools import partial
 from typing import Any, Callable, Optional
 
@@ -22,45 +23,96 @@ tfd = tfp.distributions
 
 
 class Identity(nn.Module):
-    """
-    Identity transformation.
-    """
+    """Identity transformation."""
 
     @nn.compact
     def __call__(self, x):
+        """
+        Forward pass of the identity transformation.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input data.
+
+        Returns
+        -------
+        jnp.Array
+            Output data.
+        """
         return x
 
 
 class Standardizer(nn.Module):
-    """
-    Standardizer transformation.
-    """
+    """Standardizer transformation."""
 
     mean: Array
     std: Array
 
     @nn.compact
     def __call__(self, x):
+        """
+        Forward pass of the standardizer transformation. The standardization uses the z-score.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input data.
+
+        Returns
+        -------
+        jnp.Array
+            Standardized data.
+        """
         return (x - self.mean) / self.std
 
 
 class NDENetwork(nn.Module):
     """
-    A Normalizing Flow parent class to implement normalizing flows using
-    neural networks.
+    Base class for a Normalizing Flow.
+
+    A Normalizing Flow parent class to implement normalizing flows using neural networks.
     """
 
+    @abstractmethod
     def log_prob(self, x, y=None, **kwargs):
         """
         Log probability of the data point x conditioned by y.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Log probability of the data point given y.
         """
         raise NotImplementedError(
             "log_prob method not implemented in your child class of NDENetwork"
         )
 
+    @abstractmethod
     def sample(self, y, num_samples, key):
         """
         Sample from the distribution conditioned by y.
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable.
+        num_samples : int
+            Number of samples.
+        key : jnp.Array
+            Random key.
+
+        Returns
+        -------
+        jnp.Array
+            num_samples samples from the distribution.
         """
         raise NotImplementedError(
             "sample method not implemented in tour child class of NDENetwork"
@@ -69,40 +121,90 @@ class NDENetwork(nn.Module):
 
 class Compressor_w_NDE(NDENetwork):
     """
-    Compressor_w_NDE
+    Base class to create a normalizing flow with a compression of the conditionning variable.
 
-    A parent class to implement a compressor followed by a normalizing flow.
-    This is useful to perform Implicit Likelihood Inference in large dimensions where compression
-    is required and can sometimes be done with a normalizing flow.
+    A parent class to implement a compressor followed by a normalizing flow. This is useful to perform Implicit Likelihood Inference in large dimensions where compression is required and can sometimes be done with a normalizing flow.
     """
 
+    @abstractmethod
     def compress(self, x):
         """
         Compress the data point x using the compressor.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point.
+
+        Returns
+        -------
+        jnp.Array
+            Compressed data point.
         """
         raise NotImplementedError(
             "compress method not implemented in your child class of Compressor_w_NDE"
         )
 
+    @abstractmethod
     def log_prob(self, x, y=None, **kwargs):
         """
         Log probability of the data point x conditioned by y.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Log probability of the data point conditioned by y.
         """
         raise NotImplementedError(
             "log_prob method not implemented in your child class of Compressor_w_NDE"
         )
 
+    @abstractmethod
     def log_prob_from_compressed(self, z, y=None, **kwargs):
         """
         Log probability of the data point z conditioned by y. z has been previously compressed.
+
+        Parameters
+        ----------
+        z : jnp.Array
+            Compressed data point.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Log probability of the data point conditioned by y.
         """
         raise NotImplementedError(
             "log_prob_from_compressed method not implemented in your child class of Compressor_w_NDE"
         )
 
+    @abstractmethod
     def sample(self, y, num_samples, key):
         """
         Sample from the distribution conditioned by y.
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable.
+        num_samples : int
+            Number of samples.
+        key : jnp.Array
+            Random key.
+
+        Returns
+        -------
+        jnp.Array
+            num_samples samples from the distribution.
         """
         raise NotImplementedError(
             "sample method not implemented in your child class of Compressor_w_NDE"
@@ -111,8 +213,9 @@ class Compressor_w_NDE(NDENetwork):
 
 class MixtureDensityNetwork(NDENetwork):
     """
-    A Mixture of Gaussian Density modeled using neural networks.
-    The weights of each gaussian component, the mean and the covariance are learned by the network.
+    Base class for a Mixture Density Network.
+
+    A Mixture of Gaussian Density modeled using neural networks. The weights of each gaussian component, the mean and the covariance are learned by the network.
     """
 
     n_in: int  # Dimension of the input
@@ -124,19 +227,19 @@ class MixtureDensityNetwork(NDENetwork):
     @nn.compact
     def __call__(self, y, **kwargs):
         """
-        Builds a bijector that tranforms a multivariate Gaussian distribution
-        into a Mixture of Gaussian distribution using a neural network.
+        Build a bijector that tranforms a multivariate Gaussian distribution into a Mixture of Gaussian distribution using a neural network.
+
         The weights, means and covariances are obtained from a conditioned variable y.
 
         Parameters
         ----------
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
 
         Returns
         -------
-        distribution : tfd.Distribution
-            Mixture of Gaussian distribution
+        tfd.Distribution
+            Mixture of Gaussian distribution.
         """
         kernel_init = kwargs.get(
             "kernel_init",
@@ -171,39 +274,39 @@ class MixtureDensityNetwork(NDENetwork):
 
     def log_prob(self, x, y, **kwargs):
         """
-        Returns the log probability of the data point x conditioned by y.
+        Return the log probability of the data point x conditioned by y.
 
         Parameters
         ----------
         x : jnp.Array
-            Data point
+            Data point.
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
 
         Returns
         -------
-        log_prob : jnp.Array
-            Log probability of the data point
+        jnp.Array
+            Log probability of the data point.
         """
         distribution = self.__call__(y, **kwargs)
         return distribution.log_prob(x)
 
     def sample(self, y, num_samples, key, **kwargs):
         """
-        Samples from the distribution conditioned by y.
+        Sample from the distribution conditioned by y.
 
         Parameters
         ----------
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
         num_samples : int
-            Number of samples
+            Number of samples.
         key : jnp.Array
-            Random key
+            Random key.
 
         Returns
         -------
-        samples : jnp.Array
+        jnp.Array
             num_samples samples from the distribution
         """
         if y.ndim == 1:
@@ -213,12 +316,40 @@ class MixtureDensityNetwork(NDENetwork):
 
 
 class AffineCoupling(nn.Module):
+    """
+    Base class for an Affine Coupling layer for RealNVP.
+
+    Parameters
+    ----------
+    y : Any
+        Conditionning variable.
+    layers : list
+        List of hidden layers size.
+    activation : Callable
+        Activation function.
+    """
+
     y: Any  # Conditionning variable
     layers: list  # list of hidden layers size
     activation: callable  # activation function
 
     @nn.compact
     def __call__(self, x, output_units, **kwargs):
+        """
+        Build the bijector using tensorflow_probability where the scale and the shift are learned by a neural network.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Data point.
+        output_units : int
+            Dimension of the output.
+
+        Returns
+        -------
+        tfb.Chain
+            Bijector transforming a multidimensional Gaussian to a more complex distribution.
+        """
         x = jnp.concatenate([x, self.y], axis=-1)
         for i, layer_size in enumerate(self.layers):
             x = self.activation(
@@ -244,6 +375,25 @@ class AffineCoupling(nn.Module):
 
 
 class ConditionalRealNVP(NDENetwork):
+    """
+    Base class for a Conditional RealNVP.
+
+    A Normalizing Flow using RealNVP with a conditionning variable.
+
+    Parameters
+    ----------
+    n_in : int
+        Dimension of the input.
+    n_cond : int
+        Dimension of the conditionning variable.
+    n_layers : int
+        Number of layers.
+    layers : list[int]
+        List of hidden layers size.
+    activation : Callable
+        Activation function.
+    """
+
     n_in: int  # Dimension of the input
     n_cond: int  # Dimension of the conditionning variable
     n_layers: int  # Number of layers
@@ -253,18 +403,17 @@ class ConditionalRealNVP(NDENetwork):
     @nn.compact
     def __call__(self, y, **kwargs):
         """
-        Build the bijector using tensorflow_probability
+        Build the bijector using tensorflow_probability.
 
         Parameters
         ----------
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
 
         Returns
         -------
-        nvp : tfd.Distributions
-            Normalizing Flow transporting a multidimensional Gaussian
-            to a more complex distribution.
+        tfd.Distributions
+            Normalizing Flow transporting a multidimensional Gaussian to a more complex distribution.
         """
         bijector_fn = partial(
             AffineCoupling, layers=self.layers, activation=self.activation
@@ -289,21 +438,21 @@ class ConditionalRealNVP(NDENetwork):
 
     def sample(self, y, num_samples, key, **kwargs):
         """
-        Samples from the distribution mapped by the real NVP
+        Sample from the distribution mapped by the real NVP.
 
         Parameters
         ----------
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
         num_samples : int
-            Number of samples
+            Number of samples.
         key : jnp.Array
-            Random key
+            Random key.
 
         Returns
         -------
-        samples : jnp.Array
-            num_samples samples from the distribution
+        jnp.Array
+            num_samples samples from the distribution.
         """
         y = y.squeeze()
         nvp = self.__call__(y)
@@ -311,14 +460,19 @@ class ConditionalRealNVP(NDENetwork):
 
     def log_prob(self, x, y, **kwargs):
         """
-        Computes the log probability of the data point x conditioned by y from the normalizing flow.
+        Compute the log probability of the data point x conditioned by y from the normalizing flow.
 
         Parameters
         ----------
         x : jnp.Array
-            Data point
+            Data point.
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Log probability of the data point conditioned by y.
         """
         nvp = self.__call__(y)
         return nvp.log_prob(x)
@@ -327,10 +481,10 @@ class ConditionalRealNVP(NDENetwork):
 # Reproduce implementation of MADE and MAFs from https://github.com/e-hulten/maf/blob/master/made.py
 
 
-class MaskedLinear(
-    nn.Module
-):  # Check if there is no issue when you jit a loss using such a network. Note: Mask will not change after initialisation.
+class MaskedLinear(nn.Module):
     """
+    Base class for a Masked Linear layer.
+
     Linear transformation with masked out elements.
 
     y = x.dot(mask*W.T)+b
@@ -338,9 +492,11 @@ class MaskedLinear(
     Parameters
     ----------
     n_out : int
-        Output dimension
+        Output dimension.
     bias : bool
         Whether to include bias. Default True.
+    mask : Any
+        Mask to apply to the weights. Default None.
     """
 
     n_out: int
@@ -348,12 +504,31 @@ class MaskedLinear(
     mask: Any = None
 
     def initialize_mask(self, mask: Any):
-        """Internal method to initialize mask"""
+        """
+        Set initialize mask.
+
+        Parameters
+        ----------
+        mask : Any
+            Boolean mask to apply to the weights.
+        """
         self.mask = mask
 
     @nn.compact
     def __call__(self, x):
-        """Apply masked linear transformation"""
+        """
+        Apply masked linear transformation.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input vector.
+
+        Returns
+        -------
+        jnp.Array
+            Output vector.
+        """
         layer = nn.Dense(
             self.n_out,
             use_bias=self.bias,
@@ -370,6 +545,29 @@ class MaskedLinear(
 
 
 class ConditionalMADE(nn.Module):
+    """
+    Base class for Conditional Masked Autoencoder Density Estimatior (MADE).
+
+    MADE is a neural network that parameterizes the conditional distribution of a random variable using masked linear layers.
+
+    Parameters
+    ----------
+    n_in : int
+        Size of the input vector.
+    hidden_dims : list[int]
+        List of hidden dimensions.
+    activation : Callable
+        Activation function.
+    n_cond : int
+        Size of the conditionning variable. 0 if None.
+    gaussian : bool
+        Whether the output are mean and variance of a Gaussian conditional. Default True.
+    random_order : bool
+        Whether to use random order of the input for masking. Default False.
+    seed : Optional[int]
+        Random seed to label nodes. !!Default is None but the MADE will not work unless a seed is applied!!
+    """
+
     n_in: int  # Size of the input vector
     hidden_dims: list[int]  # list of hidden dimensions
     activation: Callable  # Activation function
@@ -381,7 +579,7 @@ class ConditionalMADE(nn.Module):
     seed: Optional[int] = None  # Random seed to label nodes
 
     def setup(self):
-
+        """Set the network creating the masks and the masked linear layers."""
         np.random.seed(self.seed)
         self.n_out = 2 * self.n_in if self.gaussian else self.n_in
         masks = {}
@@ -403,7 +601,7 @@ class ConditionalMADE(nn.Module):
         self.model = nn.Sequential(self.layers)
 
     def _create_masks(self, mask_matrix: list, masks: dict, layers: list):
-        """Create masks for the model"""
+        """Create masks for the model."""
         L = len(self.hidden_dims)  # Number of hidden layers
         D = self.n_in  # Number of input parameters
         C = self.n_cond  # Number of conditionning parameters
@@ -466,14 +664,19 @@ class ConditionalMADE(nn.Module):
 
     def __call__(self, x, y=None):
         """
-        Forward pass of the model
+        Forward pass of the model.
 
         Parameters
         ----------
         x : jnp.Array
-            Input vector
+            Input vector.
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Output vector. If gaussian, the output is the mean and variance of the gaussian conditional. Otherwise, the output is the probability of the binary conditional.
         """
         if self.n_cond != 0:
             x = jnp.concatenate([x, y], axis=-1)
@@ -484,6 +687,27 @@ class ConditionalMADE(nn.Module):
 
 
 class MAFLayer(nn.Module):
+    """
+    Base class for a Masked Autoregressive Flow layer.
+
+    A single layer of a Masked Autoregressive Flow.
+
+    Parameters
+    ----------
+    n_in : int
+        Size of the input vector.
+    n_cond : int
+        Size of the conditionning variable.
+    hidden_dims : list[int]
+        List of hidden dimensions.
+    reverse : bool
+        Whether to reverse the order of the input.
+    activation : Callable
+        Activation function.
+    seed : Optional[int]
+        Random seed to label nodes. !!Default is None but the MAF will not work unless a seed is applied!!
+    """
+
     n_in: int  # Size of the input vector
     n_cond: int  # Size of the conditionning variable
     hidden_dims: list[int]  # list of hidden dimensions
@@ -492,6 +716,25 @@ class MAFLayer(nn.Module):
     seed: Optional[int] = None  # Random seed to label nodes
 
     def forward(self, x, y=None):
+        """
+        Forward pass of the model.
+
+        Return vector u transformed by the flow and the log-determinant of the Jacobian of the flow.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input vector.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Transformed vector.
+        jnp.Array
+            Log-determinant of the Jacobian.
+        """
         out = self.__call__(x, y)
         mu, logp = jnp.split(out, 2, axis=-1)
         u = (x - mu) * jnp.exp(0.5 * logp)
@@ -500,6 +743,25 @@ class MAFLayer(nn.Module):
         return u, log_det
 
     def backward(self, u, y=None):
+        """
+        Backward pass of the model.
+
+        Return vector x transformed by the inverse flow and the log-determinant of the Jacobian of the inverse flow.
+
+        Parameters
+        ----------
+        u : jnp.Array
+            Input vector.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Transformed vector.
+        jnp.Array
+            Log-determinant of the Jacobian.
+        """
         u = jnp.flip(u, axis=-1) if self.reverse else u
         x = jnp.zeros_like(u)
         for dim in range(self.n_in):
@@ -518,9 +780,9 @@ class MAFLayer(nn.Module):
         Parameters
         ----------
         x : jnp.Array
-            Input vector
+            Input vector.
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable.
         """
         x = ConditionalMADE(
             n_in=self.n_in,
@@ -533,6 +795,29 @@ class MAFLayer(nn.Module):
 
 
 class ConditionalMAF(NDENetwork):
+    """
+    Base class of a Conditional Masked Autoregressive Flow.
+
+    A Conditional Masked Autoregressive Flow to model the conditional distribution of a random variable. It is obtained by stacking `n_layers` MAF layers.
+
+    Parameters
+    ----------
+    n_in : int
+        Size of the input vector.
+    n_cond : int
+        Size of the conditionning variable.
+    n_layers : int
+        Number of layers (i.e. number of stacked MAFs).
+    layers : list[int]
+        List of hidden dimensions in each MAF.
+    activation : Callable
+        Activation function.
+    use_reverse : bool
+        Whether to reverse the order of the input between each MAF.
+    seed : Optional[int]
+        Random seed to label nodes. !!Default is None but the MAF will not work unless a seed is applied!!
+    """
+
     n_in: int  # Size of the input vector
     n_cond: int  # Size of the conditionning variable
     n_layers: int  # Number of layers (i.e. number of stacked MADEs)
@@ -542,6 +827,7 @@ class ConditionalMAF(NDENetwork):
     seed: Optional[int] = None  # Random seed to label nodes
 
     def setup(self):
+        """Set the network creating the MAF layers."""
         np.random.seed(self.seed)
         layer_list = []
         for _ in range(self.n_layers):
@@ -562,15 +848,23 @@ class ConditionalMAF(NDENetwork):
     @nn.compact
     def __call__(self, x, y=None):
         """
-        Forward pass of the model. Returns mean and variance of the gaussian conditionals
-        as well as the log-determinant of the Jacobian
+        Forward pass of the model.
+
+        Returns mean and variance of the gaussian conditionals as well as the log-determinant of the Jacobian.
 
         Parameters
         ----------
         x : jnp.Array
-            Input vector
+            Input vector.
         y : jnp.Array
-            Conditionning variable
+            Conditionning variable?=.
+
+        Returns
+        -------
+        jnp.Array
+            Transformed vector.
+        jnp.Array
+            Log-determinant of the Jacobian.
         """
         log_det_sum = jnp.zeros(x.shape[0])
         for layer in self.layer_list:
@@ -580,6 +874,25 @@ class ConditionalMAF(NDENetwork):
         return x, log_det_sum
 
     def backward(self, u, y=None):
+        """
+        Backward pass of the model.
+
+        Return vector x transformed by the inverse flow and the log-determinant of the Jacobian of the inverse flow.
+
+        Parameters
+        ----------
+        u : jnp.Array
+            Input vector.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        x : jnp.Array
+            Transformed vector.
+        log_det_sum : jnp.Array
+            Log-determinant of the Jacobian.
+        """
         log_det_sum = jnp.zeros(u.shape[0])
         # backward pass
         for layer in reversed(self.layer_list):
@@ -588,11 +901,43 @@ class ConditionalMAF(NDENetwork):
         return u, log_det_sum
 
     def log_prob(self, x, y=None):
+        """
+        Compute the log-probability conditionned on some conditionning variable.
+
+        Parameters
+        ----------
+        x : jnp.Array
+            Input vector.
+        y : jnp.Array
+            Conditionning variable.
+
+        Returns
+        -------
+        jnp.Array
+            Log probability of the data point.
+        """
         u, log_det_sum = self.__call__(x, y)
         log_pdf = multivariate_normal.logpdf(u, self.mean, self.cov)
         return log_pdf + log_det_sum
 
     def sample(self, y=None, num_samples=1, key=None):
+        """
+        Sample from the distribution emulated by the neural network.
+
+        Parameters
+        ----------
+        y : jnp.Array
+            Conditionning variable.
+        num_samples : int
+            Number of samples.
+        key : jnp.Array
+            Random key.
+
+        Returns
+        -------
+        jnp.Array
+            Samples from the distribution.
+        """
         u = jax.random.multivariate_normal(
             key, self.mean, self.cov, shape=(num_samples,)
         )
@@ -604,10 +949,10 @@ class ConditionalMAF(NDENetwork):
 
 class NDE_Compressor(Compressor_w_NDE):
     """
-    NDE_Compressor
+    Base class for a normalizing flow with a compressor.
 
-    A general class to implement a compressor followed by a normalizing flow implementing
-    standard methods to compute the log-probability of the target distribution or sample from it.
+    WARNING: This class will likely be removed in the future as it is obsolete.
+    A general class to implement a compressor followed by a normalizing flow implementing standard methods to compute the log-probability of the target distribution or sample from it.
     """
 
     compressor: nn.Module  # Compressor network
@@ -616,13 +961,14 @@ class NDE_Compressor(Compressor_w_NDE):
     nde_hparams: dict  # Hyperparameters of the compressor
 
     def setup(self):
+        """Set the compressor and the normalizing flow."""
         # Create models for the compressor and the NDE
         self.compressor_nn = self.compressor(**self.compressor_hparams)
         self.nde_nn = self.nde(**self.nde_hparams)
 
     def __call__(self, x, y, model="NPE"):
         """
-        Returns the log-probability of the parameters y conditioned by the data point x.
+        Perform a forward pass in the network and returns the log-probability of x given y.
 
         Parameters
         ----------
@@ -633,7 +979,7 @@ class NDE_Compressor(Compressor_w_NDE):
 
         Returns
         -------
-        log_prob : jnp.Array
+        jnp.Array
             Log probability of the parameters y
         """
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
@@ -646,7 +992,7 @@ class NDE_Compressor(Compressor_w_NDE):
 
     def log_prob(self, x, y, model="NPE"):
         """
-        Returns the log-probability of the parameters y conditioned by the data point x.
+        Return the log-probability of the parameters y conditioned by the data point x.
 
         Parameters
         ----------
@@ -657,14 +1003,14 @@ class NDE_Compressor(Compressor_w_NDE):
 
         Returns
         -------
-        log_prob : jnp.Array
+        jnp.Array
             Log probability of the parameters y
         """
         return self.__call__(x, y, model)
 
     def log_prob_compressed(self, z, y, model="NPE"):
         """
-        Returns the log-probability of the compressed data z conditioned by the parameters y (if NPE).
+        Return the log-probability of the compressed data z conditioned by the parameters y (if NPE).
 
         Parameters
         ----------
@@ -675,7 +1021,7 @@ class NDE_Compressor(Compressor_w_NDE):
 
         Returns
         -------
-        log_prob : jnp.Array
+        jnp.Array
             Log probability of the parameters y
         """
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
@@ -686,7 +1032,7 @@ class NDE_Compressor(Compressor_w_NDE):
 
     def sample(self, y, num_samples, key, model="NPE"):
         """
-        Samples from the distribution conditioned by y.
+        Sample from the distribution conditioned by y.
 
         Parameters
         ----------
@@ -699,7 +1045,7 @@ class NDE_Compressor(Compressor_w_NDE):
 
         Returns
         -------
-        samples : jnp.Array
+        jnp.Array
             num_samples samples from the distribution
         """
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
@@ -712,10 +1058,12 @@ class NDE_Compressor(Compressor_w_NDE):
 
 class NDE_w_Standardization(NDENetwork):
     """
-    NDE_w_Standardization
+    Base class to implement normalizing flow with a standardization step.
 
     This class creates an NDE network where the input data is first standardized.
     It takes in input a neural density estimator, an embedding net and a transformation.
+    The embedding net is used to embed the data point in a latent space where the NDE is applied. It allows to compress the data to lower dimensional space.
+    The transformation is used to transform to standardize the variable learned by the normalizing flow for stability purpose.
     """
 
     nde: NDENetwork  # Neural Density Estimator
@@ -724,20 +1072,20 @@ class NDE_w_Standardization(NDENetwork):
 
     def __call__(self, x, y, model="NPE"):
         """
-        Returns the log-probability of x given y for NPE and y given x for NLE.
+        Return the log-probability of x given y for NPE and y given x for NLE.
 
         Parameters
         ----------
         x : jnp.Array
-            Theta
+            Parameters
         y : jnp.Array
-            x
+            Conditionning variable
         model : str
-            NPE or NLE
+            Whether the network is trained using NPE or NLE. Default: NPE.
 
         Returns
         -------
-        log_prob : jnp.Array
+        jnp.Array
             Log probability of the parameters y
         """
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
@@ -750,33 +1098,23 @@ class NDE_w_Standardization(NDENetwork):
         return log_prob + logprob_std
 
     def standardize(self, x):
-        """
-        Standardize the data point x.
-        """
+        """Standardize the data point x."""
         return self.transformation.inverse(x)
 
     def unstandardize(self, x):
-        """
-        Unstandardize the data point x.
-        """
+        """Unstandardize the data point x."""
         return self.transformation.forward(x)
 
     def embedding(self, x):
-        """
-        Embed the data point x.
-        """
+        """Embed the data point x."""
         return self.embedding_net(x)
 
     def log_prob(self, x, y=None, model="NPE"):
-        """
-        Returns the log probability of the data point x conditioned by y.
-        """
+        """Return the log probability of the data point x conditioned by y."""
         return self.__call__(x, y, model)
 
     def sample(self, y, num_samples, key, model="NPE"):
-        """
-        Sample from the distribution conditioned by y.
-        """
+        """Sample from the distribution conditioned by y."""
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
         if model == "NPE":
             z = self.embedding_net(y)

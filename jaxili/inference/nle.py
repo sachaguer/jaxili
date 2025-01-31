@@ -1,3 +1,9 @@
+"""
+NLE.
+
+This modules provides a Neural Likelihood Estimation (NLE) class to train a neural density estimator to perform NLE.
+"""
+
 import warnings
 from typing import Any, Callable, Dict, Iterable, Optional, Union
 
@@ -38,6 +44,20 @@ default_maf_hparams = {
 
 
 class NLE:
+    """
+    NLE.
+
+    Base class for Neural Likelihood Estimation (NLE) methods.
+    Default configuration used a `ConditionalMAF` to learn the likelihood function.
+
+    Examples
+    --------
+    >>> from jaxili.inference import NLE
+    >>> inference = NLE()
+    >>> theta, x = ...  # Load parameters and simulation outputs
+    >>> inference.append_simulations(theta, x) #Push your simulations in the trainer
+    >>> inference.train() #Train your density estimator
+    """
 
     def __init__(
         self,
@@ -48,7 +68,7 @@ class NLE:
         loss_fn: Callable = loss_nll_nle,
     ):
         """
-        Base class for Neural Likelihood Estimation (NLE) methods.
+        Build class for Neural Likelihood Estimation (NLE) methods.
 
         Parameters
         ----------
@@ -91,7 +111,7 @@ class NLE:
 
     def set_dataset(self, dataset, type):
         """
-        Sets the dataset to use for training, validation or testing.
+        Set the dataset to use for training, validation or testing.
 
         Parameters
         ----------
@@ -115,7 +135,7 @@ class NLE:
 
     def set_dataloader(self, dataloader, type):
         """
-        Sets the dataloader to use for training, validation or testing.
+        Set the dataloader to use for training, validation or testing.
 
         Parameters
         ----------
@@ -149,8 +169,8 @@ class NLE:
 
         Data is stored in a Dataset object from `jax-dataloader`
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         theta : Array
             Parameters of the simulations.
         x : Array
@@ -215,7 +235,7 @@ class NLE:
 
     def _create_data_loader(self, **kwargs):
         """
-        Creates DataLoaders for the training, validation and test datasets. Can only be executed after appending simulations.
+        Create DataLoaders for the training, validation and test datasets. Can only be executed after appending simulations.
 
         Parameters
         ----------
@@ -226,7 +246,6 @@ class NLE:
         seed : int
             Seed to use for the DataLoader. Default is 42.
         """
-
         try:
             self._train_dataset
         except AttributeError:
@@ -362,7 +381,6 @@ class NLE:
         check_val_every_epoch : int, optional
             Frequency at which to check the validation loss. Default is 1.
         """
-
         try:
             self._nde
         except AttributeError:
@@ -427,8 +445,14 @@ class NLE:
             Maximum number of epochs to train. Default is 2**31 - 1.
         check_val_every_epoch: int, optional
             Frequency at which to check the validation loss. Default is 1.
-        """
 
+        Returns
+        -------
+        metrics : Dict[str, Any]
+            Dictionary containing the training, validation and test losses.
+        density_estimator : nn.Module
+            The trained density estimator.
+        """
         try:
             self._train_dataset
         except AttributeError:
@@ -504,7 +528,7 @@ class NLE:
         mcmc_kwargs: Optional[Dict[str, Any]] = nuts_numpyro_kwargs_default,
     ):
         r"""
-        Builds the posterior distribution $p(\theta|x)$ using the trained density estimator.
+        Build the posterior distribution $p(\theta|x)$ using the trained density estimator.
 
         Parameters
         ----------

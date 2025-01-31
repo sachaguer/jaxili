@@ -257,7 +257,7 @@
 <a class="viewcode-back" href="../compressor.html#compressor.MLPCompressor">[docs]</a>
 <span class="k">class</span> <span class="nc">MLPCompressor</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    MLP Compressor.</span>
+<span class="sd">    Base class of a MLP Compressor.</span>
 
 <span class="sd">    Defines a MLP compressor to send the summary statistic to the same dimension than the parameters.</span>
 
@@ -277,6 +277,19 @@
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward pass of the MLP Compressor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : jnp.array</span>
+<span class="sd">            Input data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        jnp.array</span>
+<span class="sd">            Compressed data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">size</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -289,9 +302,9 @@
 <a class="viewcode-back" href="../compressor.html#compressor.CNN2DCompressor">[docs]</a>
 <span class="k">class</span> <span class="nc">CNN2DCompressor</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    CNN2D Compressor</span>
+<span class="sd">    Base class of a CNN2D Compressor.</span>
 
-<span class="sd">    Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters</span>
+<span class="sd">    Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -306,6 +319,19 @@
 
     <span class="nd">@nn</span><span class="o">.</span><span class="n">compact</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward pass of the CNN2D Compressor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs : jnp.array</span>
+<span class="sd">            Input data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        jnp.array</span>
+<span class="sd">            Compressed data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">net_x</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">net_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">net_x</span><span class="p">)</span>
         <span class="n">net_x</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)(</span><span class="n">net_x</span><span class="p">)</span>

@@ -1,7 +1,6 @@
 """Train.
 
-This module implements an object to perform the training of Normalizing Flows.
-
+This module implements an object to perform the training of Normalizing Flows and more generally of neural networks.
 """
 
 import json
@@ -29,7 +28,8 @@ from jaxili.utils import handle_non_serializable
 
 class TrainState(train_state.TrainState):
     """
-    A simple extension of TrainState to also include batch statistics
+    A simple extension of TrainState to also include batch statistics.
+
     If a model has no batch statistics, it is None.
     Keep an rng state for dropout or init.
     """
@@ -39,6 +39,11 @@ class TrainState(train_state.TrainState):
 
 
 class TrainerModule:
+    """
+    A module to perform the training of Normalizing Flows.
+
+    This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.
+    """
 
     def __init__(
         self,
@@ -56,22 +61,30 @@ class TrainerModule:
         **kwargs,
     ):
         """
-        A basic Trainer module summarizing most training functionalities
-        like logging, model initialization, training loop, etc...
+        Initialize a basic Trainer module summarizing most training functionalities like logging, model initialization, training loop, etc...
 
-        Atributes
-        ---------
-        model_class : The class of the model that should be trained.
-        model_hparams : A dictionnary of the hyperparameters of the model.
-        Is used as input to the model when it is created.
-        optimizer_hparams : A dictionnary of the hyperparameters of the optimizer.
-        Used during initialization of the optimizer.
-        exmp_input : Input to the model for initialisation and tabulate.
-        seed : Seed to initialise PRNG.
-        logger_params : A dictionary containing the specifications of the logger.
-        enable_progress_bar : Whether to enable the progress bar.
-        debug : If True, no jitting is applied. Can be helpful for debugging.
-        check_val_every_epoch : How often to check the validation set.
+        Attributes
+        ----------
+        model_class : jaxili.model.NDENetwork
+            The class of the model that should be trained.
+        model_hparams : Dict[str, Any]
+            A dictionnary of the hyperparameters of the model. Is used as input to the model when it is created.
+        optimizer_hparams : Dict[str, Any]
+            A dictionnary of the hyperparameters of the optimizer. Used during initialization of the optimizer.
+        exmp_input : Any
+            Input to the model for initialisation and tabulate.
+        seed : int
+            Seed to initialise PRNG.
+        logger_params : Dict[str, Any]
+            A dictionary containing the specifications of the logger.
+        enable_progress_bar : bool
+            Whether to enable the progress bar. Default is True.
+        debug : bool
+            If True, no jitting is applied. Can be helpful for debugging. Default is False.
+        check_val_every_epoch : int
+            How often to check the validation set. Default is 1.
+        nde_class : str
+            The class of the Neural Density Estimator. Default is "NPE". Only "NPE" and "NLE" are allowed.
         """
         super().__init__()
         self.model_class = model_class
@@ -113,9 +126,9 @@ class TrainerModule:
 
         Parameters
         ----------
-        logger_params : A dictionary containing the specifications of the logger.
+        logger_params : Dict[str, Any]
+            A dictionary containing the specifications of the logger.
         """
-
         if logger_params is None:
             logger_params = dict()
         # Determine logging directory
@@ -150,11 +163,12 @@ class TrainerModule:
 
     def init_model(self, exmp_input: Any):
         """
-        Creates an initial training state with newly generated network parameters
+        Create an initial training state with newly generated network parameters.
 
         Parameters
         ----------
-        exmp_input : An input to the model with which the shapes are inferred.
+        exmp_input : Any
+            An input to the model with which the shapes are inferred.
         """
         # Prepare PRNG and input
         init_rng, self.key_rng = jax.random.split(self.key_rng)
@@ -176,15 +190,11 @@ class TrainerModule:
         )
 
     def init_apply_fn(self):
-        """
-        Initialize a default apply function for the model.
-        """
+        """Initialize a default apply function for the model."""
         self.apply_fn = self.model.log_prob
 
     def generate_config(self, logger_params):
-        """
-        Generates a configuration dictionary for the trainer.
-        """
+        """Generate a configuration dictionary for the trainer."""
         self.config = {
             "model_class": self.model_class.__name__,
             "model_hparams": deepcopy(self.model_hparams),
@@ -204,12 +214,14 @@ class TrainerModule:
 
     def run_model_init(self, exmp_input: Any, init_rng: Any) -> Dict:
         """
-        The model initialization call
+        Initialize the model by calling it on the example input.
 
         Parameters
         ----------
-        exmp_input : An input to the model with which the shapes are inferred.
-        init_rng : A jax.random.PRNGKey
+        exmp_input : Dict[str, Any]
+            An input to the model with which the shapes are inferred.
+        init_rng : Array
+            A jax.random.PRNGKey
 
         Returns
         -------
@@ -219,11 +231,12 @@ class TrainerModule:
 
     def print_tabulate(self, exmp_input: Any):
         """
-        Prints a summary of the model represented as a table.
+        Print a summary of the model represented as a table.
 
         Parameters
         ----------
-        exmp_input : An input to the model with which the shapes are inferred.
+        exmp_input : Any
+            An input to the model with which the shapes are inferred.
         """
         try:
             print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input))
@@ -232,14 +245,15 @@ class TrainerModule:
 
     def init_optimizer(self, num_epochs: int, num_steps_per_epoch: int):
         """
-        Initializes the optimizer and learning rate scheduler.
+        Initialize the optimizer and learning rate scheduler.
 
         Parameters
         ----------
-        num_epochs : Number of epochs to train.
-        num_steps_per_epoch : Number of steps per epoch.
+        num_epochs : int
+            Number of epochs to train.
+        num_steps_per_epoch : int
+            Number of steps per epoch.
         """
-
         hparams = copy(self.optimizer_hparams)
 
         # Initialize optimizer
@@ -287,10 +301,10 @@ class TrainerModule:
 
     def create_jitted_functions(self):
         """
-        Creates jitted versions of the training, validation and evaluation functions.
+        Create jitted versions of the training, validation and evaluation functions.
+
         If self.debug is True, no jitting is applied.
         """
-
         train_step, eval_step = self.create_functions()
         if self.debug:  # Skip jitting
             print("Skipping jitting due to debug=True")
@@ -307,12 +321,10 @@ class TrainerModule:
         Callable[[TrainState, Any], Tuple[TrainState, Dict]],
     ]:
         """
-        Creates and returns functions for the training and evaluation step.
+        Create and returns functions for the training and evaluation step.
+
         The functions take as input the training state and a batch from the train/val/test loader.
-        Both functions are expected to return a dictionary of logging metrics,
-        and the training function a new train state. This function needs to be
-        overwritten by a subclass. The train_step and eval_step functions
-        here are examples for the signature of the functions.
+        Both functions are expected to return a dictionary of logging metrics, and the training function a new train state. This function can be overwritten by a subclass. The train_step and eval_step functions here are examples for the signature of the functions.
         """
 
         def train_step(state: TrainState, batch: Any):
@@ -339,23 +351,28 @@ class TrainerModule:
         patience: int = 20,
     ) -> Dict[str, Any]:
         """
-        Starts a training loop for the given number of epochs.
+        Start a training loop for the given number of epochs.
 
         Parameters
         ----------
-        train_loader : An iterator over the training data.
-        val_loader : An iterator over the validation data.
-        test_loader : If given, best model will be evaluated on the test set.
-        num_epochs : Number of epochs for which to train the model.
-        min_delta : Minimum change in the monitored metric to qualify as an improvement.
-        patience : Number of epochs with no improvement after which training will be stopped.
+        train_loader : Iterator
+            An iterator over the training data.
+        val_loader : Iterator
+            An iterator over the validation data.
+        test_loader : Iterator
+            If given, best model will be evaluated on the test set.
+        num_epochs : int
+            Number of epochs for which to train the model.
+        min_delta : float
+            Minimum change in the monitored metric to qualify as an improvement.
+        patience : int
+            Number of epochs with no improvement after which training will be stopped. Default is 20.
 
         Returns
         -------
-        A dictionary of the train, validation and evt. test metrics for
-        the best model on the validation set.
+        Dict[str, Any]
+            A dictionary of the train, validation and evt. test metrics for the best model on the validation set.
         """
-
         # Create optimizer and the scheduler for the given numer of epochs
         self.init_optimizer(num_epochs, len(train_loader))
         # Prepare training loop
@@ -409,17 +426,18 @@ class TrainerModule:
 
     def train_epoch(self, train_loader: Iterator) -> Dict[str, Any]:
         """
-        Trains the model for one epoch
+        Train the model for one epoch.
 
         Parameters
         ----------
-        train_loader : An iterator over the training data.
+        train_loader : Iterator
+            An iterator over the training data.
 
         Returns
         -------
-        A dictionary of the average training metrics over all batches for logging
+        Dict[str, Any]
+            A dictionary of the average training metrics over all batches for logging
         """
-
         # Train model for one epoch, and log avg loss and accuracy
         metrics = defaultdict(float)
         num_train_steps = len(train_loader)
@@ -436,18 +454,20 @@ class TrainerModule:
         self, data_loader: Iterator, log_prefix: Optional[str] = ""
     ) -> Dict[str, Any]:
         """
-        Evaluates the model on a dataset.
+        Evaluate the model on a dataset.
 
         Parameters
         ----------
-        data_loader : An iterator over the data.
-        log_prefix : A prefix to add to all metrics.
+        data_loader : Iterator
+            An iterator over the data.
+        log_prefix : str
+            A prefix to add to all metrics.
 
         Returns
         -------
-        A dictionary of the evaluation metrics, averaged over data points in the dataset
+        Dict[str, Any]
+            A dictionary of the evaluation metrics, averaged over data points in the dataset
         """
-
         # Test model on all element of the dataloader and return avg loss
         metrics = defaultdict(float)
         num_elements = 0
@@ -470,19 +490,20 @@ class TrainerModule:
         self, new_metrics: Dict[str, Any], old_metrics: Dict[str, Any]
     ) -> bool:
         """
-        Compares two sets of evaluation metrics to decide whether the new
-        model is better than the previous ones or not.
+        Compare two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.
 
         Parameters
         ----------
-        new_metrics : A dictionary of the evaluation metrics of the new model
-        old_metrics : A dictionary of the evaluation metrics of the previously best model.
+        new_metrics : Iterator
+            A dictionary of the evaluation metrics of the new model
+        old_metrics : Iterator
+            A dictionary of the evaluation metrics of the previously best model.
 
         Returns
         -------
-        True if the new model is better, False otherwise.
+        bool
+            True if the new model is better, False otherwise.
         """
-
         if old_metrics is None:
             return True
         for key, is_larger in [
@@ -499,19 +520,20 @@ class TrainerModule:
 
     def tracker(self, iterator: Iterator, **kwargs) -> Iterator:
         """
-        Wraps an iterator in a progress bar track (tqdm) if the progress
-        bat is enabled.
+        Wrap an iterator in a progress bar track (tqdm) if the progress bar is enabled.
 
         Parameters
         ----------
-        iterator : iterator to wrap in tqdm
-        kwargs : additional arguments to tqdm
+        iterator : Iterator
+            Iterator to wrap in tqdm.
+        kwargs : Any
+            additional arguments to tqdm.
 
         Returns
         -------
-        Wrapped iterator if progress bar is enabled, otherwise same iterator than input
+        Iterator
+            Wrapped iterator if progress bar is enabled, otherwise same iterator than input.
         """
-
         if self.enable_progress_bar:
             return tqdm(iterator, **kwargs)
         else:
@@ -519,32 +541,38 @@ class TrainerModule:
 
     def save_metrics(self, filename: str, metrics: Dict[str, Any]):
         """
-        Saves a dictionary of metrics to file. Can be used as a textual
-        representation of the validation performance for checking in the terminal
+        Save a dictionary of metrics to file.
+
+        This can be used as a textual representation of the validation performance for checking in the terminal.
 
         Parameters
         ----------
-        filename : Name of the metrics file without folders and postfix
-        metrics : A dictionary of the metrics to save
+        filename : str
+            Name of the metrics file without folders and postfix
+        metrics : Dict[str, Any]
+            A dictionary of the metrics to save
         """
         with open(os.path.join(self.log_dir, f"metrics/{filename}.json"), "w") as f:
             json.dump(metrics, f, indent=4)
 
     def on_training_start(self):
         """
-        Method called before training is started. Can be used for
-        additional initialization operations etc.
+        Perform any necessary operations before the training starts.
+
+        Method called before training is started. Can be used for additional initialization operations etc.
         """
         pass
 
     def on_training_epoch_end(self, epoch_idx: int):
         """
-        Method called at the end of each training epoch. Can be used for
-        additional logging or similar.
+        Perform any necessary operations at the end of each training epoch.
+
+        Method called at the end of each training epoch. Can be used for additional logging or similar.
 
         Parameters
         ----------
-        epoch_idx : Index of the epoch that just finished.
+        epoch_idx : int
+            Index of the epoch that just finished.
         """
         pass
 
@@ -552,36 +580,38 @@ class TrainerModule:
         self, epoch_idx: int, eval_metrics: Dict[str, Any], val_loader: Iterator
     ):
         """
-        Method called at the end of each validation epoch. Can be used for
-        additional logging and evaluation.
+        Perform any necessary operations at the end of each validation epoch.
+
+        Method called at the end of each validation epoch. Can be used for additional logging and evaluation.
 
         Parameters
         ----------
-        epoch_idx : Index of the epoch that just finished.
-        eval_metrics : A dictionary of the evaluation metrics.
-        val_loader : DataLoader of the validation set to support additional evaluation.
+        epoch_idx : int
+            Index of the epoch that just finished.
+        eval_metrics : Dict[str, Any]
+            A dictionary of the evaluation metrics.
+        val_loader : Iterator
+            DataLoader of the validation set to support additional evaluation.
         """
         pass
 
     def save_model(self, step: int = 0):
         """
-        Saves current training state at certain training iteration. Only the model
-        parameters and batch statistics are saved to reduce memory footprint.
-        To support the training to be continued from a checkpoint, this method
-        can be extended to include the optimizer state as well.
+        Save current training state at certain training iteration.
+
+        Only the model parameters and batch statistics are saved to reduce memory footprint. To allow the training to be continued from a checkpoint, this method can be extended to include the optimizer state as well.
 
         Parameters
         ----------
-        step : Index of the step to save the model at, e.g. epoch
+        step : int
+            Index of the step to save the model at, e.g. epoch.
         """
         target = {"params": self.state.params, "batch_stats": self.state.batch_stats}
         save_args = orbax_utils.save_args_from_target(target)
         self.checkpoint_manager.save(step, target, save_kwargs={"save_args": save_args})
 
     def load_model(self):
-        """
-        Loads model and batch statistics from the logging directory
-        """
+        """Load model and batch statistics from the logging directory."""
         step = self.checkpoint_manager.latest_step()
         state_dict = self.checkpoint_manager.restore(step)
         self.state = TrainState.create(
@@ -594,7 +624,7 @@ class TrainerModule:
 
     def bind_model(self):
         """
-        Returns a model with parameters bound to it. Enables an easier inference access.
+        Return a model with parameters bound to it. Enables an easier inference access.
 
         Returns
         -------
@@ -610,19 +640,21 @@ class TrainerModule:
         cls, model_class: jaxili.model.NDENetwork, checkpoint: str, exmp_input: Any
     ) -> Any:
         """
-        Creates a Trainer object with same hyperparameters and loaded model from
-        a checkpoint directory.
+        Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.
 
         Parameters
         ----------
-        checkpoint : Folder in which the checkpoint and hyperparameter file is stored
-        exmp_input : An input to the model with which the shapes are inferred.
+        model_class : jaxili.model.NDENetwork
+            The class of the model that should be loaded.
+        checkpoint : str
+            Folder in which the checkpoint and hyperparameter file is stored
+        exmp_input : Any
+            An input to the model with which the shapes are inferred.
 
         Returns
         -------
         A Trainer object with model loaded from the checkpoint folder.
         """
-
         hparams_file = os.path.join(checkpoint, "hparams.json")
         assert os.path.isfile(hparams_file), "Could not find hparams file."
         with open(hparams_file, "r") as f:

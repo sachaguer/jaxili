@@ -34,10 +34,9 @@ MMD_BANDWIDTH_LIST = [
 
 def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
     """
-    Negative log-likelihood loss function for NPE methods
-    using a given neural network as a model.
-    In NPE, the log-probability is given by the density estimator in
-    parameter space conditioned on the data.
+    Negative log-likelihood loss function for NPE methods using a given neural network as a model.
+
+    In NPE, the log-probability is given by the density estimator in parameter space conditioned on the data. The batch should take the form of a Tuple of Arrays were the first one corresponds to the parameters and the second to the simulation outputs.
 
     Parameters
     ----------
@@ -53,7 +52,6 @@ def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
     Array
         Mean of the negative log-likelihood loss across the batch.
     """
-
     thetas, xs = batch
 
     output = model.apply({"params": params}, thetas, xs, method="log_prob")
@@ -62,13 +60,12 @@ def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
 
 def loss_nll_nle(model: Any, params: PyTree, batch: Any):
     """
-    Negative log-likelihood loss function for NLE methods
-    using a given neural network as a model.
-    In NPE, the log-probability is given by the density estimator in
-    parameter space conditioned on the data.
+    Negative log-likelihood loss function for NLE methods using a given neural network as a model.
 
-    Parameter
-    ---------
+    In NLE, the log-probability is given by the density estimator in observation space conditioned on the parameter. The batch should take the form of a Tuple of Arrays were the first one corresponds to the parameters and the second to the simulation outputs.
+
+    Parameters
+    ----------
     model : Any
         Neural network model from `jaxili.model`.
     params : PyTree
@@ -81,7 +78,6 @@ def loss_nll_nle(model: Any, params: PyTree, batch: Any):
     Array
         Mean of the negative log-likelihood loss across the batch.
     """
-
     thetas, xs = batch
 
     return -jnp.mean(model.apply({"params": params}, xs, thetas, method="log_prob"))
@@ -89,7 +85,7 @@ def loss_nll_nle(model: Any, params: PyTree, batch: Any):
 
 def gaussian_kernel_matrix(x, y, sigmas=None):
     """
-    Computes a Gaussian radial basis functions (RBFs) between the samples of x and y.
+    Compute a Gaussian radial basis functions (RBFs) between the samples of x and y.
 
     We create a sum of multiple Gaussian kernels each having a width sigma_i.
 
@@ -116,7 +112,7 @@ def gaussian_kernel_matrix(x, y, sigmas=None):
 
 def mmd_kernel(x, y, kernel):
     """
-    Computes the Maximum Mean Discrepancy (MMD) between samples of x and y.
+    Compute the Maximum Mean Discrepancy (MMD) between samples of x and y.
 
     Parameters
     ----------
@@ -182,7 +178,6 @@ def mmd_summary_space(summary_outputs, rng, z_dist="gaussian", kernel="gaussian"
     float
         Maximum Mean Discrepancy (MMD) between the summary outputs and samples from a unit Gaussian distribution.
     """
-
     assert z_dist == "gaussian", "Only Gaussian distribution is supported for now"
     assert kernel == "gaussian", "Only Gaussian kernel is supported for now"
 
@@ -193,7 +188,7 @@ def mmd_summary_space(summary_outputs, rng, z_dist="gaussian", kernel="gaussian"
 
 def loss_mmd_npe(model, params, batch):
     """
-    Computes the Maximum Mean Discrepancy (MMD) loss for Neural Posterior Estimation.
+    Compute the Maximum Mean Discrepancy (MMD) loss for Neural Posterior Estimation.
 
     Parameters
     ----------

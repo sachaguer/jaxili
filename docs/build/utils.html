@@ -353,7 +353,7 @@ Other functions allow to check the validity of the input data.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.create_data_loader">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">create_data_loader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">datasets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils.html#create_data_loader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.create_data_loader" title="Link to this definition">#</a></dt>
-<dd><p>Creates data loaders used in JAX for a set of datasets.</p>
+<dd><p>Create data loaders from a set of datasets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -366,14 +366,20 @@ Other functions allow to check the validity of the input data.</p>
 <li><p><strong>seed</strong> (<em>Seed to initalize the workers and shuffling with</em>)</p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of data loaders.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[torch.utils.data.DataLoader]</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.handle_non_serializable">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">handle_non_serializable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils.html#handle_non_serializable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.handle_non_serializable" title="Link to this definition">#</a></dt>
-<dd><p>Custom handler for non-serializable objects.
-Replace or transform objects into something serializable to save metadata from training.</p>
+<dd><p>Replace or transform objects into something serializable to save metadata from training.</p>
+<p>Custom handler for non-serializable objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>obj</strong> (<em>Any</em>) – Object to handle.</p>
@@ -384,19 +390,32 @@ Replace or transform objects into something serializable to save metadata from t
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.numpy_collate">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">numpy_collate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils.html#numpy_collate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.numpy_collate" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Collect data in DataLoader in a numpy array format.</p>
+<p>The data stored in <cite>torch.utils.data.DataLoader</cite> can take various format. This function ensures that the output is complient with <cite>numpy</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>list</em>) – List of samples to collate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Collated data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.validate_theta_x">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">validate_theta_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils.html#validate_theta_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.validate_theta_x" title="Link to this definition">#</a></dt>
-<dd><p>Checks if the passed $(     heta, x)$ pair is valid.</p>
+<dd><p>Check if the passed $(theta, x)$ pair is valid.</p>
 <p>We check that:
-- $ heta$ and $x$ are jax arrays
-- $ heta$ and $x$ have the same number of samples.
-- $ heta$ and $x$ have dtype=float32.</p>
+- $theta$ and $x$ are jax arrays
+- $theta$ and $x$ have the same number of samples.
+- $theta$ and $x$ have dtype=float32.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>AssertionError if $     heta$ and $x$ are not jax arrays</strong><strong>, </strong><strong>do not have the same batch size</strong><strong> or </strong><strong>are not dtype==np.float32.</strong> – </p>
+<dd class="field-odd"><p><strong>AssertionError if $theta$ and $x$ are not jax arrays</strong><strong>, </strong><strong>do not have the same batch size</strong><strong> or </strong><strong>are not dtype==np.float32.</strong> – </p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">

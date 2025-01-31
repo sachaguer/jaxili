@@ -448,11 +448,19 @@
 <p>This module contains classes to implement normalizing flows using neural networks.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="model.AffineCoupling">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">AffineCoupling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">y:</span> <span class="pre">Any,</span> <span class="pre">layers:</span> <span class="pre">list,</span> <span class="pre">activation:</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">callable&gt;,</span> <span class="pre">parent:</span> <span class="pre">Union[Type[flax.linen.module.Module],</span> <span class="pre">flax.core.scope.Scope,</span> <span class="pre">Type[flax.linen.module._Sentinel],</span> <span class="pre">NoneType]</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x70e2a34522f0&gt;,</span> <span class="pre">name:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#AffineCoupling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.AffineCoupling" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">AffineCoupling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y:</span> <span class="pre">~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers:</span> <span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation:</span> <span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#AffineCoupling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.AffineCoupling" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Base class for an Affine Coupling layer for RealNVP.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>Any</em>) – Conditionning variable.</p></li>
+<li><p><strong>layers</strong> (<em>list</em>) – List of hidden layers size.</p></li>
+<li><p><strong>activation</strong> (<em>Callable</em>) – Activation function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>name</strong></dt><dd></dd>
 <dt><strong>parent</strong></dt><dd></dd>
 <dt><strong>path</strong></dt><dd></dd>
@@ -466,7 +474,7 @@
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x, output_units, **kwargs)</p></td>
-<td><p>Call self as a function.</p></td>
+<td><p>Build the bijector using tensorflow_probability where the scale and the shift are learned by a neural network.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -573,9 +581,8 @@
 <dt class="sig sig-object py" id="model.Compressor_w_NDE">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">Compressor_w_NDE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#model.NDENetwork" title="model.NDENetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">NDENetwork</span></code></a></p>
-<p>A parent class to implement a compressor followed by a normalizing flow.
-This is useful to perform Implicit Likelihood Inference in large dimensions where compression
-is required and can sometimes be done with a normalizing flow.</p>
+<p>Base class to create a normalizing flow with a compression of the conditionning variable.</p>
+<p>A parent class to implement a compressor followed by a normalizing flow. This is useful to perform Implicit Likelihood Inference in large dimensions where compression is required and can sometimes be done with a normalizing flow.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -674,20 +681,59 @@ is required and can sometimes be done with a normalizing flow.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="model.Compressor_w_NDE.compress">
-<span class="sig-name descname"><span class="pre">compress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.compress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.compress" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.compress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.compress" title="Link to this definition">#</a></dt>
 <dd><p>Compress the data point x using the compressor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>jnp.Array</em>) – Data point.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Compressed data point.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.Compressor_w_NDE.log_prob">
-<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.log_prob" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.log_prob" title="Link to this definition">#</a></dt>
 <dd><p>Log probability of the data point x conditioned by y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Data point.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Log probability of the data point conditioned by y.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.Compressor_w_NDE.log_prob_from_compressed">
-<span class="sig-name descname"><span class="pre">log_prob_from_compressed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.log_prob_from_compressed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.log_prob_from_compressed" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_prob_from_compressed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.log_prob_from_compressed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.log_prob_from_compressed" title="Link to this definition">#</a></dt>
 <dd><p>Log probability of the data point z conditioned by y. z has been previously compressed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> (<em>jnp.Array</em>) – Compressed data point.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Log probability of the data point conditioned by y.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -702,8 +748,23 @@ is required and can sometimes be done with a normalizing flow.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.Compressor_w_NDE.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.sample" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#Compressor_w_NDE.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.Compressor_w_NDE.sample" title="Link to this definition">#</a></dt>
 <dd><p>Sample from the distribution conditioned by y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>num_samples samples from the distribution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -715,11 +776,24 @@ is required and can sometimes be done with a normalizing flow.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="model.ConditionalMADE">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">ConditionalMADE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">hidden_dims:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">Callable,</span> <span class="pre">n_cond:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">gaussian:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">random_order:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">seed:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">parent:</span> <span class="pre">Union[Type[flax.linen.module.Module],</span> <span class="pre">flax.core.scope.Scope,</span> <span class="pre">Type[flax.linen.module._Sentinel],</span> <span class="pre">NoneType]</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x70e2a34522f0&gt;,</span> <span class="pre">name:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMADE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMADE" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">ConditionalMADE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">hidden_dims:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">~typing.Callable,</span> <span class="pre">n_cond:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">gaussian:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">random_order:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMADE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMADE" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Base class for Conditional Masked Autoencoder Density Estimatior (MADE).</p>
+<p>MADE is a neural network that parameterizes the conditional distribution of a random variable using masked linear layers.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_in</strong> (<em>int</em>) – Size of the input vector.</p></li>
+<li><p><strong>hidden_dims</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of hidden dimensions.</p></li>
+<li><p><strong>activation</strong> (<em>Callable</em>) – Activation function.</p></li>
+<li><p><strong>n_cond</strong> (<em>int</em>) – Size of the conditionning variable. 0 if None.</p></li>
+<li><p><strong>gaussian</strong> (<em>bool</em>) – Whether the output are mean and variance of a Gaussian conditional. Default True.</p></li>
+<li><p><strong>random_order</strong> (<em>bool</em>) – Whether to use random order of the input for masking. Default False.</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Random seed to label nodes. !!Default is None but the MADE will not work unless a seed is applied!!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>name</strong></dt><dd></dd>
 <dt><strong>parent</strong></dt><dd></dd>
 <dt><strong>path</strong></dt><dd></dd>
@@ -734,7 +808,7 @@ is required and can sometimes be done with a normalizing flow.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x[, y])</p></td>
-<td><p>Forward pass of the model</p></td>
+<td><p>Forward pass of the model.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -788,7 +862,7 @@ is required and can sometimes be done with a normalizing flow.</p>
 <td><p>Updates the value of the given variable if it is mutable, or an error otherwise.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#model.ConditionalMADE.setup" title="model.ConditionalMADE.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>()</p></td>
-<td><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p></td>
+<td><p>Set the network creating the masks and the masked linear layers.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sow</span></code>(col, name, value[, reduce_fn, init_fn])</p></td>
 <td><p>Stores a value in a collection.</p></td>
@@ -858,49 +932,31 @@ is required and can sometimes be done with a normalizing flow.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalMADE.setup">
 <span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMADE.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMADE.setup" title="Link to this definition">#</a></dt>
-<dd><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p>
-<p><code class="docutils literal notranslate"><span class="pre">setup</span></code> is called once lazily on a module instance when a module
-is bound, immediately before any other methods like <code class="docutils literal notranslate"><span class="pre">__call__</span></code> are
-invoked, or before a <code class="docutils literal notranslate"><span class="pre">setup</span></code>-defined attribute on <code class="docutils literal notranslate"><span class="pre">self</span></code> is accessed.</p>
-<p>This can happen in three cases:</p>
-<blockquote>
-<div><ol class="arabic">
-<li><p>Immediately when invoking <code class="xref py py-meth docutils literal notranslate"><span class="pre">apply()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">init()</span></code> or
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">init_and_output()</span></code>.</p></li>
-<li><p>Once the module is given a name by being assigned to an attribute of
-another module inside the other module’s <code class="docutils literal notranslate"><span class="pre">setup</span></code> method
-(see <code class="xref py py-meth docutils literal notranslate"><span class="pre">__setattr__()</span></code>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyModule</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="gp">... </span>  <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">submodule</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-
-<span class="go">...     # Accessing `submodule` attributes does not yet work here.</span>
-
-<span class="go">...     # The following line invokes `self.__setattr__`, which gives</span>
-<span class="go">...     # `submodule` the name &quot;conv1&quot;.</span>
-<span class="go">...     self.conv1 = submodule</span>
-
-<span class="go">...     # Accessing `submodule` attributes or methods is now safe and</span>
-<span class="go">...     # either causes setup() to be called once.</span>
-</pre></div>
-</div>
-</li>
-<li><p>Once a module is constructed inside a method wrapped with
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">compact()</span></code>, immediately before another method is called or
-<code class="docutils literal notranslate"><span class="pre">setup</span></code> defined attribute is accessed.</p></li>
-</ol>
-</div></blockquote>
+<dd><p>Set the network creating the masks and the masked linear layers.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="model.ConditionalMAF">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">ConditionalMAF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">n_layers:</span> <span class="pre">int,</span> <span class="pre">layers:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">Callable,</span> <span class="pre">use_reverse:</span> <span class="pre">bool,</span> <span class="pre">seed:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">parent:</span> <span class="pre">Union[Type[flax.linen.module.Module],</span> <span class="pre">flax.core.scope.Scope,</span> <span class="pre">Type[flax.linen.module._Sentinel],</span> <span class="pre">NoneType]</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x70e2a34522f0&gt;,</span> <span class="pre">name:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMAF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMAF" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">ConditionalMAF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">n_layers:</span> <span class="pre">int,</span> <span class="pre">layers:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">~typing.Callable,</span> <span class="pre">use_reverse:</span> <span class="pre">bool,</span> <span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMAF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMAF" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#model.NDENetwork" title="model.NDENetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">NDENetwork</span></code></a></p>
+<p>Base class of a Conditional Masked Autoregressive Flow.</p>
+<p>A Conditional Masked Autoregressive Flow to model the conditional distribution of a random variable. It is obtained by stacking <cite>n_layers</cite> MAF layers.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_in</strong> (<em>int</em>) – Size of the input vector.</p></li>
+<li><p><strong>n_cond</strong> (<em>int</em>) – Size of the conditionning variable.</p></li>
+<li><p><strong>n_layers</strong> (<em>int</em>) – Number of layers (i.e. number of stacked MAFs).</p></li>
+<li><p><strong>layers</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of hidden dimensions in each MAF.</p></li>
+<li><p><strong>activation</strong> (<em>Callable</em>) – Activation function.</p></li>
+<li><p><strong>use_reverse</strong> (<em>bool</em>) – Whether to reverse the order of the input between each MAF.</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Random seed to label nodes. !!Default is None but the MAF will not work unless a seed is applied!!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>name</strong></dt><dd></dd>
 <dt><strong>parent</strong></dt><dd></dd>
 <dt><strong>path</strong></dt><dd></dd>
@@ -920,82 +976,77 @@ another module inside the other module’s <code class="docutils literal notrans
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code>(variables, *args[, rngs, mutable])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.ConditionalMAF.backward" title="model.ConditionalMAF.backward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backward</span></code></a>(u[, y])</p></td>
+<td><p>Backward pass of the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code>(variables, *args[, rngs, mutable])</p></td>
 <td><p>Creates an interactive Module instance by binding variables and RNGs.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code>(*[, parent, _deep_clone, _reset_names])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code>(*[, parent, _deep_clone, _reset_names])</p></td>
 <td><p>Creates a clone of this Module, with optionally updated arguments.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>(*[, parent, name])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>(*[, parent, name])</p></td>
 <td><p>Creates a copy of this Module, with optionally updated arguments.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_variable</span></code>(col, name[, default])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_variable</span></code>(col, name[, default])</p></td>
 <td><p>Retrieves the value of a Variable.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_rng</span></code>(name)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_rng</span></code>(name)</p></td>
 <td><p>Returns true if a PRNGSequence with name <code class="docutils literal notranslate"><span class="pre">name</span></code> exists.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_variable</span></code>(col, name)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_variable</span></code>(col, name)</p></td>
 <td><p>Checks if a variable of given collection and name exists in this Module.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code>(rngs, *args[, method, mutable, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code>(rngs, *args[, method, mutable, ...])</p></td>
 <td><p>Initializes a module method with variables and returns modified variables.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_with_output</span></code>(rngs, *args[, method, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_with_output</span></code>(rngs, *args[, method, ...])</p></td>
 <td><p>Initializes a module method with variables and returns output and modified variables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_initializing</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_initializing</span></code>()</p></td>
 <td><p>Returns True if running under self.init(...) or nn.init(...)().</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_mutable_collection</span></code>(col)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_mutable_collection</span></code>(col)</p></td>
 <td><p>Returns true if the collection <code class="docutils literal notranslate"><span class="pre">col</span></code> is mutable.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">lazy_init</span></code>(rngs, *args[, method, mutable])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">lazy_init</span></code>(rngs, *args[, method, mutable])</p></td>
 <td><p>Initializes a module without computing on an actual input.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#model.ConditionalMAF.log_prob" title="model.ConditionalMAF.log_prob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob</span></code></a>(x[, y])</p></td>
-<td><p>Log probability of the data point x conditioned by y.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.ConditionalMAF.log_prob" title="model.ConditionalMAF.log_prob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob</span></code></a>(x[, y])</p></td>
+<td><p>Compute the log-probability conditionned on some conditionning variable.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rng</span></code>([name])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rng</span></code>([name])</p></td>
 <td><p>Returns a new RNG key from a given RNG sequence for this Module.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">module_paths</span></code>(rngs, *args[, show_repeated, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">module_paths</span></code>(rngs, *args[, show_repeated, ...])</p></td>
 <td><p>Returns a dictionary mapping module paths to module instances.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">param</span></code>(name, init_fn, *init_args[, unbox])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">param</span></code>(name, init_fn, *init_args[, unbox])</p></td>
 <td><p>Declares and returns a parameter in this Module.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">perturb</span></code>(name, value[, collection])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">perturb</span></code>(name, value[, collection])</p></td>
 <td><p>Add an zero-value variable ('perturbation') to the intermediate value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_variable</span></code>(col, name, value)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_variable</span></code>(col, name, value)</p></td>
 <td><p>Updates the value of the given variable if it is mutable, or an error otherwise.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#model.ConditionalMAF.sample" title="model.ConditionalMAF.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>([y, num_samples, key])</p></td>
-<td><p>Sample from the distribution conditioned by y.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.ConditionalMAF.sample" title="model.ConditionalMAF.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>([y, num_samples, key])</p></td>
+<td><p>Sample from the distribution emulated by the neural network.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#model.ConditionalMAF.setup" title="model.ConditionalMAF.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>()</p></td>
-<td><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.ConditionalMAF.setup" title="model.ConditionalMAF.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>()</p></td>
+<td><p>Set the network creating the MAF layers.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sow</span></code>(col, name, value[, reduce_fn, init_fn])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sow</span></code>(col, name, value[, reduce_fn, init_fn])</p></td>
 <td><p>Stores a value in a collection.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tabulate</span></code>(rngs, *args[, depth, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tabulate</span></code>(rngs, *args[, depth, ...])</p></td>
 <td><p>Creates a summary of the Module represented as a table.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unbind</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unbind</span></code>()</p></td>
 <td><p>Returns an unbound copy of a Module and its variables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">variable</span></code>(col, name[, init_fn, unbox])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">variable</span></code>(col, name[, init_fn, unbox])</p></td>
 <td><p>Declares and returns a variable in this Module.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="pst-scrollable-table-container"><table class="table">
-<tbody>
-<tr class="row-odd"><td><p><strong>backward</strong></p></td>
-<td></td>
 </tr>
 </tbody>
 </table>
@@ -1008,7 +1059,24 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalMAF.backward">
 <span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMAF.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMAF.backward" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Backward pass of the model.</p>
+<p>Return vector x transformed by the inverse flow and the log-determinant of the Jacobian of the inverse flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>jnp.Array</em>) – Input vector.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Transformed vector.</p></li>
+<li><p><strong>log_det_sum</strong> (<em>jnp.Array</em>) – Log-determinant of the Jacobian.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="model.ConditionalMAF.layers">
@@ -1018,7 +1086,21 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalMAF.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMAF.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMAF.log_prob" title="Link to this definition">#</a></dt>
-<dd><p>Log probability of the data point x conditioned by y.</p>
+<dd><p>Compute the log-probability conditionned on some conditionning variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Input vector.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Log probability of the data point.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1049,7 +1131,22 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalMAF.sample">
 <span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMAF.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMAF.sample" title="Link to this definition">#</a></dt>
-<dd><p>Sample from the distribution conditioned by y.</p>
+<dd><p>Sample from the distribution emulated by the neural network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Samples from the distribution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1065,38 +1162,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalMAF.setup">
 <span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalMAF.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalMAF.setup" title="Link to this definition">#</a></dt>
-<dd><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p>
-<p><code class="docutils literal notranslate"><span class="pre">setup</span></code> is called once lazily on a module instance when a module
-is bound, immediately before any other methods like <code class="docutils literal notranslate"><span class="pre">__call__</span></code> are
-invoked, or before a <code class="docutils literal notranslate"><span class="pre">setup</span></code>-defined attribute on <code class="docutils literal notranslate"><span class="pre">self</span></code> is accessed.</p>
-<p>This can happen in three cases:</p>
-<blockquote>
-<div><ol class="arabic">
-<li><p>Immediately when invoking <code class="xref py py-meth docutils literal notranslate"><span class="pre">apply()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">init()</span></code> or
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">init_and_output()</span></code>.</p></li>
-<li><p>Once the module is given a name by being assigned to an attribute of
-another module inside the other module’s <code class="docutils literal notranslate"><span class="pre">setup</span></code> method
-(see <code class="xref py py-meth docutils literal notranslate"><span class="pre">__setattr__()</span></code>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyModule</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="gp">... </span>  <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">submodule</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-
-<span class="go">...     # Accessing `submodule` attributes does not yet work here.</span>
-
-<span class="go">...     # The following line invokes `self.__setattr__`, which gives</span>
-<span class="go">...     # `submodule` the name &quot;conv1&quot;.</span>
-<span class="go">...     self.conv1 = submodule</span>
-
-<span class="go">...     # Accessing `submodule` attributes or methods is now safe and</span>
-<span class="go">...     # either causes setup() to be called once.</span>
-</pre></div>
-</div>
-</li>
-<li><p>Once a module is constructed inside a method wrapped with
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">compact()</span></code>, immediately before another method is called or
-<code class="docutils literal notranslate"><span class="pre">setup</span></code> defined attribute is accessed.</p></li>
-</ol>
-</div></blockquote>
+<dd><p>Set the network creating the MAF layers.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1108,11 +1174,22 @@ another module inside the other module’s <code class="docutils literal notrans
 
 <dl class="py class">
 <dt class="sig sig-object py" id="model.ConditionalRealNVP">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">ConditionalRealNVP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">n_layers:</span> <span class="pre">int,</span> <span class="pre">layers:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">Callable,</span> <span class="pre">parent:</span> <span class="pre">Union[Type[flax.linen.module.Module],</span> <span class="pre">flax.core.scope.Scope,</span> <span class="pre">Type[flax.linen.module._Sentinel],</span> <span class="pre">NoneType]</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x70e2a34522f0&gt;,</span> <span class="pre">name:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalRealNVP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalRealNVP" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">ConditionalRealNVP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">n_layers:</span> <span class="pre">int,</span> <span class="pre">layers:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">~typing.Callable,</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalRealNVP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalRealNVP" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#model.NDENetwork" title="model.NDENetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">NDENetwork</span></code></a></p>
+<p>Base class for a Conditional RealNVP.</p>
+<p>A Normalizing Flow using RealNVP with a conditionning variable.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_in</strong> (<em>int</em>) – Dimension of the input.</p></li>
+<li><p><strong>n_cond</strong> (<em>int</em>) – Dimension of the conditionning variable.</p></li>
+<li><p><strong>n_layers</strong> (<em>int</em>) – Number of layers.</p></li>
+<li><p><strong>layers</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of hidden layers size.</p></li>
+<li><p><strong>activation</strong> (<em>Callable</em>) – Activation function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>name</strong></dt><dd></dd>
 <dt><strong>parent</strong></dt><dd></dd>
 <dt><strong>path</strong></dt><dd></dd>
@@ -1126,7 +1203,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(y, **kwargs)</p></td>
-<td><p>Build the bijector using tensorflow_probability</p></td>
+<td><p>Build the bijector using tensorflow_probability.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -1165,7 +1242,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <td><p>Initializes a module without computing on an actual input.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#model.ConditionalRealNVP.log_prob" title="model.ConditionalRealNVP.log_prob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob</span></code></a>(x, y, **kwargs)</p></td>
-<td><p>Computes the log probability of the data point x conditioned by y from the normalizing flow.</p></td>
+<td><p>Compute the log probability of the data point x conditioned by y from the normalizing flow.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rng</span></code>([name])</p></td>
 <td><p>Returns a new RNG key from a given RNG sequence for this Module.</p></td>
@@ -1183,7 +1260,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <td><p>Updates the value of the given variable if it is mutable, or an error otherwise.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#model.ConditionalRealNVP.sample" title="model.ConditionalRealNVP.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>(y, num_samples, key, **kwargs)</p></td>
-<td><p>Samples from the distribution mapped by the real NVP</p></td>
+<td><p>Sample from the distribution mapped by the real NVP.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code>()</p></td>
 <td><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p></td>
@@ -1216,13 +1293,19 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalRealNVP.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalRealNVP.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalRealNVP.log_prob" title="Link to this definition">#</a></dt>
-<dd><p>Computes the log probability of the data point x conditioned by y from the normalizing flow.</p>
+<dd><p>Compute the log probability of the data point x conditioned by y from the normalizing flow.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>jnp.Array</em>) – Data point</p></li>
-<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable</p></li>
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Data point.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Log probability of the data point conditioned by y.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1255,17 +1338,17 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.ConditionalRealNVP.sample">
 <span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#ConditionalRealNVP.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.ConditionalRealNVP.sample" title="Link to this definition">#</a></dt>
-<dd><p>Samples from the distribution mapped by the real NVP</p>
+<dd><p>Sample from the distribution mapped by the real NVP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable</p></li>
-<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples</p></li>
-<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>samples</strong> – num_samples samples from the distribution</p>
+<dd class="field-even"><p>num_samples samples from the distribution.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.Array</p>
@@ -1301,7 +1384,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x)</p></td>
-<td><p>Call self as a function.</p></td>
+<td><p>Forward pass of the identity transformation.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -1391,11 +1474,23 @@ another module inside the other module’s <code class="docutils literal notrans
 
 <dl class="py class">
 <dt class="sig sig-object py" id="model.MAFLayer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">MAFLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">hidden_dims:</span> <span class="pre">list[int],</span> <span class="pre">reverse:</span> <span class="pre">bool,</span> <span class="pre">activation:</span> <span class="pre">Callable,</span> <span class="pre">seed:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">parent:</span> <span class="pre">Union[Type[flax.linen.module.Module],</span> <span class="pre">flax.core.scope.Scope,</span> <span class="pre">Type[flax.linen.module._Sentinel],</span> <span class="pre">NoneType]</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x70e2a34522f0&gt;,</span> <span class="pre">name:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MAFLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MAFLayer" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">MAFLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">hidden_dims:</span> <span class="pre">list[int],</span> <span class="pre">reverse:</span> <span class="pre">bool,</span> <span class="pre">activation:</span> <span class="pre">~typing.Callable,</span> <span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MAFLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MAFLayer" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Base class for a Masked Autoregressive Flow layer.</p>
+<p>A single layer of a Masked Autoregressive Flow.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_in</strong> (<em>int</em>) – Size of the input vector.</p></li>
+<li><p><strong>n_cond</strong> (<em>int</em>) – Size of the conditionning variable.</p></li>
+<li><p><strong>hidden_dims</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of hidden dimensions.</p></li>
+<li><p><strong>reverse</strong> (<em>bool</em>) – Whether to reverse the order of the input.</p></li>
+<li><p><strong>activation</strong> (<em>Callable</em>) – Activation function.</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Random seed to label nodes. !!Default is None but the MAF will not work unless a seed is applied!!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>name</strong></dt><dd></dd>
 <dt><strong>parent</strong></dt><dd></dd>
 <dt><strong>path</strong></dt><dd></dd>
@@ -1415,14 +1510,20 @@ another module inside the other module’s <code class="docutils literal notrans
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code>(variables, *args[, rngs, mutable])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.MAFLayer.backward" title="model.MAFLayer.backward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backward</span></code></a>(u[, y])</p></td>
+<td><p>Backward pass of the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind</span></code>(variables, *args[, rngs, mutable])</p></td>
 <td><p>Creates an interactive Module instance by binding variables and RNGs.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code>(*[, parent, _deep_clone, _reset_names])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clone</span></code>(*[, parent, _deep_clone, _reset_names])</p></td>
 <td><p>Creates a clone of this Module, with optionally updated arguments.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>(*[, parent, name])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>(*[, parent, name])</p></td>
 <td><p>Creates a copy of this Module, with optionally updated arguments.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.MAFLayer.forward" title="model.MAFLayer.forward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">forward</span></code></a>(x[, y])</p></td>
+<td><p>Forward pass of the model.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_variable</span></code>(col, name[, default])</p></td>
 <td><p>Retrieves the value of a Variable.</p></td>
@@ -1481,17 +1582,6 @@ another module inside the other module’s <code class="docutils literal notrans
 </tbody>
 </table>
 </div>
-<div class="pst-scrollable-table-container"><table class="table">
-<tbody>
-<tr class="row-odd"><td><p><strong>backward</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>forward</strong></p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="model.MAFLayer.activation">
 <span class="sig-name descname"><span class="pre">activation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span></em><a class="headerlink" href="#model.MAFLayer.activation" title="Link to this definition">#</a></dt>
@@ -1500,12 +1590,46 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.MAFLayer.backward">
 <span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MAFLayer.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MAFLayer.backward" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Backward pass of the model.</p>
+<p>Return vector x transformed by the inverse flow and the log-determinant of the Jacobian of the inverse flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>jnp.Array</em>) – Input vector.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>jnp.Array</em> – Transformed vector.</p></li>
+<li><p><em>jnp.Array</em> – Log-determinant of the Jacobian.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.MAFLayer.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MAFLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MAFLayer.forward" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Forward pass of the model.</p>
+<p>Return vector u transformed by the flow and the log-determinant of the Jacobian of the flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Input vector.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>jnp.Array</em> – Transformed vector.</p></li>
+<li><p><em>jnp.Array</em> – Log-determinant of the Jacobian.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="model.MAFLayer.hidden_dims">
@@ -1553,13 +1677,15 @@ another module inside the other module’s <code class="docutils literal notrans
 <dt class="sig sig-object py" id="model.MaskedLinear">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">MaskedLinear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_out:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask:</span> <span class="pre">~typing.Any</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MaskedLinear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MaskedLinear" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Base class for a Masked Linear layer.</p>
 <p>Linear transformation with masked out elements.</p>
 <p>y = x.dot(mask*W.T)+b</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n_out</strong> (<em>int</em>) – Output dimension</p></li>
+<li><p><strong>n_out</strong> (<em>int</em>) – Output dimension.</p></li>
 <li><p><strong>bias</strong> (<em>bool</em>) – Whether to include bias. Default True.</p></li>
+<li><p><strong>mask</strong> (<em>Any</em>) – Mask to apply to the weights. Default None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -1578,7 +1704,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x)</p></td>
-<td><p>Apply masked linear transformation</p></td>
+<td><p>Apply masked linear transformation.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -1608,7 +1734,7 @@ another module inside the other module’s <code class="docutils literal notrans
 <td><p>Initializes a module method with variables and returns output and modified variables.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#model.MaskedLinear.initialize_mask" title="model.MaskedLinear.initialize_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_mask</span></code></a>(mask)</p></td>
-<td><p>Internal method to initialize mask</p></td>
+<td><p>Set initialize mask.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_initializing</span></code>()</p></td>
 <td><p>Returns True if running under self.init(...) or nn.init(...)().</p></td>
@@ -1660,7 +1786,12 @@ another module inside the other module’s <code class="docutils literal notrans
 <dl class="py method">
 <dt class="sig sig-object py" id="model.MaskedLinear.initialize_mask">
 <span class="sig-name descname"><span class="pre">initialize_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MaskedLinear.initialize_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MaskedLinear.initialize_mask" title="Link to this definition">#</a></dt>
-<dd><p>Internal method to initialize mask</p>
+<dd><p>Set initialize mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>Any</em>) – Boolean mask to apply to the weights.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1694,8 +1825,8 @@ another module inside the other module’s <code class="docutils literal notrans
 <dt class="sig sig-object py" id="model.MixtureDensityNetwork">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">MixtureDensityNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_in:</span> <span class="pre">int,</span> <span class="pre">n_cond:</span> <span class="pre">int,</span> <span class="pre">n_components:</span> <span class="pre">int,</span> <span class="pre">layers:</span> <span class="pre">list[int],</span> <span class="pre">activation:</span> <span class="pre">~typing.Callable,</span> <span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MixtureDensityNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MixtureDensityNetwork" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#model.NDENetwork" title="model.NDENetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">NDENetwork</span></code></a></p>
-<p>A Mixture of Gaussian Density modeled using neural networks.
-The weights of each gaussian component, the mean and the covariance are learned by the network.</p>
+<p>Base class for a Mixture Density Network.</p>
+<p>A Mixture of Gaussian Density modeled using neural networks. The weights of each gaussian component, the mean and the covariance are learned by the network.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1712,7 +1843,7 @@ The weights of each gaussian component, the mean and the covariance are learned 
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(y, **kwargs)</p></td>
-<td><p>Builds a bijector that tranforms a multivariate Gaussian distribution into a Mixture of Gaussian distribution using a neural network.</p></td>
+<td><p>Build a bijector that tranforms a multivariate Gaussian distribution into a Mixture of Gaussian distribution using a neural network.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -1751,7 +1882,7 @@ The weights of each gaussian component, the mean and the covariance are learned 
 <td><p>Initializes a module without computing on an actual input.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#model.MixtureDensityNetwork.log_prob" title="model.MixtureDensityNetwork.log_prob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob</span></code></a>(x, y, **kwargs)</p></td>
-<td><p>Returns the log probability of the data point x conditioned by y.</p></td>
+<td><p>Return the log probability of the data point x conditioned by y.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rng</span></code>([name])</p></td>
 <td><p>Returns a new RNG key from a given RNG sequence for this Module.</p></td>
@@ -1769,7 +1900,7 @@ The weights of each gaussian component, the mean and the covariance are learned 
 <td><p>Updates the value of the given variable if it is mutable, or an error otherwise.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#model.MixtureDensityNetwork.sample" title="model.MixtureDensityNetwork.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>(y, num_samples, key, **kwargs)</p></td>
-<td><p>Samples from the distribution conditioned by y.</p></td>
+<td><p>Sample from the distribution conditioned by y.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code>()</p></td>
 <td><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p></td>
@@ -1802,16 +1933,16 @@ The weights of each gaussian component, the mean and the covariance are learned 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.MixtureDensityNetwork.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MixtureDensityNetwork.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MixtureDensityNetwork.log_prob" title="Link to this definition">#</a></dt>
-<dd><p>Returns the log probability of the data point x conditioned by y.</p>
+<dd><p>Return the log probability of the data point x conditioned by y.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>jnp.Array</em>) – Data point</p></li>
-<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable</p></li>
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Data point.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>log_prob</strong> – Log probability of the data point</p>
+<dd class="field-even"><p>Log probability of the data point.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.Array</p>
@@ -1847,17 +1978,17 @@ The weights of each gaussian component, the mean and the covariance are learned 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.MixtureDensityNetwork.sample">
 <span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#MixtureDensityNetwork.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.MixtureDensityNetwork.sample" title="Link to this definition">#</a></dt>
-<dd><p>Samples from the distribution conditioned by y.</p>
+<dd><p>Sample from the distribution conditioned by y.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable</p></li>
-<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples</p></li>
-<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>samples</strong> – num_samples samples from the distribution</p>
+<dd class="field-even"><p>num_samples samples from the distribution</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.Array</p>
@@ -1876,8 +2007,8 @@ The weights of each gaussian component, the mean and the covariance are learned 
 <dt class="sig sig-object py" id="model.NDENetwork">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">NDENetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDENetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDENetwork" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>A Normalizing Flow parent class to implement normalizing flows using
-neural networks.</p>
+<p>Base class for a Normalizing Flow.</p>
+<p>A Normalizing Flow parent class to implement normalizing flows using neural networks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1970,8 +2101,22 @@ neural networks.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDENetwork.log_prob">
-<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDENetwork.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDENetwork.log_prob" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDENetwork.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDENetwork.log_prob" title="Link to this definition">#</a></dt>
 <dd><p>Log probability of the data point x conditioned by y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>jnp.Array</em>) – Data point.</p></li>
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Log probability of the data point given y.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1986,8 +2131,23 @@ neural networks.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDENetwork.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDENetwork.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDENetwork.sample" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDENetwork.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDENetwork.sample" title="Link to this definition">#</a></dt>
 <dd><p>Sample from the distribution conditioned by y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>jnp.Array</em>) – Conditionning variable.</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>key</strong> (<em>jnp.Array</em>) – Random key.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>num_samples samples from the distribution.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jnp.Array</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -2001,8 +2161,9 @@ neural networks.</p>
 <dt class="sig sig-object py" id="model.NDE_Compressor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">NDE_Compressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compressor:</span> <span class="pre">~flax.linen.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nde:</span> <span class="pre">~model.NDENetwork</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressor_hparams:</span> <span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nde_hparams:</span> <span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_Compressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_Compressor" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#model.Compressor_w_NDE" title="model.Compressor_w_NDE"><code class="xref py py-class docutils literal notranslate"><span class="pre">Compressor_w_NDE</span></code></a></p>
-<p>A general class to implement a compressor followed by a normalizing flow implementing
-standard methods to compute the log-probability of the target distribution or sample from it.</p>
+<p>Base class for a normalizing flow with a compressor.</p>
+<p>WARNING: This class will likely be removed in the future as it is obsolete.
+A general class to implement a compressor followed by a normalizing flow implementing standard methods to compute the log-probability of the target distribution or sample from it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -2019,7 +2180,7 @@ standard methods to compute the log-probability of the target distribution or sa
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x, y[, model])</p></td>
-<td><p>Returns the log-probability of the parameters y conditioned by the data point x.</p></td>
+<td><p>Perform a forward pass in the network and returns the log-probability of x given y.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -2061,10 +2222,10 @@ standard methods to compute the log-probability of the target distribution or sa
 <td><p>Initializes a module without computing on an actual input.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#model.NDE_Compressor.log_prob" title="model.NDE_Compressor.log_prob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob</span></code></a>(x, y[, model])</p></td>
-<td><p>Returns the log-probability of the parameters y conditioned by the data point x.</p></td>
+<td><p>Return the log-probability of the parameters y conditioned by the data point x.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#model.NDE_Compressor.log_prob_compressed" title="model.NDE_Compressor.log_prob_compressed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob_compressed</span></code></a>(z, y[, model])</p></td>
-<td><p>Returns the log-probability of the compressed data z conditioned by the parameters y (if NPE).</p></td>
+<td><p>Return the log-probability of the compressed data z conditioned by the parameters y (if NPE).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob_from_compressed</span></code>(z[, y])</p></td>
 <td><p>Log probability of the data point z conditioned by y.</p></td>
@@ -2085,10 +2246,10 @@ standard methods to compute the log-probability of the target distribution or sa
 <td><p>Updates the value of the given variable if it is mutable, or an error otherwise.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#model.NDE_Compressor.sample" title="model.NDE_Compressor.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>(y, num_samples, key[, model])</p></td>
-<td><p>Samples from the distribution conditioned by y.</p></td>
+<td><p>Sample from the distribution conditioned by y.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#model.NDE_Compressor.setup" title="model.NDE_Compressor.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>()</p></td>
-<td><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p></td>
+<td><p>Set the compressor and the normalizing flow.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sow</span></code>(col, name, value[, reduce_fn, init_fn])</p></td>
 <td><p>Stores a value in a collection.</p></td>
@@ -2118,7 +2279,7 @@ standard methods to compute the log-probability of the target distribution or sa
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDE_Compressor.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NPE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_Compressor.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_Compressor.log_prob" title="Link to this definition">#</a></dt>
-<dd><p>Returns the log-probability of the parameters y conditioned by the data point x.</p>
+<dd><p>Return the log-probability of the parameters y conditioned by the data point x.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2127,7 +2288,7 @@ standard methods to compute the log-probability of the target distribution or sa
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>log_prob</strong> – Log probability of the parameters y</p>
+<dd class="field-even"><p>Log probability of the parameters y</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.Array</p>
@@ -2138,7 +2299,7 @@ standard methods to compute the log-probability of the target distribution or sa
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDE_Compressor.log_prob_compressed">
 <span class="sig-name descname"><span class="pre">log_prob_compressed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NPE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_Compressor.log_prob_compressed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_Compressor.log_prob_compressed" title="Link to this definition">#</a></dt>
-<dd><p>Returns the log-probability of the compressed data z conditioned by the parameters y (if NPE).</p>
+<dd><p>Return the log-probability of the compressed data z conditioned by the parameters y (if NPE).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2147,7 +2308,7 @@ standard methods to compute the log-probability of the target distribution or sa
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>log_prob</strong> – Log probability of the parameters y</p>
+<dd class="field-even"><p>Log probability of the parameters y</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.Array</p>
@@ -2178,7 +2339,7 @@ standard methods to compute the log-probability of the target distribution or sa
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDE_Compressor.sample">
 <span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NPE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_Compressor.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_Compressor.sample" title="Link to this definition">#</a></dt>
-<dd><p>Samples from the distribution conditioned by y.</p>
+<dd><p>Sample from the distribution conditioned by y.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2188,7 +2349,7 @@ standard methods to compute the log-probability of the target distribution or sa
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>samples</strong> – num_samples samples from the distribution</p>
+<dd class="field-even"><p>num_samples samples from the distribution</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>jnp.Array</p>
@@ -2204,38 +2365,7 @@ standard methods to compute the log-probability of the target distribution or sa
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDE_Compressor.setup">
 <span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_Compressor.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_Compressor.setup" title="Link to this definition">#</a></dt>
-<dd><p>Initializes a Module lazily (similar to a lazy <code class="docutils literal notranslate"><span class="pre">__init__</span></code>).</p>
-<p><code class="docutils literal notranslate"><span class="pre">setup</span></code> is called once lazily on a module instance when a module
-is bound, immediately before any other methods like <code class="docutils literal notranslate"><span class="pre">__call__</span></code> are
-invoked, or before a <code class="docutils literal notranslate"><span class="pre">setup</span></code>-defined attribute on <code class="docutils literal notranslate"><span class="pre">self</span></code> is accessed.</p>
-<p>This can happen in three cases:</p>
-<blockquote>
-<div><ol class="arabic">
-<li><p>Immediately when invoking <code class="xref py py-meth docutils literal notranslate"><span class="pre">apply()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">init()</span></code> or
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">init_and_output()</span></code>.</p></li>
-<li><p>Once the module is given a name by being assigned to an attribute of
-another module inside the other module’s <code class="docutils literal notranslate"><span class="pre">setup</span></code> method
-(see <code class="xref py py-meth docutils literal notranslate"><span class="pre">__setattr__()</span></code>):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyModule</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="gp">... </span>  <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">submodule</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-
-<span class="go">...     # Accessing `submodule` attributes does not yet work here.</span>
-
-<span class="go">...     # The following line invokes `self.__setattr__`, which gives</span>
-<span class="go">...     # `submodule` the name &quot;conv1&quot;.</span>
-<span class="go">...     self.conv1 = submodule</span>
-
-<span class="go">...     # Accessing `submodule` attributes or methods is now safe and</span>
-<span class="go">...     # either causes setup() to be called once.</span>
-</pre></div>
-</div>
-</li>
-<li><p>Once a module is constructed inside a method wrapped with
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">compact()</span></code>, immediately before another method is called or
-<code class="docutils literal notranslate"><span class="pre">setup</span></code> defined attribute is accessed.</p></li>
-</ol>
-</div></blockquote>
+<dd><p>Set the compressor and the normalizing flow.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2244,8 +2374,11 @@ another module inside the other module’s <code class="docutils literal notrans
 <dt class="sig sig-object py" id="model.NDE_w_Standardization">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.</span></span><span class="sig-name descname"><span class="pre">NDE_w_Standardization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nde:</span> <span class="pre">~model.NDENetwork</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_net:</span> <span class="pre">~flax.linen.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation:</span> <span class="pre">~distrax._src.bijectors.bijector.Bijector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_w_Standardization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_w_Standardization" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#model.NDENetwork" title="model.NDENetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">NDENetwork</span></code></a></p>
+<p>Base class to implement normalizing flow with a standardization step.</p>
 <p>This class creates an NDE network where the input data is first standardized.
-It takes in input a neural density estimator, an embedding net and a transformation.</p>
+It takes in input a neural density estimator, an embedding net and a transformation.
+The embedding net is used to embed the data point in a latent space where the NDE is applied. It allows to compress the data to lower dimensional space.
+The transformation is used to transform to standardize the variable learned by the normalizing flow for stability purpose.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -2262,7 +2395,7 @@ It takes in input a neural density estimator, an embedding net and a transformat
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x, y[, model])</p></td>
-<td><p>Returns the log-probability of x given y for NPE and y given x for NLE.</p></td>
+<td><p>Return the log-probability of x given y for NPE and y given x for NLE.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -2304,7 +2437,7 @@ It takes in input a neural density estimator, an embedding net and a transformat
 <td><p>Initializes a module without computing on an actual input.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#model.NDE_w_Standardization.log_prob" title="model.NDE_w_Standardization.log_prob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_prob</span></code></a>(x[, y, model])</p></td>
-<td><p>Returns the log probability of the data point x conditioned by y.</p></td>
+<td><p>Return the log probability of the data point x conditioned by y.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rng</span></code>([name])</p></td>
 <td><p>Returns a new RNG key from a given RNG sequence for this Module.</p></td>
@@ -2362,7 +2495,7 @@ It takes in input a neural density estimator, an embedding net and a transformat
 <dl class="py method">
 <dt class="sig sig-object py" id="model.NDE_w_Standardization.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NPE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/model.html#NDE_w_Standardization.log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#model.NDE_w_Standardization.log_prob" title="Link to this definition">#</a></dt>
-<dd><p>Returns the log probability of the data point x conditioned by y.</p>
+<dd><p>Return the log probability of the data point x conditioned by y.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -2431,7 +2564,7 @@ It takes in input a neural density estimator, an embedding net and a transformat
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x)</p></td>
-<td><p>Call self as a function.</p></td>
+<td><p>Forward pass of the standardizer transformation.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>

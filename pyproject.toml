@@ -57,8 +57,8 @@ dev = ["jaxili[docs,lint,release,test]"]
 convention = "numpy"
 
 [tool.pytest.ini_options]
-adopts = ["--verbose"]
-testspaths = ["jaxili"]
+addopts = ["--verbose"]
+testpaths = ["jaxili"]
 
 [tool.setuptools.packages.find]
 where = ["."]

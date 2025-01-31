@@ -1,3 +1,7 @@
+"""
+This module contains the Sphinx configuration for the JaxILI documentation.
+"""
+
 import os
 import sys
 
@@ -30,7 +34,7 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["__version__.py", "__init__.py"]
 
 
 # -- Options for HTML output -------------------------------------------------

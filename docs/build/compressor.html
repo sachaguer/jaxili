@@ -317,8 +317,8 @@
 <dt class="sig sig-object py" id="compressor.CNN2DCompressor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">compressor.</span></span><span class="sig-name descname"><span class="pre">CNN2DCompressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_size:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation:</span> <span class="pre">~typing.Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/compressor.html#CNN2DCompressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#compressor.CNN2DCompressor" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>CNN2D Compressor</p>
-<p>Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters</p>
+<p>Base class of a CNN2D Compressor.</p>
+<p>Defines a 2 dimensional Convolutional Neural Network to compress the data to the same dimension as the parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -341,7 +341,7 @@
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(inputs)</p></td>
-<td><p>Call self as a function.</p></td>
+<td><p>Forward pass of the CNN2D Compressor.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>
@@ -443,7 +443,7 @@
 <dt class="sig sig-object py" id="compressor.MLPCompressor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">compressor.</span></span><span class="sig-name descname"><span class="pre">MLPCompressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_size:</span> <span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation:</span> <span class="pre">~typing.Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent:</span> <span class="pre">~typing.Type[~flax.linen.module.Module]</span> <span class="pre">|</span> <span class="pre">~flax.core.scope.Scope</span> <span class="pre">|</span> <span class="pre">~typing.Type[~flax.linen.module._Sentinel]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">&lt;flax.linen.module._Sentinel</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/compressor.html#MLPCompressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#compressor.MLPCompressor" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>MLP Compressor.</p>
+<p>Base class of a MLP Compressor.</p>
 <p>Defines a MLP compressor to send the summary statistic to the same dimension than the parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -468,7 +468,7 @@
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(x)</p></td>
-<td><p>Call self as a function.</p></td>
+<td><p>Forward pass of the MLP Compressor.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(variables, *args[, rngs, method, ...])</p></td>
 <td><p>Applies a module method to variables and returns output and modified variables.</p></td>

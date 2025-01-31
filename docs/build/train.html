@@ -326,13 +326,13 @@
   <section id="module-train">
 <span id="train-module"></span><h1>train module<a class="headerlink" href="#module-train" title="Link to this heading">#</a></h1>
 <p>Train.</p>
-<p>This module implements an object to perform the training of Normalizing Flows.</p>
+<p>This module implements an object to perform the training of Normalizing Flows and more generally of neural networks.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="train.TrainState">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">TrainState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FrozenDict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GradientTransformation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_stats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(None,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainState" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TrainState</span></code></p>
-<p>A simple extension of TrainState to also include batch statistics
-If a model has no batch statistics, it is None.
+<p>A simple extension of TrainState to also include batch statistics.</p>
+<p>If a model has no batch statistics, it is None.
 Keep an rng state for dropout or init.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
@@ -378,23 +378,25 @@ Keep an rng state for dropout or init.</p>
 <dt class="sig sig-object py" id="train.TrainerModule">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">TrainerModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork" title="jaxili.model.NDENetwork"><span class="pre">NDENetwork</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_progress_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_val_every_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nde_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'NPE'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A module to perform the training of Normalizing Flows.</p>
+<p>This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.</p>
 <p class="rubric">Methods</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.bind_model" title="train.TrainerModule.bind_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind_model</span></code></a>()</p></td>
-<td><p>Returns a model with parameters bound to it.</p></td>
+<td><p>Return a model with parameters bound to it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.create_functions" title="train.TrainerModule.create_functions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_functions</span></code></a>()</p></td>
-<td><p>Creates and returns functions for the training and evaluation step.</p></td>
+<td><p>Create and returns functions for the training and evaluation step.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.create_jitted_functions" title="train.TrainerModule.create_jitted_functions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_jitted_functions</span></code></a>()</p></td>
-<td><p>Creates jitted versions of the training, validation and evaluation functions.</p></td>
+<td><p>Create jitted versions of the training, validation and evaluation functions.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.eval_model" title="train.TrainerModule.eval_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_model</span></code></a>(data_loader[, log_prefix])</p></td>
-<td><p>Evaluates the model on a dataset.</p></td>
+<td><p>Evaluate the model on a dataset.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.generate_config" title="train.TrainerModule.generate_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_config</span></code></a>(logger_params)</p></td>
-<td><p>Generates a configuration dictionary for the trainer.</p></td>
+<td><p>Generate a configuration dictionary for the trainer.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.init_apply_fn" title="train.TrainerModule.init_apply_fn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_apply_fn</span></code></a>()</p></td>
 <td><p>Initialize a default apply function for the model.</p></td>
@@ -403,49 +405,49 @@ Keep an rng state for dropout or init.</p>
 <td><p>Initialize the logger and created a logging directory.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.init_model" title="train.TrainerModule.init_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_model</span></code></a>(exmp_input)</p></td>
-<td><p>Creates an initial training state with newly generated network parameters</p></td>
+<td><p>Create an initial training state with newly generated network parameters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.init_optimizer" title="train.TrainerModule.init_optimizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_optimizer</span></code></a>(num_epochs, num_steps_per_epoch)</p></td>
-<td><p>Initializes the optimizer and learning rate scheduler.</p></td>
+<td><p>Initialize the optimizer and learning rate scheduler.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.is_new_model_better" title="train.TrainerModule.is_new_model_better"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_new_model_better</span></code></a>(new_metrics, old_metrics)</p></td>
-<td><p>Compares two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.</p></td>
+<td><p>Compare two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.load_from_checkpoints" title="train.TrainerModule.load_from_checkpoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_from_checkpoints</span></code></a>(model_class, ...)</p></td>
-<td><p>Creates a Trainer object with same hyperparameters and loaded model from a checkpoint directory.</p></td>
+<td><p>Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.load_model" title="train.TrainerModule.load_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_model</span></code></a>()</p></td>
-<td><p>Loads model and batch statistics from the logging directory</p></td>
+<td><p>Load model and batch statistics from the logging directory.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.on_training_epoch_end" title="train.TrainerModule.on_training_epoch_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_training_epoch_end</span></code></a>(epoch_idx)</p></td>
-<td><p>Method called at the end of each training epoch.</p></td>
+<td><p>Perform any necessary operations at the end of each training epoch.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.on_training_start" title="train.TrainerModule.on_training_start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_training_start</span></code></a>()</p></td>
-<td><p>Method called before training is started.</p></td>
+<td><p>Perform any necessary operations before the training starts.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.on_validation_epoch_end" title="train.TrainerModule.on_validation_epoch_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_validation_epoch_end</span></code></a>(epoch_idx, ...)</p></td>
-<td><p>Method called at the end of each validation epoch.</p></td>
+<td><p>Perform any necessary operations at the end of each validation epoch.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.print_tabulate" title="train.TrainerModule.print_tabulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_tabulate</span></code></a>(exmp_input)</p></td>
-<td><p>Prints a summary of the model represented as a table.</p></td>
+<td><p>Print a summary of the model represented as a table.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.run_model_init" title="train.TrainerModule.run_model_init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_model_init</span></code></a>(exmp_input, init_rng)</p></td>
-<td><p>The model initialization call</p></td>
+<td><p>Initialize the model by calling it on the example input.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.save_metrics" title="train.TrainerModule.save_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_metrics</span></code></a>(filename, metrics)</p></td>
-<td><p>Saves a dictionary of metrics to file.</p></td>
+<td><p>Save a dictionary of metrics to file.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.save_model" title="train.TrainerModule.save_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_model</span></code></a>([step])</p></td>
-<td><p>Saves current training state at certain training iteration.</p></td>
+<td><p>Save current training state at certain training iteration.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.tracker" title="train.TrainerModule.tracker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tracker</span></code></a>(iterator, **kwargs)</p></td>
-<td><p>Wraps an iterator in a progress bar track (tqdm) if the progress bat is enabled.</p></td>
+<td><p>Wrap an iterator in a progress bar track (tqdm) if the progress bar is enabled.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.train_epoch" title="train.TrainerModule.train_epoch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_epoch</span></code></a>(train_loader)</p></td>
-<td><p>Trains the model for one epoch</p></td>
+<td><p>Train the model for one epoch.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.train_model" title="train.TrainerModule.train_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_model</span></code></a>(train_loader, val_loader[, ...])</p></td>
-<td><p>Starts a training loop for the given number of epochs.</p></td>
+<td><p>Start a training loop for the given number of epochs.</p></td>
 </tr>
 </tbody>
 </table>
@@ -453,7 +455,7 @@ Keep an rng state for dropout or init.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.bind_model">
 <span class="sig-name descname"><span class="pre">bind_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.bind_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.bind_model" title="Link to this definition">#</a></dt>
-<dd><p>Returns a model with parameters bound to it. Enables an easier inference access.</p>
+<dd><p>Return a model with parameters bound to it. Enables an easier inference access.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The model with parameters and evt. batch statistics bound to it.</p>
@@ -464,34 +466,34 @@ Keep an rng state for dropout or init.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.create_functions">
 <span class="sig-name descname"><span class="pre">create_functions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.create_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.create_functions" title="Link to this definition">#</a></dt>
-<dd><p>Creates and returns functions for the training and evaluation step.
-The functions take as input the training state and a batch from the train/val/test loader.
-Both functions are expected to return a dictionary of logging metrics,
-and the training function a new train state. This function needs to be
-overwritten by a subclass. The train_step and eval_step functions
-here are examples for the signature of the functions.</p>
+<dd><p>Create and returns functions for the training and evaluation step.</p>
+<p>The functions take as input the training state and a batch from the train/val/test loader.
+Both functions are expected to return a dictionary of logging metrics, and the training function a new train state. This function can be overwritten by a subclass. The train_step and eval_step functions here are examples for the signature of the functions.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.create_jitted_functions">
 <span class="sig-name descname"><span class="pre">create_jitted_functions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.create_jitted_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.create_jitted_functions" title="Link to this definition">#</a></dt>
-<dd><p>Creates jitted versions of the training, validation and evaluation functions.
-If self.debug is True, no jitting is applied.</p>
+<dd><p>Create jitted versions of the training, validation and evaluation functions.</p>
+<p>If self.debug is True, no jitting is applied.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.eval_model">
 <span class="sig-name descname"><span class="pre">eval_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.eval_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.eval_model" title="Link to this definition">#</a></dt>
-<dd><p>Evaluates the model on a dataset.</p>
+<dd><p>Evaluate the model on a dataset.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data_loader</strong> (<em>An iterator over the data.</em>)</p></li>
-<li><p><strong>log_prefix</strong> (<em>A prefix to add to all metrics.</em>)</p></li>
+<li><p><strong>data_loader</strong> (<em>Iterator</em>) – An iterator over the data.</p></li>
+<li><p><strong>log_prefix</strong> (<em>str</em>) – A prefix to add to all metrics.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dictionary of the evaluation metrics, averaged over data points in the dataset</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -499,7 +501,7 @@ If self.debug is True, no jitting is applied.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.generate_config">
 <span class="sig-name descname"><span class="pre">generate_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.generate_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.generate_config" title="Link to this definition">#</a></dt>
-<dd><p>Generates a configuration dictionary for the trainer.</p>
+<dd><p>Generate a configuration dictionary for the trainer.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -514,7 +516,7 @@ If self.debug is True, no jitting is applied.</p>
 <dd><p>Initialize the logger and created a logging directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>logger_params</strong> (<em>A dictionary containing the specifications</em><em> of </em><em>the logger.</em>)</p>
+<dd class="field-odd"><p><strong>logger_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – A dictionary containing the specifications of the logger.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -522,10 +524,10 @@ If self.debug is True, no jitting is applied.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.init_model">
 <span class="sig-name descname"><span class="pre">init_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.init_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.init_model" title="Link to this definition">#</a></dt>
-<dd><p>Creates an initial training state with newly generated network parameters</p>
+<dd><p>Create an initial training state with newly generated network parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>exmp_input</strong> (<em>An input to the model with which the shapes are inferred.</em>)</p>
+<dd class="field-odd"><p><strong>exmp_input</strong> (<em>Any</em>) – An input to the model with which the shapes are inferred.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -533,12 +535,12 @@ If self.debug is True, no jitting is applied.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.init_optimizer">
 <span class="sig-name descname"><span class="pre">init_optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps_per_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.init_optimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.init_optimizer" title="Link to this definition">#</a></dt>
-<dd><p>Initializes the optimizer and learning rate scheduler.</p>
+<dd><p>Initialize the optimizer and learning rate scheduler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>num_epochs</strong> (<em>Number</em><em> of </em><em>epochs to train.</em>)</p></li>
-<li><p><strong>num_steps_per_epoch</strong> (<em>Number</em><em> of </em><em>steps per epoch.</em>)</p></li>
+<li><p><strong>num_epochs</strong> (<em>int</em>) – Number of epochs to train.</p></li>
+<li><p><strong>num_steps_per_epoch</strong> (<em>int</em>) – Number of steps per epoch.</p></li>
 </ul>
 </dd>
 </dl>
@@ -547,17 +549,19 @@ If self.debug is True, no jitting is applied.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.is_new_model_better">
 <span class="sig-name descname"><span class="pre">is_new_model_better</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.is_new_model_better"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.is_new_model_better" title="Link to this definition">#</a></dt>
-<dd><p>Compares two sets of evaluation metrics to decide whether the new
-model is better than the previous ones or not.</p>
+<dd><p>Compare two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>new_metrics</strong> (<em>A dictionary</em><em> of </em><em>the evaluation metrics</em><em> of </em><em>the new model</em>)</p></li>
-<li><p><strong>old_metrics</strong> (<em>A dictionary</em><em> of </em><em>the evaluation metrics</em><em> of </em><em>the previously best model.</em>)</p></li>
+<li><p><strong>new_metrics</strong> (<em>Iterator</em>) – A dictionary of the evaluation metrics of the new model</p></li>
+<li><p><strong>old_metrics</strong> (<em>Iterator</em>) – A dictionary of the evaluation metrics of the previously best model.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the new model is better, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -565,13 +569,13 @@ model is better than the previous ones or not.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.load_from_checkpoints">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_checkpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork" title="jaxili.model.NDENetwork"><span class="pre">NDENetwork</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.load_from_checkpoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.load_from_checkpoints" title="Link to this definition">#</a></dt>
-<dd><p>Creates a Trainer object with same hyperparameters and loaded model from
-a checkpoint directory.</p>
+<dd><p>Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>checkpoint</strong> (<em>Folder in which the checkpoint and hyperparameter file is stored</em>)</p></li>
-<li><p><strong>exmp_input</strong> (<em>An input to the model with which the shapes are inferred.</em>)</p></li>
+<li><p><strong>model_class</strong> (<a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork" title="jaxili.model.NDENetwork"><em>jaxili.model.NDENetwork</em></a>) – The class of the model that should be loaded.</p></li>
+<li><p><strong>checkpoint</strong> (<em>str</em>) – Folder in which the checkpoint and hyperparameter file is stored</p></li>
+<li><p><strong>exmp_input</strong> (<em>Any</em>) – An input to the model with which the shapes are inferred.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -583,17 +587,17 @@ a checkpoint directory.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.load_model">
 <span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.load_model" title="Link to this definition">#</a></dt>
-<dd><p>Loads model and batch statistics from the logging directory</p>
+<dd><p>Load model and batch statistics from the logging directory.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.on_training_epoch_end">
 <span class="sig-name descname"><span class="pre">on_training_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.on_training_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.on_training_epoch_end" title="Link to this definition">#</a></dt>
-<dd><p>Method called at the end of each training epoch. Can be used for
-additional logging or similar.</p>
+<dd><p>Perform any necessary operations at the end of each training epoch.</p>
+<p>Method called at the end of each training epoch. Can be used for additional logging or similar.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>epoch_idx</strong> (<em>Index</em><em> of </em><em>the epoch that just finished.</em>)</p>
+<dd class="field-odd"><p><strong>epoch_idx</strong> (<em>int</em>) – Index of the epoch that just finished.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -601,21 +605,21 @@ additional logging or similar.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.on_training_start">
 <span class="sig-name descname"><span class="pre">on_training_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.on_training_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.on_training_start" title="Link to this definition">#</a></dt>
-<dd><p>Method called before training is started. Can be used for
-additional initialization operations etc.</p>
+<dd><p>Perform any necessary operations before the training starts.</p>
+<p>Method called before training is started. Can be used for additional initialization operations etc.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.on_validation_epoch_end">
 <span class="sig-name descname"><span class="pre">on_validation_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.on_validation_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.on_validation_epoch_end" title="Link to this definition">#</a></dt>
-<dd><p>Method called at the end of each validation epoch. Can be used for
-additional logging and evaluation.</p>
+<dd><p>Perform any necessary operations at the end of each validation epoch.</p>
+<p>Method called at the end of each validation epoch. Can be used for additional logging and evaluation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>epoch_idx</strong> (<em>Index</em><em> of </em><em>the epoch that just finished.</em>)</p></li>
-<li><p><strong>eval_metrics</strong> (<em>A dictionary</em><em> of </em><em>the evaluation metrics.</em>)</p></li>
-<li><p><strong>val_loader</strong> (<em>DataLoader</em><em> of </em><em>the validation set to support additional evaluation.</em>)</p></li>
+<li><p><strong>epoch_idx</strong> (<em>int</em>) – Index of the epoch that just finished.</p></li>
+<li><p><strong>eval_metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – A dictionary of the evaluation metrics.</p></li>
+<li><p><strong>val_loader</strong> (<em>Iterator</em>) – DataLoader of the validation set to support additional evaluation.</p></li>
 </ul>
 </dd>
 </dl>
@@ -624,10 +628,10 @@ additional logging and evaluation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.print_tabulate">
 <span class="sig-name descname"><span class="pre">print_tabulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.print_tabulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.print_tabulate" title="Link to this definition">#</a></dt>
-<dd><p>Prints a summary of the model represented as a table.</p>
+<dd><p>Print a summary of the model represented as a table.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>exmp_input</strong> (<em>An input to the model with which the shapes are inferred.</em>)</p>
+<dd class="field-odd"><p><strong>exmp_input</strong> (<em>Any</em>) – An input to the model with which the shapes are inferred.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -635,12 +639,12 @@ additional logging and evaluation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.run_model_init">
 <span class="sig-name descname"><span class="pre">run_model_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.run_model_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.run_model_init" title="Link to this definition">#</a></dt>
-<dd><p>The model initialization call</p>
+<dd><p>Initialize the model by calling it on the example input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>exmp_input</strong> (<em>An input to the model with which the shapes are inferred.</em>)</p></li>
-<li><p><strong>init_rng</strong> (<em>A jax.random.PRNGKey</em>)</p></li>
+<li><p><strong>exmp_input</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – An input to the model with which the shapes are inferred.</p></li>
+<li><p><strong>init_rng</strong> (<em>Array</em>) – A jax.random.PRNGKey</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -652,13 +656,13 @@ additional logging and evaluation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.save_metrics">
 <span class="sig-name descname"><span class="pre">save_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.save_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.save_metrics" title="Link to this definition">#</a></dt>
-<dd><p>Saves a dictionary of metrics to file. Can be used as a textual
-representation of the validation performance for checking in the terminal</p>
+<dd><p>Save a dictionary of metrics to file.</p>
+<p>This can be used as a textual representation of the validation performance for checking in the terminal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>Name</em><em> of </em><em>the metrics file without folders and postfix</em>)</p></li>
-<li><p><strong>metrics</strong> (<em>A dictionary</em><em> of </em><em>the metrics to save</em>)</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the metrics file without folders and postfix</p></li>
+<li><p><strong>metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – A dictionary of the metrics to save</p></li>
 </ul>
 </dd>
 </dl>
@@ -667,13 +671,11 @@ representation of the validation performance for checking in the terminal</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.save_model">
 <span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.save_model" title="Link to this definition">#</a></dt>
-<dd><p>Saves current training state at certain training iteration. Only the model
-parameters and batch statistics are saved to reduce memory footprint.
-To support the training to be continued from a checkpoint, this method
-can be extended to include the optimizer state as well.</p>
+<dd><p>Save current training state at certain training iteration.</p>
+<p>Only the model parameters and batch statistics are saved to reduce memory footprint. To allow the training to be continued from a checkpoint, this method can be extended to include the optimizer state as well.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>step</strong> (<em>Index</em><em> of </em><em>the step to save the model at</em><em>, </em><em>e.g. epoch</em>)</p>
+<dd class="field-odd"><p><strong>step</strong> (<em>int</em>) – Index of the step to save the model at, e.g. epoch.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -681,17 +683,19 @@ can be extended to include the optimizer state as well.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.tracker">
 <span class="sig-name descname"><span class="pre">tracker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.tracker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.tracker" title="Link to this definition">#</a></dt>
-<dd><p>Wraps an iterator in a progress bar track (tqdm) if the progress
-bat is enabled.</p>
+<dd><p>Wrap an iterator in a progress bar track (tqdm) if the progress bar is enabled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>iterator</strong> (<em>iterator to wrap in tqdm</em>)</p></li>
-<li><p><strong>kwargs</strong> (<em>additional arguments to tqdm</em>)</p></li>
+<li><p><strong>iterator</strong> (<em>Iterator</em>) – Iterator to wrap in tqdm.</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – additional arguments to tqdm.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Wrapped iterator if progress bar is enabled, otherwise same iterator than input</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Wrapped iterator if progress bar is enabled, otherwise same iterator than input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator</p>
 </dd>
 </dl>
 </dd></dl>
@@ -699,13 +703,16 @@ bat is enabled.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.train_epoch">
 <span class="sig-name descname"><span class="pre">train_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.train_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.train_epoch" title="Link to this definition">#</a></dt>
-<dd><p>Trains the model for one epoch</p>
+<dd><p>Train the model for one epoch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>train_loader</strong> (<em>An iterator over the training data.</em>)</p>
+<dd class="field-odd"><p><strong>train_loader</strong> (<em>Iterator</em>) – An iterator over the training data.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dictionary of the average training metrics over all batches for logging</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -713,24 +720,23 @@ bat is enabled.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="train.TrainerModule.train_model">
 <span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patience</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.train_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.train_model" title="Link to this definition">#</a></dt>
-<dd><p>Starts a training loop for the given number of epochs.</p>
+<dd><p>Start a training loop for the given number of epochs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>train_loader</strong> (<em>An iterator over the training data.</em>)</p></li>
-<li><p><strong>val_loader</strong> (<em>An iterator over the validation data.</em>)</p></li>
-<li><p><strong>test_loader</strong> (<em>If given</em><em>, </em><em>best model will be evaluated on the test set.</em>)</p></li>
-<li><p><strong>num_epochs</strong> (<em>Number</em><em> of </em><em>epochs for which to train the model.</em>)</p></li>
-<li><p><strong>min_delta</strong> (<em>Minimum change in the monitored metric to qualify as an improvement.</em>)</p></li>
-<li><p><strong>patience</strong> (<em>Number</em><em> of </em><em>epochs with no improvement after which training will be stopped.</em>)</p></li>
+<li><p><strong>train_loader</strong> (<em>Iterator</em>) – An iterator over the training data.</p></li>
+<li><p><strong>val_loader</strong> (<em>Iterator</em>) – An iterator over the validation data.</p></li>
+<li><p><strong>test_loader</strong> (<em>Iterator</em>) – If given, best model will be evaluated on the test set.</p></li>
+<li><p><strong>num_epochs</strong> (<em>int</em>) – Number of epochs for which to train the model.</p></li>
+<li><p><strong>min_delta</strong> (<em>float</em>) – Minimum change in the monitored metric to qualify as an improvement.</p></li>
+<li><p><strong>patience</strong> (<em>int</em>) – Number of epochs with no improvement after which training will be stopped. Default is 20.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><em>A dictionary of the train, validation and evt. test metrics for</em></p></li>
-<li><p><em>the best model on the validation set.</em></p></li>
-</ul>
-</p>
+<dd class="field-even"><p>A dictionary of the train, validation and evt. test metrics for the best model on the validation set.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>

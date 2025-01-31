@@ -1,4 +1,5 @@
-"""Utils.
+"""
+Utils.
 
 This module contains utility functions used in the JaxILI package.
 Some functions are used to format the input data for the training.
@@ -14,6 +15,21 @@ import torch.utils.data as data
 
 
 def numpy_collate(batch):
+    """
+    Collect data in DataLoader in a numpy array format.
+
+    The data stored in `torch.utils.data.DataLoader` can take various format. This function ensures that the output is complient with `numpy`.
+
+    Parameters
+    ----------
+    batch : list
+        List of samples to collate.
+
+    Returns
+    -------
+    np.ndarray
+        Collated data.
+    """
     if isinstance(batch[0], np.ndarray):
         return np.stack(batch)
     elif isinstance(batch[0], (tuple, list)):
@@ -33,7 +49,7 @@ def create_data_loader(
     seed: int = 42,
 ):
     """
-    Creates data loaders used in JAX for a set of datasets.
+    Create data loaders from a set of datasets.
 
     Parameters
     ----------
@@ -43,6 +59,11 @@ def create_data_loader(
     batch_size : Batch size to use in the data loaders.
     num_workers : Number of workers for each datasets.
     seed : Seed to initalize the workers and shuffling with
+
+    Returns
+    -------
+    list[torch.utils.data.DataLoader]
+        List of data loaders.
     """
     loaders = []
     if not isinstance(train, (list, tuple)):
@@ -78,15 +99,16 @@ def check_density_estimator(estimator_arg: str):
 
 
 def validate_theta_x(theta: Any, x: Any):
-    """
-    Checks if the passed $(\theta, x)$ pair is valid.
+    r"""
+    Check if the passed $(\theta, x)$ pair is valid.
 
     We check that:
     - $\theta$ and $x$ are jax arrays
     - $\theta$ and $x$ have the same number of samples.
     - $\theta$ and $x$ have dtype=float32.
 
-    Raises:
+    Raises
+    ------
         AssertionError if $\theta$ and $x$ are not jax arrays, do not have the same batch size or are not dtype==np.float32.
 
     Parameters
@@ -96,7 +118,6 @@ def validate_theta_x(theta: Any, x: Any):
     x : Any
         Simulation outputs.
     """
-
     assert isinstance(theta, jnp.ndarray) or isinstance(
         theta, np.ndarray
     ), "theta should be a jax array."
@@ -173,8 +194,9 @@ def check_hparams_mdn(hparams: dict):
 
 def handle_non_serializable(obj):
     """
-    Custom handler for non-serializable objects.
     Replace or transform objects into something serializable to save metadata from training.
+
+    Custom handler for non-serializable objects.
 
     Parameters
     ----------

@@ -235,13 +235,20 @@
                 <article class="bd-article">
                   
   <h1>Source code for jaxili.posterior.direct_posterior</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Direct Posterior.</span>
 
-<span class="kn">from</span> <span class="nn">jaxili.posterior</span> <span class="kn">import</span> <span class="n">NeuralPosterior</span>
-<span class="kn">from</span> <span class="nn">jaxili.model</span> <span class="kn">import</span> <span class="n">NDENetwork</span>
-<span class="kn">from</span> <span class="nn">jaxili.train</span> <span class="kn">import</span> <span class="n">TrainState</span>
-<span class="kn">from</span> <span class="nn">jaxtyping</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="sd">This module contains the Direct Posterior class. It is used when doing neural posterior estimation where the neural network is trained to approximate the posterior directly.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">from</span> <span class="nn">jaxtyping</span> <span class="kn">import</span> <span class="n">Array</span>
+
+<span class="kn">from</span> <span class="nn">jaxili.model</span> <span class="kn">import</span> <span class="n">NDENetwork</span>
+<span class="kn">from</span> <span class="nn">jaxili.posterior</span> <span class="kn">import</span> <span class="n">NeuralPosterior</span>
+<span class="kn">from</span> <span class="nn">jaxili.train</span> <span class="kn">import</span> <span class="n">TrainState</span>
 
 
 <div class="viewcode-block" id="DirectPosterior">
@@ -249,9 +256,10 @@
 <span class="k">class</span> <span class="nc">DirectPosterior</span><span class="p">(</span><span class="n">NeuralPosterior</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Posterior $p(\theta|x)$ with `log_prob()` and `sample()` methods.</span>
+
 <span class="sd">    The class wraps the trained neural network using Neural Posterior Estimation (NPE).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
+    
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">NDENetwork</span><span class="p">,</span>
@@ -260,6 +268,8 @@
         <span class="n">x</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Array</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Neural Posterior.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        model : NDENetwork</span>

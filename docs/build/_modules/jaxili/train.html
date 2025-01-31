@@ -237,30 +237,29 @@
   <h1>Source code for jaxili.train</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Train.</span>
 
-<span class="sd">This module implements an object to perform the training of Normalizing Flows.</span>
-
+<span class="sd">This module implements an object to perform the training of Normalizing Flows and more generally of neural networks.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
 <span class="kn">import</span> <span class="nn">jax</span>
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
-<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
-<span class="kn">from</span> <span class="nn">flax.training</span> <span class="kn">import</span> <span class="n">train_state</span><span class="p">,</span> <span class="n">checkpoints</span><span class="p">,</span> <span class="n">orbax_utils</span>
-<span class="kn">from</span> <span class="nn">flax.training.early_stopping</span> <span class="kn">import</span> <span class="n">EarlyStopping</span>
 <span class="kn">import</span> <span class="nn">optax</span>
 <span class="kn">import</span> <span class="nn">orbax.checkpoint</span> <span class="k">as</span> <span class="nn">ocp</span>
-
+<span class="kn">from</span> <span class="nn">flax</span> <span class="kn">import</span> <span class="n">linen</span> <span class="k">as</span> <span class="n">nn</span>
+<span class="kn">from</span> <span class="nn">flax.training</span> <span class="kn">import</span> <span class="n">checkpoints</span><span class="p">,</span> <span class="n">orbax_utils</span><span class="p">,</span> <span class="n">train_state</span>
+<span class="kn">from</span> <span class="nn">flax.training.early_stopping</span> <span class="kn">import</span> <span class="n">EarlyStopping</span>
 <span class="kn">from</span> <span class="nn">pytorch_lightning.loggers</span> <span class="kn">import</span> <span class="n">TensorBoardLogger</span><span class="p">,</span> <span class="n">WandbLogger</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">import</span> <span class="nn">jaxili</span>
-<span class="kn">from</span> <span class="nn">jaxili.inventory.func_dict</span> <span class="kn">import</span> <span class="n">jax_nn_dict</span><span class="p">,</span> <span class="n">jaxili_nn_dict</span><span class="p">,</span> <span class="n">jaxili_loss_dict</span>
+<span class="kn">from</span> <span class="nn">jaxili.inventory.func_dict</span> <span class="kn">import</span> <span class="n">jax_nn_dict</span><span class="p">,</span> <span class="n">jaxili_loss_dict</span><span class="p">,</span> <span class="n">jaxili_nn_dict</span>
 <span class="kn">from</span> <span class="nn">jaxili.utils</span> <span class="kn">import</span> <span class="n">handle_non_serializable</span>
 
 
@@ -268,7 +267,8 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainState">[docs]</a>
 <span class="k">class</span> <span class="nc">TrainState</span><span class="p">(</span><span class="n">train_state</span><span class="o">.</span><span class="n">TrainState</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A simple extension of TrainState to also include batch statistics</span>
+<span class="sd">    A simple extension of TrainState to also include batch statistics.</span>
+
 <span class="sd">    If a model has no batch statistics, it is None.</span>
 <span class="sd">    Keep an rng state for dropout or init.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -281,6 +281,11 @@
 <div class="viewcode-block" id="TrainerModule">
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule">[docs]</a>
 <span class="k">class</span> <span class="nc">TrainerModule</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A module to perform the training of Normalizing Flows.</span>
+
+<span class="sd">    This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -298,22 +303,30 @@
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A basic Trainer module summarizing most training functionalities</span>
-<span class="sd">        like logging, model initialization, training loop, etc...</span>
+<span class="sd">        Initialize a basic Trainer module summarizing most training functionalities like logging, model initialization, training loop, etc...</span>
 
-<span class="sd">        Atributes</span>
-<span class="sd">        ---------</span>
-<span class="sd">        model_class : The class of the model that should be trained.</span>
-<span class="sd">        model_hparams : A dictionnary of the hyperparameters of the model.</span>
-<span class="sd">        Is used as input to the model when it is created.</span>
-<span class="sd">        optimizer_hparams : A dictionnary of the hyperparameters of the optimizer.</span>
-<span class="sd">        Used during initialization of the optimizer.</span>
-<span class="sd">        exmp_input : Input to the model for initialisation and tabulate.</span>
-<span class="sd">        seed : Seed to initialise PRNG.</span>
-<span class="sd">        logger_params : A dictionary containing the specifications of the logger.</span>
-<span class="sd">        enable_progress_bar : Whether to enable the progress bar.</span>
-<span class="sd">        debug : If True, no jitting is applied. Can be helpful for debugging.</span>
-<span class="sd">        check_val_every_epoch : How often to check the validation set.</span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_class : jaxili.model.NDENetwork</span>
+<span class="sd">            The class of the model that should be trained.</span>
+<span class="sd">        model_hparams : Dict[str, Any]</span>
+<span class="sd">            A dictionnary of the hyperparameters of the model. Is used as input to the model when it is created.</span>
+<span class="sd">        optimizer_hparams : Dict[str, Any]</span>
+<span class="sd">            A dictionnary of the hyperparameters of the optimizer. Used during initialization of the optimizer.</span>
+<span class="sd">        exmp_input : Any</span>
+<span class="sd">            Input to the model for initialisation and tabulate.</span>
+<span class="sd">        seed : int</span>
+<span class="sd">            Seed to initialise PRNG.</span>
+<span class="sd">        logger_params : Dict[str, Any]</span>
+<span class="sd">            A dictionary containing the specifications of the logger.</span>
+<span class="sd">        enable_progress_bar : bool</span>
+<span class="sd">            Whether to enable the progress bar. Default is True.</span>
+<span class="sd">        debug : bool</span>
+<span class="sd">            If True, no jitting is applied. Can be helpful for debugging. Default is False.</span>
+<span class="sd">        check_val_every_epoch : int</span>
+<span class="sd">            How often to check the validation set. Default is 1.</span>
+<span class="sd">        nde_class : str</span>
+<span class="sd">            The class of the Neural Density Estimator. Default is &quot;NPE&quot;. Only &quot;NPE&quot; and &quot;NLE&quot; are allowed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span> <span class="o">=</span> <span class="n">model_class</span>
@@ -357,9 +370,9 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        logger_params : A dictionary containing the specifications of the logger.</span>
+<span class="sd">        logger_params : Dict[str, Any]</span>
+<span class="sd">            A dictionary containing the specifications of the logger.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">logger_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="c1"># Determine logging directory</span>
@@ -397,11 +410,12 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.init_model">[docs]</a>
     <span class="k">def</span> <span class="nf">init_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exmp_input</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates an initial training state with newly generated network parameters</span>
+<span class="sd">        Create an initial training state with newly generated network parameters.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        exmp_input : An input to the model with which the shapes are inferred.</span>
+<span class="sd">        exmp_input : Any</span>
+<span class="sd">            An input to the model with which the shapes are inferred.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Prepare PRNG and input</span>
         <span class="n">init_rng</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_rng</span><span class="p">)</span>
@@ -426,18 +440,14 @@
 <div class="viewcode-block" id="TrainerModule.init_apply_fn">
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.init_apply_fn">[docs]</a>
     <span class="k">def</span> <span class="nf">init_apply_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a default apply function for the model.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a default apply function for the model.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">apply_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">log_prob</span></div>
 
 
 <div class="viewcode-block" id="TrainerModule.generate_config">
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.generate_config">[docs]</a>
     <span class="k">def</span> <span class="nf">generate_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger_params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generates a configuration dictionary for the trainer.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a configuration dictionary for the trainer.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;model_class&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_class</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
             <span class="s2">&quot;model_hparams&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_hparams</span><span class="p">),</span>
@@ -460,12 +470,14 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.run_model_init">[docs]</a>
     <span class="k">def</span> <span class="nf">run_model_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exmp_input</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">init_rng</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The model initialization call</span>
+<span class="sd">        Initialize the model by calling it on the example input.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        exmp_input : An input to the model with which the shapes are inferred.</span>
-<span class="sd">        init_rng : A jax.random.PRNGKey</span>
+<span class="sd">        exmp_input : Dict[str, Any]</span>
+<span class="sd">            An input to the model with which the shapes are inferred.</span>
+<span class="sd">        init_rng : Array</span>
+<span class="sd">            A jax.random.PRNGKey</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -478,11 +490,12 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.print_tabulate">[docs]</a>
     <span class="k">def</span> <span class="nf">print_tabulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exmp_input</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Prints a summary of the model represented as a table.</span>
+<span class="sd">        Print a summary of the model represented as a table.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        exmp_input : An input to the model with which the shapes are inferred.</span>
+<span class="sd">        exmp_input : Any</span>
+<span class="sd">            An input to the model with which the shapes are inferred.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tabulate</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">*</span><span class="n">exmp_input</span><span class="p">))</span>
@@ -494,14 +507,15 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.init_optimizer">[docs]</a>
     <span class="k">def</span> <span class="nf">init_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_steps_per_epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes the optimizer and learning rate scheduler.</span>
+<span class="sd">        Initialize the optimizer and learning rate scheduler.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        num_epochs : Number of epochs to train.</span>
-<span class="sd">        num_steps_per_epoch : Number of steps per epoch.</span>
+<span class="sd">        num_epochs : int</span>
+<span class="sd">            Number of epochs to train.</span>
+<span class="sd">        num_steps_per_epoch : int</span>
+<span class="sd">            Number of steps per epoch.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">hparams</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer_hparams</span><span class="p">)</span>
 
         <span class="c1"># Initialize optimizer</span>
@@ -517,10 +531,14 @@
         <span class="c1"># Initialize learning rate scheduler</span>
         <span class="c1"># A cosine decay scheduler is used, but others are also possible</span>
         <span class="n">lr</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span>
-        <span class="n">warmup</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;warmup&quot;</span><span class="p">,</span> <span class="n">num_steps_per_epoch</span><span class="p">)</span> <span class="c1">#By default linear warmup during the first epoch</span>
-        <span class="n">decay_steps</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;decay_steps&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_epochs</span><span class="o">//</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_steps_per_epoch</span><span class="p">))</span>
+        <span class="n">warmup</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s2">&quot;warmup&quot;</span><span class="p">,</span> <span class="n">num_steps_per_epoch</span>
+        <span class="p">)</span>  <span class="c1"># By default linear warmup during the first epoch</span>
+        <span class="n">decay_steps</span> <span class="o">=</span> <span class="n">hparams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s2">&quot;decay_steps&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_epochs</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">num_steps_per_epoch</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">lr_schedule</span> <span class="o">=</span> <span class="n">optax</span><span class="o">.</span><span class="n">warmup_cosine_decay_schedule</span><span class="p">(</span>
-            <span class="n">init_value</span><span class="o">=</span><span class="mf">0.01</span><span class="o">*</span><span class="n">lr</span><span class="p">,</span>
+            <span class="n">init_value</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">lr</span><span class="p">,</span>
             <span class="n">peak_value</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
             <span class="n">warmup_steps</span><span class="o">=</span><span class="n">warmup</span><span class="p">,</span>
             <span class="n">decay_steps</span><span class="o">=</span><span class="n">decay_steps</span><span class="p">,</span>
@@ -548,10 +566,10 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.create_jitted_functions">[docs]</a>
     <span class="k">def</span> <span class="nf">create_jitted_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates jitted versions of the training, validation and evaluation functions.</span>
+<span class="sd">        Create jitted versions of the training, validation and evaluation functions.</span>
+
 <span class="sd">        If self.debug is True, no jitting is applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">train_step</span><span class="p">,</span> <span class="n">eval_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_functions</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>  <span class="c1"># Skip jitting</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping jitting due to debug=True&quot;</span><span class="p">)</span>
@@ -571,12 +589,10 @@
         <span class="n">Callable</span><span class="p">[[</span><span class="n">TrainState</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">TrainState</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]],</span>
     <span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates and returns functions for the training and evaluation step.</span>
+<span class="sd">        Create and returns functions for the training and evaluation step.</span>
+
 <span class="sd">        The functions take as input the training state and a batch from the train/val/test loader.</span>
-<span class="sd">        Both functions are expected to return a dictionary of logging metrics,</span>
-<span class="sd">        and the training function a new train state. This function needs to be</span>
-<span class="sd">        overwritten by a subclass. The train_step and eval_step functions</span>
-<span class="sd">        here are examples for the signature of the functions.</span>
+<span class="sd">        Both functions are expected to return a dictionary of logging metrics, and the training function a new train state. This function can be overwritten by a subclass. The train_step and eval_step functions here are examples for the signature of the functions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">train_step</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">TrainState</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
@@ -606,23 +622,28 @@
         <span class="n">patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Starts a training loop for the given number of epochs.</span>
+<span class="sd">        Start a training loop for the given number of epochs.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        train_loader : An iterator over the training data.</span>
-<span class="sd">        val_loader : An iterator over the validation data.</span>
-<span class="sd">        test_loader : If given, best model will be evaluated on the test set.</span>
-<span class="sd">        num_epochs : Number of epochs for which to train the model.</span>
-<span class="sd">        min_delta : Minimum change in the monitored metric to qualify as an improvement.</span>
-<span class="sd">        patience : Number of epochs with no improvement after which training will be stopped.</span>
+<span class="sd">        train_loader : Iterator</span>
+<span class="sd">            An iterator over the training data.</span>
+<span class="sd">        val_loader : Iterator</span>
+<span class="sd">            An iterator over the validation data.</span>
+<span class="sd">        test_loader : Iterator</span>
+<span class="sd">            If given, best model will be evaluated on the test set.</span>
+<span class="sd">        num_epochs : int</span>
+<span class="sd">            Number of epochs for which to train the model.</span>
+<span class="sd">        min_delta : float</span>
+<span class="sd">            Minimum change in the monitored metric to qualify as an improvement.</span>
+<span class="sd">        patience : int</span>
+<span class="sd">            Number of epochs with no improvement after which training will be stopped. Default is 20.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        A dictionary of the train, validation and evt. test metrics for</span>
-<span class="sd">        the best model on the validation set.</span>
+<span class="sd">        Dict[str, Any]</span>
+<span class="sd">            A dictionary of the train, validation and evt. test metrics for the best model on the validation set.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># Create optimizer and the scheduler for the given numer of epochs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_optimizer</span><span class="p">(</span><span class="n">num_epochs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_loader</span><span class="p">))</span>
         <span class="c1"># Prepare training loop</span>
@@ -679,17 +700,18 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.train_epoch">[docs]</a>
     <span class="k">def</span> <span class="nf">train_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_loader</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Trains the model for one epoch</span>
+<span class="sd">        Train the model for one epoch.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        train_loader : An iterator over the training data.</span>
+<span class="sd">        train_loader : Iterator</span>
+<span class="sd">            An iterator over the training data.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        A dictionary of the average training metrics over all batches for logging</span>
+<span class="sd">        Dict[str, Any]</span>
+<span class="sd">            A dictionary of the average training metrics over all batches for logging</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># Train model for one epoch, and log avg loss and accuracy</span>
         <span class="n">metrics</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">num_train_steps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
@@ -709,18 +731,20 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">data_loader</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">log_prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Evaluates the model on a dataset.</span>
+<span class="sd">        Evaluate the model on a dataset.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        data_loader : An iterator over the data.</span>
-<span class="sd">        log_prefix : A prefix to add to all metrics.</span>
+<span class="sd">        data_loader : Iterator</span>
+<span class="sd">            An iterator over the data.</span>
+<span class="sd">        log_prefix : str</span>
+<span class="sd">            A prefix to add to all metrics.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        A dictionary of the evaluation metrics, averaged over data points in the dataset</span>
+<span class="sd">        Dict[str, Any]</span>
+<span class="sd">            A dictionary of the evaluation metrics, averaged over data points in the dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># Test model on all element of the dataloader and return avg loss</span>
         <span class="n">metrics</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">num_elements</span> <span class="o">=</span> <span class="mi">0</span>
@@ -746,19 +770,20 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">new_metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">old_metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compares two sets of evaluation metrics to decide whether the new</span>
-<span class="sd">        model is better than the previous ones or not.</span>
+<span class="sd">        Compare two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        new_metrics : A dictionary of the evaluation metrics of the new model</span>
-<span class="sd">        old_metrics : A dictionary of the evaluation metrics of the previously best model.</span>
+<span class="sd">        new_metrics : Iterator</span>
+<span class="sd">            A dictionary of the evaluation metrics of the new model</span>
+<span class="sd">        old_metrics : Iterator</span>
+<span class="sd">            A dictionary of the evaluation metrics of the previously best model.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        True if the new model is better, False otherwise.</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the new model is better, False otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">old_metrics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">is_larger</span> <span class="ow">in</span> <span class="p">[</span>
@@ -778,19 +803,20 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.tracker">[docs]</a>
     <span class="k">def</span> <span class="nf">tracker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterator</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Wraps an iterator in a progress bar track (tqdm) if the progress</span>
-<span class="sd">        bat is enabled.</span>
+<span class="sd">        Wrap an iterator in a progress bar track (tqdm) if the progress bar is enabled.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        iterator : iterator to wrap in tqdm</span>
-<span class="sd">        kwargs : additional arguments to tqdm</span>
+<span class="sd">        iterator : Iterator</span>
+<span class="sd">            Iterator to wrap in tqdm.</span>
+<span class="sd">        kwargs : Any</span>
+<span class="sd">            additional arguments to tqdm.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Wrapped iterator if progress bar is enabled, otherwise same iterator than input</span>
+<span class="sd">        Iterator</span>
+<span class="sd">            Wrapped iterator if progress bar is enabled, otherwise same iterator than input.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_progress_bar</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -801,13 +827,16 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.save_metrics">[docs]</a>
     <span class="k">def</span> <span class="nf">save_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Saves a dictionary of metrics to file. Can be used as a textual</span>
-<span class="sd">        representation of the validation performance for checking in the terminal</span>
+<span class="sd">        Save a dictionary of metrics to file.</span>
+<span class="sd">         </span>
+<span class="sd">        This can be used as a textual representation of the validation performance for checking in the terminal.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        filename : Name of the metrics file without folders and postfix</span>
-<span class="sd">        metrics : A dictionary of the metrics to save</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Name of the metrics file without folders and postfix</span>
+<span class="sd">        metrics : Dict[str, Any]</span>
+<span class="sd">            A dictionary of the metrics to save</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;metrics/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
@@ -817,8 +846,9 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.on_training_start">[docs]</a>
     <span class="k">def</span> <span class="nf">on_training_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Method called before training is started. Can be used for</span>
-<span class="sd">        additional initialization operations etc.</span>
+<span class="sd">        Perform any necessary operations before the training starts.</span>
+
+<span class="sd">        Method called before training is started. Can be used for additional initialization operations etc.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -827,12 +857,14 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.on_training_epoch_end">[docs]</a>
     <span class="k">def</span> <span class="nf">on_training_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Method called at the end of each training epoch. Can be used for</span>
-<span class="sd">        additional logging or similar.</span>
+<span class="sd">        Perform any necessary operations at the end of each training epoch.</span>
+
+<span class="sd">        Method called at the end of each training epoch. Can be used for additional logging or similar.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        epoch_idx : Index of the epoch that just finished.</span>
+<span class="sd">        epoch_idx : int</span>
+<span class="sd">            Index of the epoch that just finished.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -843,14 +875,18 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">epoch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">eval_metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">val_loader</span><span class="p">:</span> <span class="n">Iterator</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Method called at the end of each validation epoch. Can be used for</span>
-<span class="sd">        additional logging and evaluation.</span>
+<span class="sd">        Perform any necessary operations at the end of each validation epoch.</span>
+
+<span class="sd">        Method called at the end of each validation epoch. Can be used for additional logging and evaluation.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        epoch_idx : Index of the epoch that just finished.</span>
-<span class="sd">        eval_metrics : A dictionary of the evaluation metrics.</span>
-<span class="sd">        val_loader : DataLoader of the validation set to support additional evaluation.</span>
+<span class="sd">        epoch_idx : int</span>
+<span class="sd">            Index of the epoch that just finished.</span>
+<span class="sd">        eval_metrics : Dict[str, Any]</span>
+<span class="sd">            A dictionary of the evaluation metrics.</span>
+<span class="sd">        val_loader : Iterator</span>
+<span class="sd">            DataLoader of the validation set to support additional evaluation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -859,14 +895,14 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.save_model">[docs]</a>
     <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Saves current training state at certain training iteration. Only the model</span>
-<span class="sd">        parameters and batch statistics are saved to reduce memory footprint.</span>
-<span class="sd">        To support the training to be continued from a checkpoint, this method</span>
-<span class="sd">        can be extended to include the optimizer state as well.</span>
+<span class="sd">        Save current training state at certain training iteration.</span>
+<span class="sd">        </span>
+<span class="sd">        Only the model parameters and batch statistics are saved to reduce memory footprint. To allow the training to be continued from a checkpoint, this method can be extended to include the optimizer state as well.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        step : Index of the step to save the model at, e.g. epoch</span>
+<span class="sd">        step : int</span>
+<span class="sd">            Index of the step to save the model at, e.g. epoch.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">target</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;batch_stats&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">batch_stats</span><span class="p">}</span>
         <span class="n">save_args</span> <span class="o">=</span> <span class="n">orbax_utils</span><span class="o">.</span><span class="n">save_args_from_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
@@ -876,9 +912,7 @@
 <div class="viewcode-block" id="TrainerModule.load_model">
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.load_model">[docs]</a>
     <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Loads model and batch statistics from the logging directory</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load model and batch statistics from the logging directory.&quot;&quot;&quot;</span>
         <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_manager</span><span class="o">.</span><span class="n">latest_step</span><span class="p">()</span>
         <span class="n">state_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_manager</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">TrainState</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
@@ -894,7 +928,7 @@
 <a class="viewcode-back" href="../../jaxili.train.html#jaxili.train.TrainerModule.bind_model">[docs]</a>
     <span class="k">def</span> <span class="nf">bind_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a model with parameters bound to it. Enables an easier inference access.</span>
+<span class="sd">        Return a model with parameters bound to it. Enables an easier inference access.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -913,19 +947,21 @@
         <span class="bp">cls</span><span class="p">,</span> <span class="n">model_class</span><span class="p">:</span> <span class="n">jaxili</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">NDENetwork</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exmp_input</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates a Trainer object with same hyperparameters and loaded model from</span>
-<span class="sd">        a checkpoint directory.</span>
+<span class="sd">        Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        checkpoint : Folder in which the checkpoint and hyperparameter file is stored</span>
-<span class="sd">        exmp_input : An input to the model with which the shapes are inferred.</span>
+<span class="sd">        model_class : jaxili.model.NDENetwork</span>
+<span class="sd">            The class of the model that should be loaded.</span>
+<span class="sd">        checkpoint : str</span>
+<span class="sd">            Folder in which the checkpoint and hyperparameter file is stored</span>
+<span class="sd">        exmp_input : Any</span>
+<span class="sd">            An input to the model with which the shapes are inferred.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        A Trainer object with model loaded from the checkpoint folder.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">hparams_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="s2">&quot;hparams.json&quot;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">hparams_file</span><span class="p">),</span> <span class="s2">&quot;Could not find hparams file.&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">hparams_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>

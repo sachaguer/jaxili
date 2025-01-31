@@ -1,3 +1,9 @@
+"""
+Base Posterior.
+
+This module contains the base class for Neural Posteriors. Classes used to sample in NPE and NLE will inherit from this class.
+"""
+
 from abc import abstractmethod
 from typing import Any, Dict, Optional
 
@@ -10,6 +16,7 @@ from jaxili.train import TrainState
 class NeuralPosterior:
     r"""
     Posterior $p(\theta|x)$ with `log_prob()` and `sample()` methods.
+
     The class wraps the trained neural network such that one can directly evaluate the log-probability and sample from the posterior.
     """
 
@@ -21,6 +28,8 @@ class NeuralPosterior:
         x: Optional[Array] = None,
     ):
         """
+        Initialize the Neural Posterior.
+
         Parameters
         ----------
         model : NDENetwork
@@ -44,9 +53,7 @@ class NeuralPosterior:
         mcmc_method: Optional[str] = None,
         mcmc_kwargs: Optional[Dict[str, Any]] = None,
     ):
-        """
-        See docstrings of the child classes for more details.
-        """
+        """Define abstract method to sample from the posterior. The sampling method depends on the methodology used."""
         pass
 
     @abstractmethod
@@ -54,13 +61,9 @@ class NeuralPosterior:
         self,
         theta: Array,
     ):
-        """
-        See docstrings of the child classes for more details.
-        """
+        """Define abstract method to compute the unnormalized log-probability of a given parameter."""
         pass
 
     def set_default_x(self, x: Array):
-        """
-        Set the default data for the posterior.
-        """
+        """Set the default data for the posterior."""
         self.x = x

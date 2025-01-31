@@ -304,16 +304,41 @@
                   
   <section id="module-jaxili.inference.npe">
 <span id="jaxili-inference-npe-module"></span><h1>jaxili.inference.npe module<a class="headerlink" href="#module-jaxili.inference.npe" title="Link to this heading">#</a></h1>
+<p>NPE.</p>
+<p>This module provides the Neural Posterior Estimation (NPE) class to train a neural density estimator to perform NPE.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="jaxili.inference.npe.NDEDataset">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxili.inference.npe.</span></span><span class="sig-name descname"><span class="pre">NDEDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/inference/npe.html#NDEDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.inference.npe.NDEDataset" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<p>Dataset class for Neural Density Estimation. It stores the parameters and simulation outputs.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">jaxili.inference</span> <span class="kn">import</span> <span class="n">NDEDataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">NDEDataset</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="c1">#returns the length of the dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1">#returns the first element of the dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span><span class="o">.</span><span class="n">theta</span> <span class="c1">#returns the parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span><span class="o">.</span><span class="n">x</span> <span class="c1">#returns the simulation outputs</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="jaxili.inference.npe.NPE">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxili.inference.npe.</span></span><span class="sig-name descname"><span class="pre">NPE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">model_class:</span> <span class="pre">~jaxili.model.NDENetwork</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'jaxili.model.ConditionalMAF'&gt;,</span> <span class="pre">logging_level:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'WARNING',</span> <span class="pre">verbose:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">model_hparams:</span> <span class="pre">~typing.Dict[str,</span> <span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">{'activation':</span> <span class="pre">&lt;jax._src.custom_derivatives.custom_jvp</span> <span class="pre">object&gt;,</span> <span class="pre">'layers':</span> <span class="pre">[50,</span> <span class="pre">50],</span> <span class="pre">'n_layers':</span> <span class="pre">5,</span> <span class="pre">'seed':</span> <span class="pre">42,</span> <span class="pre">'use_reverse':</span> <span class="pre">True},</span> <span class="pre">loss_fn:</span> <span class="pre">~typing.Callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">loss_nll_npe&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/inference/npe.html#NPE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.inference.npe.NPE" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>NPE.</p>
+<p>Base class for Neural Posterior Estimation (NPE) methods.
+Default configuration used a <cite>ConditionalMAF</cite> to learn the posterior function.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">jaxili.inference</span> <span class="kn">import</span> <span class="n">NPE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inference</span> <span class="o">=</span> <span class="n">NPE</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theta</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># Load parameters and simulation outputs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inference</span><span class="o">.</span><span class="n">append_simulations</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="c1">#Push your simulations in the trainer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inference</span><span class="o">.</span><span class="n">train</span><span class="p">()</span> <span class="c1">#Train your density estimator</span>
+</pre></div>
+</div>
 <p class="rubric">Methods</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
@@ -321,16 +346,16 @@
 <td><p>Store parameters and simulation outputs to use them for later training.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#jaxili.inference.npe.NPE.build_posterior" title="jaxili.inference.npe.NPE.build_posterior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_posterior</span></code></a>([verbose, x])</p></td>
-<td><p>Builds the posterior distribution $p(theta|x)$ using the trained density estimator.</p></td>
+<td><p>Build the posterior distribution $p(theta|x)$ using the trained density estimator.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#jaxili.inference.npe.NPE.create_trainer" title="jaxili.inference.npe.NPE.create_trainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_trainer</span></code></a>(optimizer_hparams[, seed, ...])</p></td>
 <td><p>Create a TrainerModule for the density estimator.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#jaxili.inference.npe.NPE.set_dataloader" title="jaxili.inference.npe.NPE.set_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_dataloader</span></code></a>(dataloader, type)</p></td>
-<td><p>Sets the dataloader to use for training, validation or testing.</p></td>
+<td><p>Set the dataloader to use for training, validation or testing.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#jaxili.inference.npe.NPE.set_dataset" title="jaxili.inference.npe.NPE.set_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_dataset</span></code></a>(dataset, type)</p></td>
-<td><p>Sets the dataset to use for training, validation or testing.</p></td>
+<td><p>Set the dataset to use for training, validation or testing.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#jaxili.inference.npe.NPE.set_loss_fn" title="jaxili.inference.npe.NPE.set_loss_fn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_loss_fn</span></code></a>(loss_fn)</p></td>
 <td><p>Set the loss function to use for training.</p></td>
@@ -349,12 +374,22 @@
 <span class="sig-name descname"><span class="pre">append_simulations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_test_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">0.2,</span> <span class="pre">0.1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PyTree</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/inference/npe.html#NPE.append_simulations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.inference.npe.NPE.append_simulations" title="Link to this definition">#</a></dt>
 <dd><p>Store parameters and simulation outputs to use them for later training.</p>
 <p>Data is stored in a Dataset object from <cite>jax-dataloader</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>Array</em>) – Parameters of the simulations.</p></li>
+<li><p><strong>x</strong> (<em>Array</em>) – Simulation outputs.</p></li>
+<li><p><strong>train_test_split</strong> (<em>Iterable</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – Fractions to split the dataset into training, validation and test sets.
+Should be of length 2 or 3. A length 2 list will not generate a test set. Default is [0.7, 0.2, 0.1].</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxili.inference.npe.NPE.build_posterior">
 <span class="sig-name descname"><span class="pre">build_posterior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/inference/npe.html#NPE.build_posterior"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.inference.npe.NPE.build_posterior" title="Link to this definition">#</a></dt>
-<dd><p>Builds the posterior distribution $p(theta|x)$ using the trained density estimator.</p>
+<dd><p>Build the posterior distribution $p(theta|x)$ using the trained density estimator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>x</strong> (<em>Array</em><em>, </em><em>optional</em>) – The data used to condition the posterior. Default is None.</p>
@@ -390,7 +425,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxili.inference.npe.NPE.set_dataloader">
 <span class="sig-name descname"><span class="pre">set_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/inference/npe.html#NPE.set_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.inference.npe.NPE.set_dataloader" title="Link to this definition">#</a></dt>
-<dd><p>Sets the dataloader to use for training, validation or testing.</p>
+<dd><p>Set the dataloader to use for training, validation or testing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -404,7 +439,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxili.inference.npe.NPE.set_dataset">
 <span class="sig-name descname"><span class="pre">set_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/jaxili/inference/npe.html#NPE.set_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxili.inference.npe.NPE.set_dataset" title="Link to this definition">#</a></dt>
-<dd><p>Sets the dataset to use for training, validation or testing.</p>
+<dd><p>Set the dataset to use for training, validation or testing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -449,11 +484,14 @@
 <li><p><strong>patience</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of epochs to wait before early stopping. Default is 20.</p></li>
 <li><p><strong>num_epochs</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of epochs to train. Default is 2**31 - 1.</p></li>
 <li><p><strong>check_val_every_epoch</strong> (<em>int</em><em>, </em><em>optional</em>) – Frequency at which to check the validation loss. Default is 1.</p></li>
-<li><p><strong>Returns</strong></p></li>
-<li><p><strong>--------</strong></p></li>
-<li><p><strong>metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Dictionary containing the training, validation and test losses.</p></li>
-<li><p><strong>density_estimator</strong> – The trained density estimator.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>metrics</strong> (<em>Dict[str, float]</em>) – Dictionary containing the training, validation and test losses.</p></li>
+<li><p><strong>density_estimator</strong> (<em>nn.Module</em>) – The trained density estimator.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>

@@ -1,3 +1,9 @@
+"""
+Direct Posterior.
+
+This module contains the Direct Posterior class. It is used when doing neural posterior estimation where the neural network is trained to approximate the posterior directly.
+"""
+
 from typing import Optional
 
 import jax.numpy as jnp
@@ -11,6 +17,7 @@ from jaxili.train import TrainState
 class DirectPosterior(NeuralPosterior):
     r"""
     Posterior $p(\theta|x)$ with `log_prob()` and `sample()` methods.
+
     The class wraps the trained neural network using Neural Posterior Estimation (NPE).
     """
 
@@ -22,6 +29,8 @@ class DirectPosterior(NeuralPosterior):
         x: Optional[Array] = None,
     ):
         """
+        Initialize the Neural Posterior.
+
         Parameters
         ----------
         model : NDENetwork

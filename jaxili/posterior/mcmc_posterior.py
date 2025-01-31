@@ -1,3 +1,9 @@
+"""
+MCMC Posterior.
+
+This module contains the MCMCPosterior class that wraps the NeuralPosterior class to perform MCMC sampling.
+"""
+
 from typing import Any, Callable, Optional
 
 import jax
@@ -25,6 +31,7 @@ mala_flowmc_kwargs_default = {}
 class MCMCPosterior(NeuralPosterior):
     r"""
     Likelihood $p(x|\theta)$ with `log_prob()` and `sample()` methods.
+
     The class wraps the trained neural network using Neural Likelihood Estimation (NLE).
     Sampling is performed using Markov Chain Monte Carlo (MCMC) methods to get samples from the posterior.
     """
@@ -40,6 +47,8 @@ class MCMCPosterior(NeuralPosterior):
         mcmc_kwargs: Optional[dict] = nuts_numpyro_kwargs_default,
     ):
         """
+        Initialize the MCMC Posterior.
+
         Parameters
         ----------
         model : NDENetwork
@@ -77,6 +86,11 @@ class MCMCPosterior(NeuralPosterior):
             The number of samples to draw.
         key : Array
             The random key used to generate the samples.
+
+        Returns
+        -------
+        Array
+            The samples from the posterior.
         """
         if x is None:
             try:
@@ -114,7 +128,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        log_prior : Array
+        Array
             The log prior of the parameters.
         """
         log_prior = self.prior_distr.log_prob(theta)
@@ -135,7 +149,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        log_prob : Array
+        Array
             The unnormalized log probability.
         """
         params = self.state.params
@@ -157,7 +171,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        log_prob : Array
+        Array
             The unnormalized log probability.
         """
         return self.log_prior(theta) + self.log_likelihood(x, theta)
@@ -173,7 +187,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        model : Callable
+        Callable
             The model function.
         """
 
@@ -211,10 +225,9 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        samples : Array
+        Array
             The samples from the posterior.
         """
-
         model = self._build_model_numpyro(x)
         adapt_step_size = mcmc_kwargs.get("adapt_step_size", True)
         init_values = initial_state
@@ -263,7 +276,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        samples : Array
+        Array
             The samples from the posterior.
         """
         model = self._build_model_numpyro(x)
@@ -300,7 +313,8 @@ class MCMCPosterior(NeuralPosterior):
     ):
         """
         Perform MCMC sampling using the Metropolis-Adjusted Langevin Algorithm (MALA) in FlowMC.
-        Current version does not work. Will be updated in future releases.
+
+        WARNING: Current version does not work. Will be updated in future releases.
 
         Parameters
         ----------
@@ -315,7 +329,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        samples : Array
+        Array
             The samples from the posterior.
         """
         num_samples = mcmc_kwargs.get("num_samples", 2000)
@@ -380,7 +394,7 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        initial_state : Array
+        Array
             The initial state of the MCMC sampler.
         """
         initial_state = []
@@ -419,9 +433,9 @@ class MCMCPosterior(NeuralPosterior):
 
         Returns
         -------
-        proposal_samples : Array
+        Array
             The proposal samples.
-        key : Array
+        Array
             The modified random key used to generate the samples.
         """
         log_weights = []
@@ -457,21 +471,15 @@ class MCMCPosterior(NeuralPosterior):
         return proposal_samples, key
 
     def set_default_x(self, x: Array):
-        """
-        Set the default data for the posterior.
-        """
+        """Set the default data for the posterior."""
         self.x = x
 
     def set_prior(self, prior_distr: dist.Distribution):
-        """
-        Set the prior distribution for the parameters.
-        """
+        """Set the prior distribution for the parameters."""
         self.prior_distr = prior_distr
 
     def set_mcmc_method(self, mcmc_method: str):
-        """
-        Set the MCMC method to use.
-        """
+        """Set the MCMC method to use."""
         if mcmc_method not in implemented_method:
             raise NotImplementedError(
                 f"The MCMC method {mcmc_method} is not implemented. Check print_implemented_methods()."
@@ -479,13 +487,9 @@ class MCMCPosterior(NeuralPosterior):
         self.mcmc_method = mcmc_method
 
     def set_mcmc_kwargs(self, mcmc_kwargs: dict):
-        """
-        Set the keyword arguments for the MCMC method.
-        """
+        """Set the keyword arguments for the MCMC method."""
         self.mcmc_kwargs = mcmc_kwargs
 
     def print_implemented_methods(self):
-        """
-        Print the implemented MCMC methods.
-        """
+        """Print the implemented MCMC methods."""
         print(f"Implemented MCMC methods: {implemented_method}")
