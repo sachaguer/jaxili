@@ -1,7 +1,24 @@
 name: jaxili
 dependencies:
-  - python=3.12
+  - python=3.10
   - pip
   - pip:
-    - jaxili
+    - jupyter
+    - matplotlib
+    - numpy
+    - numpydoc
+    - jax
+    - cmake
+    - tensorflow
+    - tensorflow_probability
+    - optax
+    - flax
+    - sbibm
+    - torch
+    - pytorch-lightning
+    - optuna
+    - chainconsumer==0.34.0
+    - flowMC
+    - emcee==3.1.4
+    - jax_cosmo
 

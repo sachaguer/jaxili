@@ -1,0 +1,22 @@
+{
+    "model_class": "ConditionalRealNVP",
+    "model_hparams": {
+        "n_in": 2,
+        "n_layers": 8,
+        "layers": [
+            128,
+            128
+        ],
+        "activation": "silu"
+    },
+    "optimizer_hparams": {
+        "lr": 0.0005613577404957827
+    },
+    "logger_params": {
+        "base_log_dir": "/local/home/sg276684/Documents/SBI/sbi_jax/notebooks/checkpoints_tuto/optuna"
+    },
+    "enable_progress_bar": false,
+    "debug": false,
+    "check_val_every_epoch": 5,
+    "seed": 42
+}
