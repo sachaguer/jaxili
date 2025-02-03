@@ -1,0 +1,861 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>train module &#8212; JaxILI 0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=e1a75a79"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'train';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">JaxILI 0.1 documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/train.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>train module</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState"><code class="docutils literal notranslate"><span class="pre">TrainState</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState.batch_stats"><code class="docutils literal notranslate"><span class="pre">TrainState.batch_stats</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState.replace"><code class="docutils literal notranslate"><span class="pre">TrainState.replace()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState.rng"><code class="docutils literal notranslate"><span class="pre">TrainState.rng</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule"><code class="docutils literal notranslate"><span class="pre">TrainerModule</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.bind_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.bind_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.create_functions"><code class="docutils literal notranslate"><span class="pre">TrainerModule.create_functions()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.create_jitted_functions"><code class="docutils literal notranslate"><span class="pre">TrainerModule.create_jitted_functions()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.eval_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.eval_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.generate_config"><code class="docutils literal notranslate"><span class="pre">TrainerModule.generate_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_apply_fn"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_apply_fn()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_logger"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_logger()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_optimizer"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_optimizer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.is_new_model_better"><code class="docutils literal notranslate"><span class="pre">TrainerModule.is_new_model_better()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.load_from_checkpoints"><code class="docutils literal notranslate"><span class="pre">TrainerModule.load_from_checkpoints()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.load_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.load_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.on_training_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_training_epoch_end()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.on_training_start"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_training_start()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.on_validation_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_validation_epoch_end()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.print_tabulate"><code class="docutils literal notranslate"><span class="pre">TrainerModule.print_tabulate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.run_model_init"><code class="docutils literal notranslate"><span class="pre">TrainerModule.run_model_init()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.save_metrics"><code class="docutils literal notranslate"><span class="pre">TrainerModule.save_metrics()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.save_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.save_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.tracker"><code class="docutils literal notranslate"><span class="pre">TrainerModule.tracker()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.train_epoch"><code class="docutils literal notranslate"><span class="pre">TrainerModule.train_epoch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.train_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.train_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-train">
+<span id="train-module"></span><h1>train module<a class="headerlink" href="#module-train" title="Link to this heading">#</a></h1>
+<p>Train.</p>
+<p>This module implements an object to perform the training of Normalizing Flows and more generally of neural networks.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="train.TrainState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">TrainState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FrozenDict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GradientTransformation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool_</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">number</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ArrayTree</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_stats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(None,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainState" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TrainState</span></code></p>
+<p>A simple extension of TrainState to also include batch statistics.</p>
+<p>If a model has no batch statistics, it is None.
+Keep an rng state for dropout or init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>rng</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_gradients</span></code>(*, grads, **kwargs)</p></td>
+<td><p>Updates <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">params</span></code>, <code class="docutils literal notranslate"><span class="pre">opt_state</span></code> and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> in return value.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create</span></code>(*, apply_fn, params, tx, **kwargs)</p></td>
+<td><p>Creates a new instance with <code class="docutils literal notranslate"><span class="pre">step=0</span></code> and initialized <code class="docutils literal notranslate"><span class="pre">opt_state</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainState.replace" title="train.TrainState.replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code></a>(**updates)</p></td>
+<td><p>Returns a new object replacing the specified fields with new values.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="train.TrainState.batch_stats">
+<span class="sig-name descname"><span class="pre">batch_stats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(None,)</span></em><a class="headerlink" href="#train.TrainState.batch_stats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainState.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">updates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#train.TrainState.replace" title="Link to this definition">#</a></dt>
+<dd><p>Returns a new object replacing the specified fields with new values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="train.TrainState.rng">
+<span class="sig-name descname"><span class="pre">rng</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#train.TrainState.rng" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="train.TrainerModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">TrainerModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork" title="jaxili.model.NDENetwork"><span class="pre">NDENetwork</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_hparams</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_progress_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_val_every_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nde_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'NPE'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A module to perform the training of Normalizing Flows.</p>
+<p>This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.</p>
+<p class="rubric">Methods</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.bind_model" title="train.TrainerModule.bind_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind_model</span></code></a>()</p></td>
+<td><p>Return a model with parameters bound to it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.create_functions" title="train.TrainerModule.create_functions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_functions</span></code></a>()</p></td>
+<td><p>Create and returns functions for the training and evaluation step.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.create_jitted_functions" title="train.TrainerModule.create_jitted_functions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_jitted_functions</span></code></a>()</p></td>
+<td><p>Create jitted versions of the training, validation and evaluation functions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.eval_model" title="train.TrainerModule.eval_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_model</span></code></a>(data_loader[, log_prefix])</p></td>
+<td><p>Evaluate the model on a dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.generate_config" title="train.TrainerModule.generate_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_config</span></code></a>(logger_params)</p></td>
+<td><p>Generate a configuration dictionary for the trainer.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.init_apply_fn" title="train.TrainerModule.init_apply_fn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_apply_fn</span></code></a>()</p></td>
+<td><p>Initialize a default apply function for the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.init_logger" title="train.TrainerModule.init_logger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_logger</span></code></a>([logger_params])</p></td>
+<td><p>Initialize the logger and created a logging directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.init_model" title="train.TrainerModule.init_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_model</span></code></a>(exmp_input)</p></td>
+<td><p>Create an initial training state with newly generated network parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.init_optimizer" title="train.TrainerModule.init_optimizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_optimizer</span></code></a>(num_epochs, num_steps_per_epoch)</p></td>
+<td><p>Initialize the optimizer and learning rate scheduler.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.is_new_model_better" title="train.TrainerModule.is_new_model_better"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_new_model_better</span></code></a>(new_metrics, old_metrics)</p></td>
+<td><p>Compare two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.load_from_checkpoints" title="train.TrainerModule.load_from_checkpoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_from_checkpoints</span></code></a>(model_class, ...)</p></td>
+<td><p>Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.load_model" title="train.TrainerModule.load_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_model</span></code></a>()</p></td>
+<td><p>Load model and batch statistics from the logging directory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.on_training_epoch_end" title="train.TrainerModule.on_training_epoch_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_training_epoch_end</span></code></a>(epoch_idx)</p></td>
+<td><p>Perform any necessary operations at the end of each training epoch.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.on_training_start" title="train.TrainerModule.on_training_start"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_training_start</span></code></a>()</p></td>
+<td><p>Perform any necessary operations before the training starts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.on_validation_epoch_end" title="train.TrainerModule.on_validation_epoch_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_validation_epoch_end</span></code></a>(epoch_idx, ...)</p></td>
+<td><p>Perform any necessary operations at the end of each validation epoch.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.print_tabulate" title="train.TrainerModule.print_tabulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_tabulate</span></code></a>(exmp_input)</p></td>
+<td><p>Print a summary of the model represented as a table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.run_model_init" title="train.TrainerModule.run_model_init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_model_init</span></code></a>(exmp_input, init_rng)</p></td>
+<td><p>Initialize the model by calling it on the example input.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.save_metrics" title="train.TrainerModule.save_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_metrics</span></code></a>(filename, metrics)</p></td>
+<td><p>Save a dictionary of metrics to file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.save_model" title="train.TrainerModule.save_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_model</span></code></a>([step])</p></td>
+<td><p>Save current training state at certain training iteration.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.tracker" title="train.TrainerModule.tracker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tracker</span></code></a>(iterator, **kwargs)</p></td>
+<td><p>Wrap an iterator in a progress bar track (tqdm) if the progress bar is enabled.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#train.TrainerModule.train_epoch" title="train.TrainerModule.train_epoch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_epoch</span></code></a>(train_loader)</p></td>
+<td><p>Train the model for one epoch.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#train.TrainerModule.train_model" title="train.TrainerModule.train_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_model</span></code></a>(train_loader, val_loader[, ...])</p></td>
+<td><p>Start a training loop for the given number of epochs.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.bind_model">
+<span class="sig-name descname"><span class="pre">bind_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.bind_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.bind_model" title="Link to this definition">#</a></dt>
+<dd><p>Return a model with parameters bound to it. Enables an easier inference access.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The model with parameters and evt. batch statistics bound to it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.create_functions">
+<span class="sig-name descname"><span class="pre">create_functions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#train.TrainState" title="train.TrainState"><span class="pre">TrainState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.create_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.create_functions" title="Link to this definition">#</a></dt>
+<dd><p>Create and returns functions for the training and evaluation step.</p>
+<p>The functions take as input the training state and a batch from the train/val/test loader.
+Both functions are expected to return a dictionary of logging metrics, and the training function a new train state. This function can be overwritten by a subclass. The train_step and eval_step functions here are examples for the signature of the functions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.create_jitted_functions">
+<span class="sig-name descname"><span class="pre">create_jitted_functions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.create_jitted_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.create_jitted_functions" title="Link to this definition">#</a></dt>
+<dd><p>Create jitted versions of the training, validation and evaluation functions.</p>
+<p>If self.debug is True, no jitting is applied.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.eval_model">
+<span class="sig-name descname"><span class="pre">eval_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.eval_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.eval_model" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate the model on a dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_loader</strong> (<em>Iterator</em>) – An iterator over the data.</p></li>
+<li><p><strong>log_prefix</strong> (<em>str</em>) – A prefix to add to all metrics.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of the evaluation metrics, averaged over data points in the dataset</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.generate_config">
+<span class="sig-name descname"><span class="pre">generate_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.generate_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.generate_config" title="Link to this definition">#</a></dt>
+<dd><p>Generate a configuration dictionary for the trainer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.init_apply_fn">
+<span class="sig-name descname"><span class="pre">init_apply_fn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.init_apply_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.init_apply_fn" title="Link to this definition">#</a></dt>
+<dd><p>Initialize a default apply function for the model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.init_logger">
+<span class="sig-name descname"><span class="pre">init_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.init_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.init_logger" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the logger and created a logging directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>logger_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – A dictionary containing the specifications of the logger.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.init_model">
+<span class="sig-name descname"><span class="pre">init_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.init_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.init_model" title="Link to this definition">#</a></dt>
+<dd><p>Create an initial training state with newly generated network parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exmp_input</strong> (<em>Any</em>) – An input to the model with which the shapes are inferred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.init_optimizer">
+<span class="sig-name descname"><span class="pre">init_optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps_per_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.init_optimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.init_optimizer" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the optimizer and learning rate scheduler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_epochs</strong> (<em>int</em>) – Number of epochs to train.</p></li>
+<li><p><strong>num_steps_per_epoch</strong> (<em>int</em>) – Number of steps per epoch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.is_new_model_better">
+<span class="sig-name descname"><span class="pre">is_new_model_better</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.is_new_model_better"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.is_new_model_better" title="Link to this definition">#</a></dt>
+<dd><p>Compare two sets of evaluation metrics to decide whether the new model is better than the previous ones or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_metrics</strong> (<em>Iterator</em>) – A dictionary of the evaluation metrics of the new model</p></li>
+<li><p><strong>old_metrics</strong> (<em>Iterator</em>) – A dictionary of the evaluation metrics of the previously best model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the new model is better, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.load_from_checkpoints">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_checkpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork" title="jaxili.model.NDENetwork"><span class="pre">NDENetwork</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.load_from_checkpoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.load_from_checkpoints" title="Link to this definition">#</a></dt>
+<dd><p>Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_class</strong> (<a class="reference internal" href="jaxili.model.html#jaxili.model.NDENetwork" title="jaxili.model.NDENetwork"><em>jaxili.model.NDENetwork</em></a>) – The class of the model that should be loaded.</p></li>
+<li><p><strong>checkpoint</strong> (<em>str</em>) – Folder in which the checkpoint and hyperparameter file is stored</p></li>
+<li><p><strong>exmp_input</strong> (<em>Any</em>) – An input to the model with which the shapes are inferred.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Trainer object with model loaded from the checkpoint folder.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.load_model" title="Link to this definition">#</a></dt>
+<dd><p>Load model and batch statistics from the logging directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.on_training_epoch_end">
+<span class="sig-name descname"><span class="pre">on_training_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.on_training_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.on_training_epoch_end" title="Link to this definition">#</a></dt>
+<dd><p>Perform any necessary operations at the end of each training epoch.</p>
+<p>Method called at the end of each training epoch. Can be used for additional logging or similar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch_idx</strong> (<em>int</em>) – Index of the epoch that just finished.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.on_training_start">
+<span class="sig-name descname"><span class="pre">on_training_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.on_training_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.on_training_start" title="Link to this definition">#</a></dt>
+<dd><p>Perform any necessary operations before the training starts.</p>
+<p>Method called before training is started. Can be used for additional initialization operations etc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.on_validation_epoch_end">
+<span class="sig-name descname"><span class="pre">on_validation_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.on_validation_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.on_validation_epoch_end" title="Link to this definition">#</a></dt>
+<dd><p>Perform any necessary operations at the end of each validation epoch.</p>
+<p>Method called at the end of each validation epoch. Can be used for additional logging and evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>epoch_idx</strong> (<em>int</em>) – Index of the epoch that just finished.</p></li>
+<li><p><strong>eval_metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – A dictionary of the evaluation metrics.</p></li>
+<li><p><strong>val_loader</strong> (<em>Iterator</em>) – DataLoader of the validation set to support additional evaluation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.print_tabulate">
+<span class="sig-name descname"><span class="pre">print_tabulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.print_tabulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.print_tabulate" title="Link to this definition">#</a></dt>
+<dd><p>Print a summary of the model represented as a table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exmp_input</strong> (<em>Any</em>) – An input to the model with which the shapes are inferred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.run_model_init">
+<span class="sig-name descname"><span class="pre">run_model_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exmp_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.run_model_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.run_model_init" title="Link to this definition">#</a></dt>
+<dd><p>Initialize the model by calling it on the example input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exmp_input</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – An input to the model with which the shapes are inferred.</p></li>
+<li><p><strong>init_rng</strong> (<em>Array</em>) – A jax.random.PRNGKey</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>The initialized variable dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.save_metrics">
+<span class="sig-name descname"><span class="pre">save_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.save_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.save_metrics" title="Link to this definition">#</a></dt>
+<dd><p>Save a dictionary of metrics to file.</p>
+<p>This can be used as a textual representation of the validation performance for checking in the terminal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the metrics file without folders and postfix</p></li>
+<li><p><strong>metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – A dictionary of the metrics to save</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#TrainerModule.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.save_model" title="Link to this definition">#</a></dt>
+<dd><p>Save current training state at certain training iteration.</p>
+<p>Only the model parameters and batch statistics are saved to reduce memory footprint. To allow the training to be continued from a checkpoint, this method can be extended to include the optimizer state as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>step</strong> (<em>int</em>) – Index of the step to save the model at, e.g. epoch.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.tracker">
+<span class="sig-name descname"><span class="pre">tracker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.tracker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.tracker" title="Link to this definition">#</a></dt>
+<dd><p>Wrap an iterator in a progress bar track (tqdm) if the progress bar is enabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iterator</strong> (<em>Iterator</em>) – Iterator to wrap in tqdm.</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – additional arguments to tqdm.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Wrapped iterator if progress bar is enabled, otherwise same iterator than input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.train_epoch">
+<span class="sig-name descname"><span class="pre">train_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.train_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.train_epoch" title="Link to this definition">#</a></dt>
+<dd><p>Train the model for one epoch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>train_loader</strong> (<em>Iterator</em>) – An iterator over the training data.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of the average training metrics over all batches for logging</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="train.TrainerModule.train_model">
+<span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patience</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/train.html#TrainerModule.train_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#train.TrainerModule.train_model" title="Link to this definition">#</a></dt>
+<dd><p>Start a training loop for the given number of epochs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_loader</strong> (<em>Iterator</em>) – An iterator over the training data.</p></li>
+<li><p><strong>val_loader</strong> (<em>Iterator</em>) – An iterator over the validation data.</p></li>
+<li><p><strong>test_loader</strong> (<em>Iterator</em>) – If given, best model will be evaluated on the test set.</p></li>
+<li><p><strong>num_epochs</strong> (<em>int</em>) – Number of epochs for which to train the model.</p></li>
+<li><p><strong>min_delta</strong> (<em>float</em>) – Minimum change in the monitored metric to qualify as an improvement.</p></li>
+<li><p><strong>patience</strong> (<em>int</em>) – Number of epochs with no improvement after which training will be stopped. Default is 20.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of the train, validation and evt. test metrics for the best model on the validation set.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState"><code class="docutils literal notranslate"><span class="pre">TrainState</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState.batch_stats"><code class="docutils literal notranslate"><span class="pre">TrainState.batch_stats</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState.replace"><code class="docutils literal notranslate"><span class="pre">TrainState.replace()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainState.rng"><code class="docutils literal notranslate"><span class="pre">TrainState.rng</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule"><code class="docutils literal notranslate"><span class="pre">TrainerModule</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.bind_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.bind_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.create_functions"><code class="docutils literal notranslate"><span class="pre">TrainerModule.create_functions()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.create_jitted_functions"><code class="docutils literal notranslate"><span class="pre">TrainerModule.create_jitted_functions()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.eval_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.eval_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.generate_config"><code class="docutils literal notranslate"><span class="pre">TrainerModule.generate_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_apply_fn"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_apply_fn()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_logger"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_logger()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.init_optimizer"><code class="docutils literal notranslate"><span class="pre">TrainerModule.init_optimizer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.is_new_model_better"><code class="docutils literal notranslate"><span class="pre">TrainerModule.is_new_model_better()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.load_from_checkpoints"><code class="docutils literal notranslate"><span class="pre">TrainerModule.load_from_checkpoints()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.load_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.load_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.on_training_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_training_epoch_end()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.on_training_start"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_training_start()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.on_validation_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerModule.on_validation_epoch_end()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.print_tabulate"><code class="docutils literal notranslate"><span class="pre">TrainerModule.print_tabulate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.run_model_init"><code class="docutils literal notranslate"><span class="pre">TrainerModule.run_model_init()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.save_metrics"><code class="docutils literal notranslate"><span class="pre">TrainerModule.save_metrics()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.save_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.save_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.tracker"><code class="docutils literal notranslate"><span class="pre">TrainerModule.tracker()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.train_epoch"><code class="docutils literal notranslate"><span class="pre">TrainerModule.train_epoch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#train.TrainerModule.train_model"><code class="docutils literal notranslate"><span class="pre">TrainerModule.train_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Sacha Guerrini
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Sacha Guerrini.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
