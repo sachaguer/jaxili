@@ -1,5 +1,7 @@
 # JaxILI
 
+[![CI Test](https://github.com/sachaguer/jaxili/actions/workflows/ci.yml/badge.svg)]() [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![PyPI](https://img.shields.io/pypi/v/jaxili)](https://pypi.org/project/jaxili/)
+
 This is a package to run Neural Density Estimation using Jax. The training is performed using `optax` (documentation available [here](https://optax.readthedocs.io/en/latest/)) and the neural network are created using `flax` (see [documentation](https://flax.readthedocs.io/en/latest/)).
 
 The code is meant to provide tools to train Normalizing Flows easily to perform Implicit Likelihood Inference.
