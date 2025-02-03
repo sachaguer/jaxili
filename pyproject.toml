@@ -19,8 +19,6 @@ dependencies = [
     "optax",
     "distrax",
     "flax",
-    "sbibm",
-    "sbi==0.23.3",
     "torch",
     "pytorch-lightning",
     "optuna",
@@ -44,7 +42,9 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-emoji",
-    "pytest-pydocstyle"
+    "pytest-pydocstyle",
+    "sbibm",
+    "sbi==0.23.3",
 ]
 
 lint = ["black", "isort"]
