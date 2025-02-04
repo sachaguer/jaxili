@@ -1,6 +1,6 @@
 # JaxILI
 
-[![Documentation](https://readthedocs.org/projects/jaxili/badge/?version=stable)](https://jaxili.readthedocs.io/stable)
+[![Documentation](https://readthedocs.org/projects/jaxili/badge/?version=stable)](https://jaxili.readthedocs.io/en/stable)
 [![CI Test](https://github.com/sachaguer/jaxili/actions/workflows/ci.yml/badge.svg)]()
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 [![PyPI](https://img.shields.io/pypi/v/jaxili)](https://pypi.org/project/jaxili/) 
