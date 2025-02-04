@@ -4,7 +4,7 @@
 [![CI Test](https://github.com/sachaguer/jaxili/actions/workflows/ci.yml/badge.svg)]()
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 [![PyPI](https://img.shields.io/pypi/v/jaxili)](https://pypi.org/project/jaxili/) 
-![PyPI - License](https://img.shields.io/pypi/l/jaxili)
+![[PyPI - License](https://img.shields.io/pypi/l/jaxili)](https://github.com/sachaguer/jaxili/blob/main/LICENSE)
 
 This is a package to run Neural Density Estimation using Jax. The training is performed using `optax` (documentation available [here](https://optax.readthedocs.io/en/latest/)) and the neural network are created using `flax` (see [documentation](https://flax.readthedocs.io/en/latest/)).
 
