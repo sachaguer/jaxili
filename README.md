@@ -148,3 +148,56 @@ samples_maf_npe = model_maf_npe.sample(
 )
 log_prob = model_maf_npe.apply(params, samples_maf_npe, observation, method="log_prob")
 ```
+
+## Training a Neural Ratio Estimator (NRE)
+
+Alternatively, you can train a Neural Ratio Estimator (NRE) which models the likelihood ratio \( r(x | \theta) = p(x | \theta) / p(x) \).
+
+```python
+from jaxili.inference import NRE
+from jaxili.model import RatioEstimatorMLP # Example classifier
+from jaxili.loss import loss_bce_nre # NRE loss function
+import jax
+
+# Fetch your data
+theta, x = ...
+
+# Create an NRE inference object
+# You can optionally specify a different classifier model
+inference = NRE(
+    model_class=RatioEstimatorMLP, # Default is RatioEstimatorMLP
+    model_hparams={'layers': [64, 64], 'activation': jax.nn.silu} # Optional: configure the MLP
+)
+
+# Append simulations
+inference = inference.append_simulations(theta, x)
+
+# Define training parameters
+learning_rate = 1e-4
+num_epochs = 100
+batch_size = 256
+checkpoint_path = "./nre_checkpoints" # Optional checkpoint path
+seed = 42 # Seed for reproducibility
+
+# Train the ratio estimator
+metrics, ratio_estimator = inference.train(
+    training_batch_size=batch_size,
+    learning_rate=learning_rate,
+    checkpoint_path=checkpoint_path,
+    num_epochs=num_epochs,
+    seed=seed,
+    patience=15 # Optional: early stopping patience
+)
+
+# Get the trained ratio estimator function/model
+# The returned object has a .log_ratio(theta, x) method
+estimator = inference.build_ratio_estimator()
+
+# Compute the log-ratio for an observation
+observation = ... # Shape [1, data_dim]
+parameters_of_interest = ... # Shape [num_points, param_dim]
+
+log_ratios = estimator.log_ratio(parameters_of_interest, observation)
+```
+
+NRE is often used in likelihood-free inference settings for tasks like parameter inference using Approximate Bayesian Computation (ABC) or constructing confidence intervals.

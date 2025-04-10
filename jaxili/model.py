@@ -1091,3 +1091,23 @@ class NDE_w_Standardization(NDENetwork):
         samples = self.transformation.forward(samples)
 
         return samples
+
+# Define a basic MLP for ratio estimation
+class RatioEstimatorMLP(nn.Module):
+    """
+    A simple Multi-Layer Perceptron (MLP) for ratio estimation.
+
+    Takes concatenated (theta, x) as input and outputs a single logit.
+    """
+    layers: list[int]  # List of hidden layer sizes
+    activation: Callable = nn.relu  # Activation function
+
+    @nn.compact
+    def __call__(self, inputs):
+        x = inputs
+        for i, feat in enumerate(self.layers):
+            x = nn.Dense(features=feat, name=f'dense_{i}')(x)
+            x = self.activation(x)
+        # Output layer: single logit for classification
+        x = nn.Dense(features=1, name='dense_out')(x)
+        return x # Return logits

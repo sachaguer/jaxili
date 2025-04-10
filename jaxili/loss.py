@@ -8,6 +8,7 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float, PyTree
+import jax.random as jr
 
 MMD_BANDWIDTH_LIST = [
     1e-6,
@@ -221,3 +222,57 @@ def loss_mmd_npe(model, params, batch):
     # Compute the log-probability
     log_prob = nf(params, theta, z)
     return -jnp.mean(log_prob) + mmd_loss
+
+
+def loss_bce_nre(model: Any, params: PyTree, batch: Any, key: jr.PRNGKey) -> Array:
+    """
+    Binary cross-entropy loss function for NRE methods using internally generated marginals.
+
+    NRE trains a classifier to distinguish between pairs (theta, x) drawn from
+    the joint distribution p(theta, x) (label 1) and pairs drawn from the product
+    of the marginals p(theta)p(x) (label 0).
+
+    This version expects a standard batch of (theta, x) from the joint distribution
+    and generates the marginal samples by shuffling theta within the batch.
+
+    Parameters
+    ----------
+    model : Any
+        Neural network model (classifier) from `flax.linen`.
+    params : PyTree
+        Parameters of the neural network.
+    batch : Any
+        Batch containing associated (theta, x) pairs from the joint distribution.
+    key: jax.random.PRNGKey
+        Random key for shuffling to create marginal samples.
+
+    Returns
+    -------
+    Array
+        Mean binary cross-entropy loss across the batch.
+    """
+    theta_joint, x_joint = batch
+    batch_size = theta_joint.shape[0]
+
+    # Generate marginal samples by shuffling theta
+    # Ensure the key is split properly if used elsewhere in training step
+    shuffled_indices = jr.permutation(key, batch_size)
+    theta_marginal = theta_joint[shuffled_indices]
+    x_marginal = x_joint # x remains the same for p(theta_shuffled)p(x) marginals
+
+    # Combine joint and marginal samples
+    theta_combined = jnp.concatenate([theta_joint, theta_marginal], axis=0)
+    x_combined = jnp.concatenate([x_joint, x_marginal], axis=0)
+
+    # Get logits from the model
+    logits = model.apply({"params": params}, theta_combined, x_combined)
+
+    # Create labels: 1 for joint, 0 for marginal
+    labels_joint = jnp.ones_like(theta_joint[..., 0:1]) # Target shape (batch_size, 1)
+    labels_marginal = jnp.zeros_like(theta_marginal[..., 0:1])
+    labels = jnp.concatenate([labels_joint, labels_marginal], axis=0)
+
+    # Calculate Binary Cross Entropy with logits
+    bce_loss = jnp.maximum(logits, 0) - logits * labels + jnp.log(1 + jnp.exp(-jnp.abs(logits)))
+
+    return jnp.mean(bce_loss)
