@@ -422,7 +422,7 @@ class TrainerModule:
                     break
                 if self.enable_progress_bar:
                     pbar.set_description(
-                        f"Epochs: Val loss {eval_metrics['val/loss']:.3g}/ Best val loss {early_stop.best_metric:.3g}"
+                        f"Epochs: Val loss {eval_metrics['val/loss']:.5g}/ Best val loss {early_stop.best_metric:.5g}"
                     )
         # Test best model if possible
         if test_loader is not None:

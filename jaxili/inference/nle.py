@@ -265,7 +265,7 @@ class NLE:
         if ('x' not in hf_dataset.features.keys()) or ('theta' not in hf_dataset.features.keys()):
             raise ValueError("The hugging face dataset should have columns 'theta' and 'x'")
     
-        theta, x = hf_dataset['theta'][0], hf_dataset['x'][0]
+        theta, x = hf_dataset[0]['theta'], hf_dataset[0]['x']
         #theta, x, _ = validate_theta_x(theta, x)
         num_sims = hf_dataset.num_rows
         if self.verbose:
