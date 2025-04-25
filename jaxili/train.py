@@ -357,6 +357,7 @@ class TrainerModule:
         num_epochs: int = 500,
         min_delta: float = 1e-3,
         patience: int = 20,
+        load_best: bool = True
     ) -> Dict[str, Any]:
         """
         Start a training loop for the given number of epochs.
@@ -375,6 +376,8 @@ class TrainerModule:
             Minimum change in the monitored metric to qualify as an improvement.
         patience : int
             Number of epochs with no improvement after which training will be stopped. Default is 20.
+        load_best : bool
+            If True, loads the best epoch on the validation set. (Default: True)
 
         Returns
         -------
@@ -423,7 +426,8 @@ class TrainerModule:
                     )
         # Test best model if possible
         if test_loader is not None:
-            self.load_model()
+            if load_best:
+                self.load_model()
             test_metrics = self.eval_model(test_loader, log_prefix="test/")
             self.logger.log_metrics(test_metrics, step=epoch_idx)
             self.save_metrics("test", test_metrics)
