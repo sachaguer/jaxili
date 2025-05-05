@@ -221,3 +221,19 @@ def loss_mmd_npe(model, params, batch):
     # Compute the log-probability
     log_prob = nf(params, theta, z)
     return -jnp.mean(log_prob) + mmd_loss
+
+def loss_mse(model: Any, params: PyTree, batch: Any):
+    """
+    Mean Squared Error (MSE).
+    """
+    thetas, xs = batch
+    compressed_xs = model.apply({"params": params}, xs)
+    return jnp.mean((compressed_xs - thetas)**2)
+
+def loss_mae(model: Any, params: PyTree, batch: Any):
+    """
+    Mean Absolute Error (MAE).
+    """
+    xs, thetas = batch
+    compressed_xs = model.apply({"params": params}, xs)
+    return jnp.mean(jnp.abs(compressed_xs - thetas))

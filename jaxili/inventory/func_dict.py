@@ -11,7 +11,7 @@ import inspect
 import jax
 import jaxlib
 
-from jaxili.loss import loss_nll_nle, loss_nll_npe
+from jaxili.loss import loss_nll_nle, loss_nll_npe, loss_mse, loss_mae
 from jaxili.model import ConditionalMAF, ConditionalRealNVP, MixtureDensityNetwork
 
 
@@ -45,4 +45,6 @@ jaxili_nn_dict = {
 jaxili_loss_dict = {
     "loss_nll_npe": loss_nll_npe,
     "loss_nll_nle": loss_nll_nle,
+    "loss_mse": loss_mse,
+    "loss_mae": loss_mae,
 }

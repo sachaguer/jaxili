@@ -101,6 +101,7 @@ class MCMCPosterior(NeuralPosterior):
                     "The data x must be specified or loaded in the posterior with `set_default_x()`."
                 )
         self.mcmc_kwargs.update({"num_samples": num_samples})
+        self.mcmc_kwargs.update({"progress_bar": kwargs.pop("progress_bar", False)})
         num_chains = self.mcmc_kwargs.get("num_chains", 1)
         sample_key, key = jax.random.split(key)
         initial_states = self._get_initial_state(x, num_chains, sample_key, **kwargs)
@@ -241,11 +242,13 @@ class MCMCPosterior(NeuralPosterior):
         num_warmup = mcmc_kwargs.get("num_warmup", 500)
         num_samples = mcmc_kwargs.get("num_samples", 2000)
         num_chains = mcmc_kwargs.get("num_chains", 1)
+        progress_bar = mcmc_kwargs.get("progress_bar", False)
         mcmc = MCMC(
             nuts_kernel,
             num_warmup=num_warmup,
             num_samples=num_samples,
             num_chains=num_chains,
+            progress_bar=progress_bar,
         )
 
         mcmc.run(key, data=x)
@@ -292,11 +295,13 @@ class MCMCPosterior(NeuralPosterior):
         num_warmup = mcmc_kwargs.get("num_warmup", 500)
         num_samples = mcmc_kwargs.get("num_samples", 2000)
         num_chains = mcmc_kwargs.get("num_chains", 1)
+        progress_bar = mcmc_kwargs.get("progress_bar", False)
         mcmc = MCMC(
             hmc_kernel,
             num_warmup=num_warmup,
             num_samples=num_samples,
             num_chains=num_chains,
+            progress_bar=progress_bar,
         )
 
         mcmc.run(key, data=x)
