@@ -103,7 +103,7 @@ class TrainerCompressor(TrainerModule):
         theta : jnp.ndarray
             The target data.
         """
-        return batch["x"], batch["theta"]
+        return batch["theta"], batch["x"]
 
     @classmethod
     def load_from_checkpoints(

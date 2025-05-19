@@ -805,8 +805,8 @@ class NLE:
             embedding_net_str = hparams["model_hparams"]["embedding_net"]
 
             # Regular expressions to extract mean and std arrays
-            mean_match = re.search(r"mean\s*=\s*Array\((\[.*?\])", embedding_net_str)
-            std_match = re.search(r"std\s*=\s*Array\((\[.*?\])", embedding_net_str)
+            mean_match = re.search(r"mean\s*=\s*Array\((\[.*?\])", embedding_net_str, re.DOTALL)
+            std_match = re.search(r"std\s*=\s*Array\((\[.*?\])", embedding_net_str, re.DOTALL)
 
             # Convert extracted values into NumPy arrays
             mean_array = (
