@@ -14,12 +14,14 @@ import jax.random as jr
 import jax.numpy as jnp
 import jax
 import flax.linen as nn
+import flax.nnx as nnx
 import numpyro.distributions as dist
 
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
 
 import os
 import json
+from functools import partial
 import datasets as hf_datasets
 
 
@@ -187,13 +189,30 @@ class Identity(nn.Module):
         return x
 
 
-class Standardizer(nn.Module):
-    """Standardizer transformation."""
+class Standardizer(nnx.Module):
+    """
+    Standardizer class making a Z-score standardization given some mean and standard deviation.
 
-    mean: Array
-    std: Array
+    The transformation applied to the input vector $x$ is:
 
-    @nn.compact
+    $$
+    x \longrightarrow \frac{x- \langle x \rangle}{\sigma_x}.
+    $$
+    """
+    def __init__(self, mean : Array, std : Array):
+        """
+        Z-score standardizer
+
+        Parameters
+        ----------
+        mean : jnp.Array
+            Mean to be substracted during the standardization.
+        std : jnp.Array
+            Standard deviation used during the standardization
+        """
+        self.mean = mean
+        self.std = std
+
     def __call__(self, x):
         """
         Forward pass of the standardizer transformation. The standardization uses the z-score.
@@ -211,7 +230,7 @@ class Standardizer(nn.Module):
         return (x - self.mean) / self.std
 
 
-class MLPCompressor(nn.Module):
+class MLPCompressor(nnx.Module):
     """
     Base class of a MLP Compressor.
 
@@ -225,13 +244,26 @@ class MLPCompressor(nn.Module):
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     output_size : int
         Size of the output layer.
+    rngs : 
+        RNG keys
     """
+    def __init__(self, hidden_size: list, activation: Callable, input_size: int, output_size: int, rngs: Array):
+        self.hidden_size = hidden_size
+        self.activation = activation
+        self.output_size = output_size
+        self.rngs = rngs
 
-    hidden_size: list
-    activation: Callable
-    output_size: int
+        self.layers = []
+        #Create first layer
+        if len(hidden_size) > 0:
+            self.layers.append(nnx.Linear(input_size, hidden_size[0], rngs=self.rngs)) #Append the first layer.
+            for in_features, out_features in zip(hidden_size[:-1], hidden_size[1:]):
+                self.layers.append(nnx.Linear(in_features, out_features, rngs=self.rngs)) #Append intermediate layers.
+            self.layers.append(nnx.Linear(out_features, output_size, rngs=self.rngs)) #Append last layer.
+        else:
+            self.layers.append(nnx.Linear(input_size, output_size, rngs=self.rngs)) #Only one layer is appened.
+            
 
-    @nn.compact
     def __call__(self, x):
         """
         Forward pass of the MLP Compressor.
@@ -246,14 +278,12 @@ class MLPCompressor(nn.Module):
         jnp.array
             Compressed data.
         """
-        for size in self.hidden_size:
-            x = nn.Dense(size)(x)
-            x = self.activation(x)
-        x = nn.Dense(self.output_size)(x)
-        return x
+        for layer in self.layers[:-1]:
+            x = self.activation(layer(x))
+        return self.layers[-1](x)
 
 
-class CNN2DCompressor(nn.Module):
+class CNN2DCompressor(nnx.Module):
     """
     Base class of a CNN2D Compressor.
 
@@ -266,11 +296,24 @@ class CNN2DCompressor(nn.Module):
     activation : Callable
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     """
+    def __init__(self, input_size: int, output_size: int, activation: Callable, rngs: nnx.Rngs):
+        self.input_size = input_size
+        self.output_size = output_size
+        self.activation = activation
+        self.rngs = rngs
 
-    output_size: int
-    activation: Callable
+        #Create the convolutional layers
+        self.conv_1 = nnx.Conv(self.input_size, 32, kernel_size=(3, 3), strides=2, rngs=self.rngs)
+        self.conv_2 = nnx.Conv(32, 64, kernel_size=(3, 3), strides=2, rngs=self.rngs)
+        self.conv_3 = nnx.Conv(64, 128, kernel_size=(3, 3), strides=2, rngs=self.rngs)
 
-    @nn.compact
+        #Create the pooling layer
+        self.avg_pool = partial(nnx.avg_pool, window_shape=(16, 16), strides=(8, 8), padding="SAME")
+
+        #Create linear layers
+        self.linear_1 = nnx.Linear(8192, 64, rngs=self.rngs) #The size of the flattened array is hardcoded. A solution must be found to account for images of any size
+        self.linear_2 = nnx.Linear(64, self.output_size, rngs=self.rngs)
+
     def __call__(self, inputs):
         """
         Forward pass of the CNN2D Compressor.
@@ -285,18 +328,15 @@ class CNN2DCompressor(nn.Module):
         jnp.array
             Compressed data.
         """
-        net_x = nn.Conv(32, 3, 2)(inputs)
-        net_x = self.activation(net_x)
-        net_x = nn.Conv(64, 3, 2)(net_x)
-        net_x = self.activation(net_x)
-        net_x = nn.Conv(128, 3, 2)(net_x)
-        net_x = self.activation(net_x)
-        net_x = nn.avg_pool(net_x, (16, 16), (8, 8), padding="SAME")
+        net_x = self.activation(self.conv_1(inputs))
+        net_x = self.activation(self.conv_2(net_x))
+        net_x = self.activation(self.conv_3(net_x))
+        net_x = self.avg_pool(net_x)
+        
         # Flatten the tensor
         net_x = net_x.reshape((net_x.shape[0], -1))
-        net_x = nn.Dense(64)(net_x)
-        net_x = self.activation(net_x)
-        net_x = nn.Dense(self.output_size)(net_x)
+        net_x = self.activation(self.linear_1(net_x))
+        net_x = self.activation(self.linear_2(net_x))
         return net_x.squeeze()
 
 
