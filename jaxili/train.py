@@ -402,14 +402,15 @@ class TrainerModule:
                 self.on_validation_epoch_end(epoch_idx, eval_metrics, val_loader)
                 self.logger.log_metrics(eval_metrics, step=epoch_idx)
                 self.save_metrics(f"eval_epoch_{str(epoch_idx).zfill(3)}", eval_metrics)
+                early_stop = early_stop.update(eval_metrics["val/loss"])
                 # Save best model
-                if self.is_new_model_better(eval_metrics, best_eval_metrics):
+                if early_stop.has_improved:
                     best_eval_metrics = eval_metrics
                     best_eval_metrics.update(train_metrics)
                     best_epoch = epoch_idx
                     self.save_model(step=epoch_idx)
                     self.save_metrics("best_eval", best_eval_metrics)
-                early_stop = early_stop.update(eval_metrics["val/loss"])
+                
                 if early_stop.should_stop:
                     print(f"Neural network training stopped after {epoch_idx} epochs.")
                     print(

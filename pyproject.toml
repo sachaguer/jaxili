@@ -22,7 +22,7 @@ dependencies = [
     "optuna",
     "numpyro",
     "flowMC",
-    "pytorch-lightning",
+    #"pytorch-lightning",
     "getdist"
 ]
 readme = "README.md"
