@@ -14,6 +14,7 @@ import jax.numpy as jnp
 import numpy as np
 import tensorflow_probability as tfp
 from flax import linen as nn
+import flax.nnx as nnx
 from jax.scipy.stats import multivariate_normal
 from jaxtyping import Array
 
@@ -22,7 +23,7 @@ tfb = tfp.bijectors
 tfd = tfp.distributions
 
 
-class NDENetwork(nn.Module):
+class NDENetwork(nnx.Module):
     """
     Base class for a Normalizing Flow.
 
@@ -171,15 +172,50 @@ class MixtureDensityNetwork(NDENetwork):
     Base class for a Mixture Density Network.
 
     A Mixture of Gaussian Density modeled using neural networks. The weights of each gaussian component, the mean and the covariance are learned by the network.
+
+    Parameters
+    ----------
+    n_int : int
+        Dimensionality of the learned distribution.
+    n_cond : int
+        Dimensionality of the conditioning variable.
+    n_components : int
+        Number of Gaussian components in the mixture.
+    layers : list[int]
+        Size of the intermediate layers in the neural network.
+    activation : Callable
+        Activation function.
+    rngs : nnx.Rngs
+        Random seed of the network parameters.
     """
+    def __init__(self,
+                 n_in: int,
+                 n_cond: int,
+                 n_components: int,
+                 layers: list[int],
+                 activation: Callable,
+                 rngs: nnx.Rngs):
+        self.n_in = n_in
+        self.n_cond = n_cond
+        self.n_components = n_components
+        self.hidden_size = layers
+        self.activation = activation
+        self.rngs = rngs
 
-    n_in: int  # Dimension of the input
-    n_cond: int  # Dimension of conditionning variable
-    n_components: int  # number of mixture components
-    layers: list[int]  # list of hidden layers size
-    activation: Callable  # activation function
+        self.final_size = self.n_components * (
+            1 + self.n_in + self.n_in * (self.n_in +1) // 2
+        )
 
-    @nn.compact
+        self.layers = [] #List of Linear layers in the network
+        if len(self.hidden_size)>0:
+            self.layers.append(nnx.Linear(n_cond, self.hidden_size[0], rngs=self.rngs)) #Append first layer
+            for in_features, out_features in zip(self.hidden_size[:-1], self.hidden_size[1:]): #Append hidden layers
+                self.layers.append(nnx.Linear(in_features, out_features, rngs=self.rngs))
+            self.layers.append(nnx.Linear(self.hidden_size[-1], self.final_size, rngs=self.rngs)) #Append final layer
+        else:
+            self.layers.append(nnx.Linear(self.n_cond, self.final_size, rngs=self.rngs))
+
+    
     def __call__(self, y, **kwargs):
         """
         Build a bijector that tranforms a multivariate Gaussian distribution into a Mixture of Gaussian distribution using a neural network.
@@ -196,18 +232,9 @@ class MixtureDensityNetwork(NDENetwork):
         tfd.Distribution
             Mixture of Gaussian distribution.
         """
-        kernel_init = kwargs.get(
-            "kernel_init",
-            nn.initializers.variance_scaling(
-                scale=1.0, mode="fan_in", distribution="normal"
-            ),
-        )
-        for size in self.layers:
-            y = self.activation(nn.Dense(size, kernel_init=kernel_init)(y))
-        final_size = self.n_components * (
-            1 + self.n_in + self.n_in * (self.n_in + 1) // 2
-        )
-        y = nn.Dense(final_size, kernel_init=kernel_init)(y)
+        for layer in self.layers[:-1]:
+            y = self.activation(layer(y))
+        y = self.layers[-1](y)
         logits = jax.nn.log_softmax(y[..., : self.n_components])
         locs = y[..., self.n_components : self.n_components * (self.n_in + 1)]
         scale_tril = y[..., self.n_components * (self.n_in + 1) :]
@@ -270,7 +297,7 @@ class MixtureDensityNetwork(NDENetwork):
         return distribution.sample(sample_shape=num_samples, seed=key).squeeze()
 
 
-class AffineCoupling(nn.Module):
+class AffineCoupling(nnx.Module):
     """
     Base class for an Affine Coupling layer for RealNVP.
 
@@ -283,12 +310,13 @@ class AffineCoupling(nn.Module):
     activation : Callable
         Activation function.
     """
+    def __init__(self, y: Any, layers: list, activation: Callable, rngs: nnx.Rngs):
+        self.y = y
+        self.hidden_size = layers
+        self.layers = layers
+        self.activation = activation
+        self.rngs = rngs
 
-    y: Any  # Conditionning variable
-    layers: list  # list of hidden layers size
-    activation: callable  # activation function
-
-    @nn.compact
     def __call__(self, x, output_units, **kwargs):
         """
         Build the bijector using tensorflow_probability where the scale and the shift are learned by a neural network.
@@ -306,21 +334,25 @@ class AffineCoupling(nn.Module):
             Bijector transforming a multidimensional Gaussian to a more complex distribution.
         """
         x = jnp.concatenate([x, self.y], axis=-1)
-        for i, layer_size in enumerate(self.layers):
+        #First layer
+        x = self.activation(
+            nnx.Linear(x.shape[1], self.layers[0], rngs=self.rngs)(x)
+        )
+        for in_features, out_features in zip(self.layers[:-1], self.layers[1:]):
             x = self.activation(
-                nn.Dense(
-                    layer_size, kernel_init=nn.initializers.truncated_normal(0.001)
+                nnx.Linear(
+                    in_features, out_features, rngs=self.rngs
                 )(x)
             )
 
         # Shift and Scale parameters
-        shift = nn.Dense(
-            output_units, kernel_init=nn.initializers.truncated_normal(0.001)
+        shift = nnx.Linear(
+            self.layers[-1], output_units, rngs=self.rngs
         )(x)
         scale = (
-            nn.softplus(
-                nn.Dense(
-                    output_units, kernel_init=nn.initializers.truncated_normal(0.001)
+            nnx.softplus(
+                nnx.Linear(
+                    self.layers[-1], output_units, rngs=self.rngs
                 )(x)
             )
             + 1e-3
@@ -347,15 +379,17 @@ class ConditionalRealNVP(NDENetwork):
         List of hidden layers size.
     activation : Callable
         Activation function.
+    rng : nnx.Rngs
+        Random key
     """
+    def __init__(self, n_in: int, n_cond: int, n_layers: int, layers: list[int], activation: Callable, rngs: nnx.Rngs):
+        self.n_in = n_in
+        self.n_cond = n_cond
+        self.n_layers = n_layers
+        self.layers = layers
+        self.activation = activation
+        self.rngs = rngs
 
-    n_in: int  # Dimension of the input
-    n_cond: int  # Dimension of the conditionning variable
-    n_layers: int  # Number of layers
-    layers: list[int]  # list of hidden layers size
-    activation: Callable  # activation function
-
-    @nn.compact
     def __call__(self, y, **kwargs):
         """
         Build the bijector using tensorflow_probability.
@@ -376,7 +410,7 @@ class ConditionalRealNVP(NDENetwork):
             )
 
         bijector_fn = partial(
-            AffineCoupling, layers=self.layers, activation=self.activation
+            AffineCoupling, layers=self.layers, activation=self.activation, rngs=self.rngs
         )
         base_distribution = distrax.MultivariateNormalDiag(
             jnp.zeros(self.n_in), jnp.ones(self.n_in)
@@ -385,7 +419,7 @@ class ConditionalRealNVP(NDENetwork):
             [
                 tfb.Permute(jnp.arange(self.n_in)[::-1])(
                     tfb.RealNVP(
-                        self.n_in // 2, bijector_fn=bijector_fn(y, name="b%d" % i)
+                        self.n_in // 2, bijector_fn=bijector_fn(y)
                     )
                 )
                 for i in range(self.n_layers)
