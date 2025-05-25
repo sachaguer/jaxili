@@ -475,7 +475,7 @@ class ConditionalRealNVP(NDENetwork):
 # Reproduce implementation of MADE and MAFs from https://github.com/e-hulten/maf/blob/master/made.py
 
 
-class MaskedLinear(nn.Module):
+class MaskedLinear(nnx.Module):
     """
     Base class for a Masked Linear layer.
 
@@ -491,11 +491,17 @@ class MaskedLinear(nn.Module):
         Whether to include bias. Default True.
     mask : Any
         Mask to apply to the weights. Default None.
+    rngs : nnx.Rngs
+        Random key
     """
+    def __init__(self, n_in: int, n_out: int, bias: bool = True, mask: Any = None, rngs: nnx.Rngs = nnx.Rngs(0)):
+        self.n_in = n_in
+        self.n_out = n_out
+        self.bias = bias
+        self.mask = mask
+        self.rngs = rngs
 
-    n_out: int
-    bias: bool = True
-    mask: Any = None
+        self.layer = nnx.Linear(self.n_in, self.n_out, use_bias=self.bias, rngs=self.rngs)
 
     def initialize_mask(self, mask: Any):
         """
@@ -508,7 +514,6 @@ class MaskedLinear(nn.Module):
         """
         self.mask = mask
 
-    @nn.compact
     def __call__(self, x):
         """
         Apply masked linear transformation.
@@ -523,22 +528,15 @@ class MaskedLinear(nn.Module):
         jnp.Array
             Output vector.
         """
-        layer = nn.Dense(
-            self.n_out,
-            use_bias=self.bias,
-            param_dtype=jnp.float64,
-            kernel_init=nn.initializers.truncated_normal(0.01),
-        )
-        is_initialized = self.has_variable("params", "Dense_0")
-        if is_initialized:
-            w = layer.variables["params"]["kernel"]
-            b = layer.variables["params"]["bias"]
-        else:
-            return layer(x)
-        return jnp.dot(x, self.mask * w) + b
+        w = nnx.state(self.layer)["kernel"].value
+        x = jnp.dot(x, self.mask * w)
+        if self.bias:
+            b = nnx.state(self.layer)["bias"].value
+            x += b
+        return x
 
 
-class ConditionalMADE(nn.Module):
+class ConditionalMADE(nnx.Module):
     """
     Base class for Conditional Masked Autoencoder Density Estimatior (MADE).
 
@@ -559,22 +557,29 @@ class ConditionalMADE(nn.Module):
     random_order : bool
         Whether to use random order of the input for masking. Default False.
     seed : Optional[int]
-        Random seed to label nodes. !!Default is None but the MADE will not work unless a seed is applied!!
+        Random seed to label nodes. (Default: 42)
     """
 
-    n_in: int  # Size of the input vector
-    hidden_dims: list[int]  # list of hidden dimensions
-    activation: Callable  # Activation function
-    n_cond: int = 0  # Size of the conditionning variable. 0 if None.
-    gaussian: bool = (
-        True  # whether the output are mean and variance of a Gaussian conditional
-    )
-    random_order: bool = False  # Whether to use random order of the input for masking
-    seed: Optional[int] = None  # Random seed to label nodes
+    def __init__(self,
+                 n_in : int, #Size of the input vector
+                 hidden_dims : list[int], #List of hidden dimensions
+                 activation : Callable, #Activation function
+                 n_cond : int = 0, # Size of the conditionning variable. 0 if None
+                 gaussian : bool = True, #Whether the outpur are mean and variance of a Gaussian conditional
+                 random_order : bool = False, #Whether to use random order of the input for masking
+                 seed : Optional[int] = 42, # Random seed to label nodes
+                 rngs : nnx.Rngs = nnx.Rngs(0) # Random key
+                 ):
+        self.n_in = n_in
+        self.hidden_dims = hidden_dims
+        self.activation = activation
+        self.n_cond = n_cond
+        self.gaussian = gaussian
+        self.random_order = random_order
+        self.seed = seed
+        self.rngs = rngs
 
-    def setup(self):
-        """Set the network creating the masks and the masked linear layers."""
-        np.random.seed(self.seed)
+        np.random.seed(self.seed) #Set the seed
         self.n_out = 2 * self.n_in if self.gaussian else self.n_in
         masks = {}
         mask_matrix = []
@@ -583,16 +588,16 @@ class ConditionalMADE(nn.Module):
         dim_list = [self.n_in + self.n_cond, *self.hidden_dims, self.n_out]
 
         # Make layers and activation functions
-        for i in range(len(dim_list) - 2):
-            layers.append(MaskedLinear(dim_list[i + 1]))
+        for in_features, out_features in zip(dim_list[:-2], dim_list[1:-1]):
+            layers.append(MaskedLinear(in_features, out_features, rngs=self.rngs))
             layers.append(self.activation)
         # Last hidden layer to output layer
-        layers.append(MaskedLinear(dim_list[-1]))
+        layers.append(MaskedLinear(dim_list[-2], dim_list[-1], rngs=self.rngs))
         # Create masks
         self._create_masks(mask_matrix, masks, layers)
         # Create model
         self.layers = layers
-        self.model = nn.Sequential(self.layers)
+        self.model = nnx.Sequential(*self.layers)
 
     def _create_masks(self, mask_matrix: list, masks: dict, layers: list):
         """Create masks for the model."""
@@ -683,7 +688,7 @@ class ConditionalMADE(nn.Module):
             return jax.nn.sigmoid(self.model(x))
 
 
-class MAFLayer(nn.Module):
+class MAFLayer(nnx.Module):
     """
     Base class for a Masked Autoregressive Flow layer.
 
@@ -702,15 +707,34 @@ class MAFLayer(nn.Module):
     activation : Callable
         Activation function.
     seed : Optional[int]
-        Random seed to label nodes. !!Default is None but the MAF will not work unless a seed is applied!!
+        Random seed to label nodes. (Default: 42)
+    rngs : nnx.Rngs
+        Random key
     """
+    def __init__(self,
+                 n_in : int,
+                 n_cond : int,
+                 hidden_dims : list[int],
+                 reverse : bool,
+                 activation : Callable,
+                 seed : Optional[int]  = 42,
+                 rngs : nnx.Rngs = nnx.Rngs(0)):
+        self.n_in = n_in
+        self.n_cond = n_cond
+        self.hidden_dims = hidden_dims
+        self.reverse = reverse
+        self.activation = activation
+        self. seed = seed
+        self.rngs = rngs
 
-    n_in: int  # Size of the input vector
-    n_cond: int  # Size of the conditionning variable
-    hidden_dims: list[int]  # list of hidden dimensions
-    reverse: bool  # Whether to reverse the order of the input
-    activation: Callable  # Activation function
-    seed: Optional[int] = None  # Random seed to label nodes
+        self.conditional_made = ConditionalMADE(
+            n_in=self.n_in,
+            hidden_dims=self.hidden_dims,
+            n_cond=self.n_cond,
+            seed=self.seed,
+            activation=self.activation,
+            rngs = self.rngs
+        )
 
     def forward(self, x, y=None):
         """
@@ -781,13 +805,7 @@ class MAFLayer(nn.Module):
         y : jnp.Array
             Conditionning variable.
         """
-        x = ConditionalMADE(
-            n_in=self.n_in,
-            hidden_dims=self.hidden_dims,
-            n_cond=self.n_cond,
-            seed=self.seed,
-            activation=self.activation,
-        )(x, y)
+        x = self.conditional_made(x, y)
         return x
 
 
@@ -812,19 +830,31 @@ class ConditionalMAF(NDENetwork):
     use_reverse : bool
         Whether to reverse the order of the input between each MAF.
     seed : Optional[int]
-        Random seed to label nodes. !!Default is None but the MAF will not work unless a seed is applied!!
+        Random seed to label nodes. (Default: 42)
+    rngs : nnx.Rngs
+        Random key
+
     """
+    def __init__(self,
+                 n_in : int,
+                 n_cond : int,
+                 n_layers : int,
+                 layers : list[int],
+                 activation : Callable,
+                 use_reverse : bool,
+                 seed : Optional[int] = 42,
+                 rngs : nnx.Rngs = nnx.Rngs(0)
+                ):
+        self.n_in = n_in
+        self.n_cond = n_cond
+        self.n_layers = n_layers
+        self.layers = layers
+        self.activation = activation
+        self.use_reverse = use_reverse
+        self.seed = seed
+        self.rngs = rngs
 
-    n_in: int  # Size of the input vector
-    n_cond: int  # Size of the conditionning variable
-    n_layers: int  # Number of layers (i.e. number of stacked MADEs)
-    layers: list[int]  # list of hidden dimensionsin each MADE.
-    activation: Callable  # Activation function
-    use_reverse: bool  # Whether to reverse the order of the input between each MADE
-    seed: Optional[int] = None  # Random seed to label nodes
-
-    def setup(self):
-        """Set the network creating the MAF layers."""
+        #Sets the random seed
         np.random.seed(self.seed)
         if self.n_in == 1:
             raise ValueError(
@@ -840,13 +870,13 @@ class ConditionalMAF(NDENetwork):
                     reverse=self.use_reverse,
                     seed=np.random.randint(0, 1000),
                     activation=self.activation,
+                    rngs = self.rngs
                 )
             )
         self.layer_list = layer_list
         self.mean = jnp.zeros(self.n_in)
         self.cov = jnp.eye(self.n_in)
 
-    @nn.compact
     def __call__(self, x, y=None):
         """
         Forward pass of the model.
