@@ -32,7 +32,7 @@ MMD_BANDWIDTH_LIST = [
 ]
 
 
-def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
+def loss_nll_npe(model: Any, batch: Any) -> Array:
     """
     Negative log-likelihood loss function for NPE methods using a given neural network as a model.
 
@@ -42,8 +42,6 @@ def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
     ----------
     model : Any
         Neural network model from `jaxili.model`.
-    params : PyTree
-        Parameters of the neural network.
     batch : Any
         Batch of (parameters, outputs) to compute the loss.
 
@@ -54,11 +52,11 @@ def loss_nll_npe(model: Any, params: PyTree, batch: Any) -> Array:
     """
     thetas, xs = batch
 
-    output = model.apply({"params": params}, thetas, xs, method="log_prob")
+    output = model.log_prob(thetas, xs)
     return -jnp.mean(output)
 
 
-def loss_nll_nle(model: Any, params: PyTree, batch: Any):
+def loss_nll_nle(model: Any, batch: Any):
     """
     Negative log-likelihood loss function for NLE methods using a given neural network as a model.
 
@@ -68,8 +66,6 @@ def loss_nll_nle(model: Any, params: PyTree, batch: Any):
     ----------
     model : Any
         Neural network model from `jaxili.model`.
-    params : PyTree
-        Parameters of the neural network.
     batch : Any
         Batch of (parameters, outputs) to compute the loss.
 
@@ -80,7 +76,7 @@ def loss_nll_nle(model: Any, params: PyTree, batch: Any):
     """
     thetas, xs = batch
 
-    return -jnp.mean(model.apply({"params": params}, xs, thetas, method="log_prob"))
+    return -jnp.mean(model.log_prob(xs, thetas))
 
 
 def gaussian_kernel_matrix(x, y, sigmas=None):
@@ -186,18 +182,14 @@ def mmd_summary_space(summary_outputs, rng, z_dist="gaussian", kernel="gaussian"
     return mmd_loss
 
 
-def loss_mmd_npe(model, params, batch):
+def loss_mmd_npe(model, batch):
     """
     Compute the Maximum Mean Discrepancy (MMD) loss for Neural Posterior Estimation.
 
     Parameters
     ----------
-    compress: function
-        Neural network function to compress the data.
-    nf: function
-        Neural network function to compute the log-probability conditionally to a random variable.
-    params: jnp.array
-        Parameters of the neural network.
+    model : NDENetwork
+        Neural network model from `jaxili.model`.
     batch: jnp.array
         Batch of data.
 
@@ -206,34 +198,54 @@ def loss_mmd_npe(model, params, batch):
     float
         Maximum Mean Discrepancy (MMD) loss.
     """
-    compress = lambda params, x: model.apply({"params": params}, x, method="compress")
-    nf = lambda params, theta, z: model.apply(
-        {"params": params}, z, theta, model="NPE", method="log_prob_from_compressed"
-    )
     theta, x = batch
 
     # compress the data
-    z = compress(params, x)
+    z = model.compress(x)
 
     # Compute the MMD loss
     rng_key = jax.random.PRNGKey(0)  # Could probably be improved
     mmd_loss = mmd_summary_space(z, rng_key)
     # Compute the log-probability
-    log_prob = nf(params, theta, z)
+    log_prob = model.log_prob_from_compressed(theta, z)
     return -jnp.mean(log_prob) + mmd_loss
 
-def loss_mse(model: Any, params: PyTree, batch: Any):
+def loss_mse(model: Any, batch: Any):
     """
     Mean Squared Error (MSE).
+
+    Parameters
+    ----------
+    model : NDENetwork
+        Neural network model from `jaxili.model`.
+    batch: jnp.array
+        Batch of data.
+
+    Returns
+    -------
+    float
+        Mean Squared Error (MSE) loss.
     """
     thetas, xs = batch
-    compressed_xs = model.apply({"params": params}, xs)
+    compressed_xs = model(xs)
     return jnp.mean((compressed_xs - thetas)**2)
 
-def loss_mae(model: Any, params: PyTree, batch: Any):
+def loss_mae(model: Any, batch: Any):
     """
     Mean Absolute Error (MAE).
+
+    Parameters
+    ----------
+    model : NDENetwork
+        Neural network model from `jaxili.model`.
+    batch: jnp.array
+        Batch of data.
+
+    Returns
+    -------
+    float
+        Mean Squared Error (MSE) loss.
     """
     xs, thetas = batch
-    compressed_xs = model.apply({"params": params}, xs)
+    compressed_xs = model(xs)
     return jnp.mean(jnp.abs(compressed_xs - thetas))
