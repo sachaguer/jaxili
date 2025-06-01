@@ -23,41 +23,37 @@ def test_conditional_maf():
             use_reverse=reverse,
             seed=42,
             activation=jax.nn.silu,
+            rngs=nnx.Rngs(0)
         )
         x = jnp.array(np.random.randn(10, n_in))
         cond = jnp.array(np.random.randn(10, n_cond))
-        params = maf.init(jax.random.PRNGKey(0), x, cond)
-        log_prob = maf.apply(params, x, cond, method="log_prob")
+        log_prob = maf.log_prob(x, cond)
         assert log_prob.shape == (
             10,
         ), f"The shape of the output of log_prob method is wrong."
 
         # test the forward and reverse modes
-        u, log_det = maf.apply(params, x, cond)
-        x_reconstructed, log_det_reconstructed = maf.apply(
-            params, u, cond, method="backward"
+        u, log_det = maf(x, cond)
+        x_reconstructed, log_det_reconstructed = maf.backward(
+            u, cond
         )
 
         npt.assert_allclose(x, x_reconstructed, rtol=1e-5, atol=1e-5)
         npt.assert_allclose(log_det, -log_det_reconstructed, rtol=1e-5, atol=1e-5)
 
         # Test the sampling
-        samples = maf.apply(
-            params,
+        samples = maf.sample(
             cond[0],
             num_samples=10_000,
             key=jax.random.PRNGKey(0),
-            method="sample",
         )
         assert samples.shape == (10_000, 3), f"The shape of the samples is wrong."
 
         # Test sampling with a different shape for the conditional
-        samples = maf.apply(
-            params,
+        samples = maf.sample(
             cond[0].reshape((-1, n_cond)),
             num_samples=10_000,
             key=jax.random.PRNGKey(0),
-            method="sample",
         )
         assert samples.shape == (10_000, 3), f"The shape of the samples is wrong."
 
@@ -104,30 +100,27 @@ def test_mixture_density_network():
     layers = [50, 50, 50]
     activation = jax.nn.relu
 
-    mdn = MixtureDensityNetwork(n_in, n_cond, n_components, layers, activation)
+    mdn = MixtureDensityNetwork(n_in, n_cond, n_components, layers, activation, nnx.Rngs(0))
 
     x = jnp.array(np.random.randn(10, n_in))
     cond = jnp.array(np.random.randn(10, n_cond))
 
-    params = mdn.init(jax.random.PRNGKey(0), cond)
-    log_prob = mdn.apply(params, x, cond, method="log_prob")
+    log_prob = mdn.log_prob(x, cond)
     assert log_prob.shape == (
         10,
     ), f"The shape of the output of log_prob method is wrong."
 
     # Test the sampling
-    samples = mdn.apply(
-        params, cond[0], num_samples=10_000, key=jax.random.PRNGKey(0), method="sample"
+    samples = mdn.sample(
+        cond[0], num_samples=10_000, key=jax.random.PRNGKey(0)
     )
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
     # Test sampling with a different shape for the conditional
-    samples = mdn.apply(
-        params,
+    samples = mdn.sample(
         cond[0].reshape((-1, n_cond)),
         num_samples=10_000,
         key=jax.random.PRNGKey(0),
-        method="sample",
     )
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
@@ -138,7 +131,7 @@ def test_identity():
     x = np.random.randn(10, 3)
 
     assert np.isclose(
-        identity.apply({}, x), x
+        identity(x), x
     ).all(), "Identity function is not working."
 
 
@@ -175,7 +168,7 @@ def test_standardizer():
     standardizer = Standardizer(mean, std)
 
     std_samples = (samples - mean) / std
-    test_std_samples = standardizer.apply({}, samples)
+    test_std_samples = standardizer(samples)
 
     npt.assert_allclose(std_samples, test_std_samples, rtol=1e-5, atol=1e-5)
 
@@ -205,34 +198,33 @@ def test_network_w_standardization():
         activation=activation,
         use_reverse=True,
         seed=42,
+        rngs=nnx.Rngs(0)
     )
 
     net_w_standard = NDE_w_Standardization(
         nde=maf, embedding_net=Identity(), transformation=transformation
     )
 
-    params = net_w_standard.init(jax.random.PRNGKey(0), theta, x)
-
     # Test the standardization
-    test_theta = net_w_standard.apply(params, shifted_theta, method="standardize")
+    test_theta = net_w_standard.standardize(shifted_theta)
     npt.assert_allclose(test_theta, theta, rtol=1e-5, atol=1e-5)
 
     # Test the unstandardization
-    test_theta = net_w_standard.apply(params, theta, method="unstandardize")
+    test_theta = net_w_standard.unstandardize(theta)
     npt.assert_allclose(test_theta, shifted_theta, rtol=1e-5, atol=1e-5)
 
     # Test the embedding
-    test_embedding = net_w_standard.apply(params, x, method="embedding")
+    test_embedding = net_w_standard.embedding(x)
     npt.assert_allclose(test_embedding, x, rtol=1e-5, atol=1e-5)
 
     # Test the log_prob
-    log_prob = net_w_standard.apply(params, theta, x, method="log_prob")
+    log_prob = net_w_standard.log_prob(theta, x)
     assert log_prob.shape == (
         10,
     ), f"The shape of the output of log_prob method is wrong."
 
     # Test the sampling
-    samples = net_w_standard.apply(
-        params, x[0], num_samples=10_000, key=jax.random.PRNGKey(0), method="sample"
+    samples = net_w_standard.sample(
+        x[0], num_samples=10_000, key=jax.random.PRNGKey(0)
     )
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."

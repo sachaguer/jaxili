@@ -20,7 +20,6 @@ from numpyro.infer.util import init_to_value
 
 from jaxili.model import NDENetwork
 from jaxili.posterior import NeuralPosterior
-from jaxili.train import TrainState
 
 implemented_method = ["nuts_numpyro", "hmc_numpyro"]
 
@@ -40,7 +39,6 @@ class MCMCPosterior(NeuralPosterior):
     def __init__(
         self,
         model: NDENetwork,
-        state: TrainState,
         prior_distr: dist.Distribution,
         verbose: Optional[bool] = False,
         x: Optional[Array] = None,
@@ -54,8 +52,6 @@ class MCMCPosterior(NeuralPosterior):
         ----------
         model : NDENetwork
             The neural network used to generate the posterior.
-        state : TrainState
-            The state of the neural network.
         prior_distr : ...
             The prior distribution of the parameters. (One must specify a prior to perform MCMC sampling.)
         verbose : bool
@@ -67,7 +63,7 @@ class MCMCPosterior(NeuralPosterior):
         mcmc_kwargs : dict
             The keyword arguments for the MCMC method. (Default: hmc_numpyro_kwargs_default)
         """
-        super().__init__(model, state, verbose, x)
+        super().__init__(model, verbose, x)
         self.set_mcmc_method(mcmc_method)
         self.set_mcmc_kwargs(mcmc_kwargs)
         if self.verbose:
@@ -154,9 +150,8 @@ class MCMCPosterior(NeuralPosterior):
         Array
             The unnormalized log probability.
         """
-        params = self.state.params
-        log_likelihood = self.model.apply(
-            {"params": params}, x, theta, method="log_prob"
+        log_likelihood = self.model.log_prob(
+            x, theta
         ).squeeze()
         return log_likelihood
 

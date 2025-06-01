@@ -10,7 +10,6 @@ from typing import Any, Dict, Optional
 from jaxtyping import Array
 
 from jaxili.model import NDENetwork
-from jaxili.train import TrainState
 
 
 class NeuralPosterior:
@@ -23,7 +22,6 @@ class NeuralPosterior:
     def __init__(
         self,
         model: NDENetwork,
-        state: TrainState,
         verbose: bool = False,
         x: Optional[Array] = None,
     ):
@@ -34,13 +32,10 @@ class NeuralPosterior:
         ----------
         model : NDENetwork
             The neural network used to generate the posterior.
-        state : dict
-            The state of the neural network.
         verbose : bool
             Whether to print information. (Default: False)
         """
         self.model = model
-        self.state = state
         self.verbose = verbose
         self.x = x
 

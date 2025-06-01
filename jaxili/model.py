@@ -200,7 +200,7 @@ class MixtureDensityNetwork(NDENetwork):
         self.n_components = n_components
         self.hidden_size = layers
         self.activation = activation
-        self.rngs = rngs
+        rngs = rngs
 
         self.final_size = self.n_components * (
             1 + self.n_in + self.n_in * (self.n_in +1) // 2
@@ -208,12 +208,12 @@ class MixtureDensityNetwork(NDENetwork):
 
         self.layers = [] #List of Linear layers in the network
         if len(self.hidden_size)>0:
-            self.layers.append(nnx.Linear(n_cond, self.hidden_size[0], rngs=self.rngs)) #Append first layer
+            self.layers.append(nnx.Linear(n_cond, self.hidden_size[0], rngs=rngs)) #Append first layer
             for in_features, out_features in zip(self.hidden_size[:-1], self.hidden_size[1:]): #Append hidden layers
-                self.layers.append(nnx.Linear(in_features, out_features, rngs=self.rngs))
-            self.layers.append(nnx.Linear(self.hidden_size[-1], self.final_size, rngs=self.rngs)) #Append final layer
+                self.layers.append(nnx.Linear(in_features, out_features, rngs=rngs))
+            self.layers.append(nnx.Linear(self.hidden_size[-1], self.final_size, rngs=rngs)) #Append final layer
         else:
-            self.layers.append(nnx.Linear(self.n_cond, self.final_size, rngs=self.rngs))
+            self.layers.append(nnx.Linear(self.n_cond, self.final_size, rngs=rngs))
 
     
     def __call__(self, y, **kwargs):
@@ -499,9 +499,8 @@ class MaskedLinear(nnx.Module):
         self.n_out = n_out
         self.bias = bias
         self.mask = mask
-        self.rngs = rngs
 
-        self.layer = nnx.Linear(self.n_in, self.n_out, use_bias=self.bias, rngs=self.rngs)
+        self.layer = nnx.Linear(self.n_in, self.n_out, use_bias=self.bias, rngs=rngs)
 
     def initialize_mask(self, mask: Any):
         """
@@ -512,7 +511,7 @@ class MaskedLinear(nnx.Module):
         mask : Any
             Boolean mask to apply to the weights.
         """
-        self.mask = mask
+        self.mask = nnx.Variable(mask)
 
     def __call__(self, x):
         """
@@ -577,7 +576,6 @@ class ConditionalMADE(nnx.Module):
         self.gaussian = gaussian
         self.random_order = random_order
         self.seed = seed
-        self.rngs = rngs
 
         np.random.seed(self.seed) #Set the seed
         self.n_out = 2 * self.n_in if self.gaussian else self.n_in
@@ -589,10 +587,10 @@ class ConditionalMADE(nnx.Module):
 
         # Make layers and activation functions
         for in_features, out_features in zip(dim_list[:-2], dim_list[1:-1]):
-            layers.append(MaskedLinear(in_features, out_features, rngs=self.rngs))
+            layers.append(MaskedLinear(in_features, out_features, rngs=rngs))
             layers.append(self.activation)
         # Last hidden layer to output layer
-        layers.append(MaskedLinear(dim_list[-2], dim_list[-1], rngs=self.rngs))
+        layers.append(MaskedLinear(dim_list[-2], dim_list[-1], rngs=rngs))
         # Create masks
         self._create_masks(mask_matrix, masks, layers)
         # Create model
@@ -725,7 +723,6 @@ class MAFLayer(nnx.Module):
         self.reverse = reverse
         self.activation = activation
         self. seed = seed
-        self.rngs = rngs
 
         self.conditional_made = ConditionalMADE(
             n_in=self.n_in,
@@ -733,7 +730,7 @@ class MAFLayer(nnx.Module):
             n_cond=self.n_cond,
             seed=self.seed,
             activation=self.activation,
-            rngs = self.rngs
+            rngs = rngs
         )
 
     def forward(self, x, y=None):
@@ -852,7 +849,6 @@ class ConditionalMAF(NDENetwork):
         self.activation = activation
         self.use_reverse = use_reverse
         self.seed = seed
-        self.rngs = rngs
 
         #Sets the random seed
         np.random.seed(self.seed)
@@ -870,12 +866,12 @@ class ConditionalMAF(NDENetwork):
                     reverse=self.use_reverse,
                     seed=np.random.randint(0, 1000),
                     activation=self.activation,
-                    rngs = self.rngs
+                    rngs = rngs
                 )
             )
         self.layer_list = layer_list
-        self.mean = jnp.zeros(self.n_in)
-        self.cov = jnp.eye(self.n_in)
+        self.mean = nnx.Variable(jnp.zeros(self.n_in))
+        self.cov = nnx.Variable(jnp.eye(self.n_in))
 
     def __call__(self, x, y=None):
         """
@@ -1095,11 +1091,21 @@ class NDE_w_Standardization(NDENetwork):
     It takes in input a neural density estimator, an embedding net and a transformation.
     The embedding net is used to embed the data point in a latent space where the NDE is applied. It allows to compress the data to lower dimensional space.
     The transformation is used to transform to standardize the variable learned by the normalizing flow for stability purpose.
-    """
 
-    nde: NDENetwork  # Neural Density Estimator
-    embedding_net: nn.Module  # Embedding network
-    transformation: distrax.Bijector  # Transformation network TBC
+    Parameters
+    ----------
+    nde : NDENetwork
+        Neural Density Estimator used.
+    embedding_net : nnx.Module
+        Embedding net used for compression.
+    transformation : distrax.Bijector
+        Transformation used on the points in inference space before training the NDE.
+    """
+    def __init__(self, nde: NDENetwork, embedding_net: nnx.Module, shift_transformation: Array, scale_transformation: Array):
+        self.nde = nde
+        self.embedding_net = embedding_net
+        self.shift_transformation = nnx.Variable(shift_transformation)
+        self.scale_transformation = nnx.Variable(scale_transformation)
 
     def __call__(self, x, y, model="NPE"):
         """
@@ -1119,22 +1125,28 @@ class NDE_w_Standardization(NDENetwork):
         jnp.Array
             Log probability of the parameters y
         """
+        transformation = self.get_transformation()
         assert model in ["NPE", "NLE"], "Model should be either 'NPE' or 'NLE'."
         if model == "NLE":
             x, y = y, x  # Learn the distribution p(y|x). Exchange the two.
-        x, logprob_std = self.transformation.inverse_and_log_det(x)
+        x, logprob_std = transformation.inverse_and_log_det(x)
         logprob_std = jnp.sum(logprob_std, axis=-1)
         z = self.embedding_net(y)
         log_prob = self.nde.log_prob(x, z)
         return log_prob + logprob_std
+    
+    def get_transformation(self):
+        return distrax.ScalarAffine(shift=self.shift_transformation.value, scale=self.scale_transformation.value)
 
     def standardize(self, x):
         """Standardize the data point x."""
-        return self.transformation.inverse(x)
+        transformation = self.get_transformation()
+        return transformation.inverse(x)
 
     def unstandardize(self, x):
         """Unstandardize the data point x."""
-        return self.transformation.forward(x)
+        transformation = self.get_transformation()
+        return transformation.forward(x)
 
     def embedding(self, x):
         """Embed the data point x."""
@@ -1152,6 +1164,7 @@ class NDE_w_Standardization(NDENetwork):
             samples = self.nde.sample(z, num_samples, key)
         else:
             samples = self.nde.sample(y, num_samples, key)
-        samples = self.transformation.forward(samples)
+        transformation = self.get_transformation()
+        samples = transformation.forward(samples)
 
         return samples

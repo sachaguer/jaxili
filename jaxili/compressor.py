@@ -10,6 +10,7 @@ from jaxili.loss import loss_mse
 from jaxili.utils import *
 from jaxili.utils import check_density_estimator, create_data_loader, validate_theta_x
 from jaxili.train import TrainerModule
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict
 import jax.random as jr
 import jax.numpy as jnp
 import jax
@@ -64,30 +65,6 @@ class TrainerCompressor(TrainerModule):
         """
 
         super().__init__(model_class, **kwargs)
-
-    def init_apply_fn(self):
-        """
-        Initialize the apply function for the model.
-        """
-        self.apply_fn = self.model
-
-    def run_model_init(self, exmp_input: Any, init_rng: Any) -> Dict:
-        """
-        Initialize the model by calling it on the example input.
-
-        Parameters
-        ----------
-        exmp_input : Dict[str, Any]
-            An input to the model with which the shapes are inferred.
-        init_rng : Array
-            A jax.random.PRNGKey
-
-        Returns
-        -------
-            The initialized variable dictionary.
-        """
-        x = exmp_input[0]
-        return self.model.init(init_rng, x)
 
     def handle_hf_dataset(self, batch: Dict) -> Union[jnp.ndarray, jnp.ndarray]:
         """
@@ -149,26 +126,11 @@ class TrainerCompressor(TrainerModule):
         if not hparams["logger_params"]:
             hparams["logger_params"] = dict()
         hparams["logger_params"]["log_dir"] = checkpoint
-        trainer = cls(model_class=model_class, exmp_input=exmp_input, loss_fn=loss_function, **hparams)
+        trainer = cls(model_class=model_class, loss_fn=loss_function, **hparams)
         trainer.load_model()
         return trainer
 
-    def print_tabulate(self, exmp_input: Any):
-        """
-        Print a summary of the model represented as a table.
-
-        Parameters
-        ----------
-        exmp_input : Any
-            An input to the model with which the shapes are inferred.
-        """
-        x = exmp_input[0]
-        try:
-            print(self.model.tabulate(jr.PRNGKey(0), x))
-        except Exception as e:
-            print(f"Could not tabulate model: {e}")
-
-class Identity(nn.Module):
+class Identity(nnx.Module):
     """Identity transformation."""
 
     @nn.compact
@@ -210,8 +172,8 @@ class Standardizer(nnx.Module):
         std : jnp.Array
             Standard deviation used during the standardization
         """
-        self.mean = mean
-        self.std = std
+        self.mean = nnx.Variable(mean)
+        self.std = nnx.Variable(std)
 
     def __call__(self, x):
         """
@@ -251,17 +213,16 @@ class MLPCompressor(nnx.Module):
         self.hidden_size = hidden_size
         self.activation = activation
         self.output_size = output_size
-        self.rngs = rngs
 
         self.layers = []
         #Create first layer
         if len(hidden_size) > 0:
-            self.layers.append(nnx.Linear(input_size, hidden_size[0], rngs=self.rngs)) #Append the first layer.
+            self.layers.append(nnx.Linear(input_size, hidden_size[0], rngs=rngs)) #Append the first layer.
             for in_features, out_features in zip(hidden_size[:-1], hidden_size[1:]):
-                self.layers.append(nnx.Linear(in_features, out_features, rngs=self.rngs)) #Append intermediate layers.
-            self.layers.append(nnx.Linear(out_features, output_size, rngs=self.rngs)) #Append last layer.
+                self.layers.append(nnx.Linear(in_features, out_features, rngs=rngs)) #Append intermediate layers.
+            self.layers.append(nnx.Linear(out_features, output_size, rngs=rngs)) #Append last layer.
         else:
-            self.layers.append(nnx.Linear(input_size, output_size, rngs=self.rngs)) #Only one layer is appened.
+            self.layers.append(nnx.Linear(input_size, output_size, rngs=rngs)) #Only one layer is appened.
             
 
     def __call__(self, x):
@@ -300,19 +261,18 @@ class CNN2DCompressor(nnx.Module):
         self.input_size = input_size
         self.output_size = output_size
         self.activation = activation
-        self.rngs = rngs
 
         #Create the convolutional layers
-        self.conv_1 = nnx.Conv(self.input_size, 32, kernel_size=(3, 3), strides=2, rngs=self.rngs)
-        self.conv_2 = nnx.Conv(32, 64, kernel_size=(3, 3), strides=2, rngs=self.rngs)
-        self.conv_3 = nnx.Conv(64, 128, kernel_size=(3, 3), strides=2, rngs=self.rngs)
+        self.conv_1 = nnx.Conv(self.input_size, 32, kernel_size=(3, 3), strides=2, rngs=rngs)
+        self.conv_2 = nnx.Conv(32, 64, kernel_size=(3, 3), strides=2, rngs=rngs)
+        self.conv_3 = nnx.Conv(64, 128, kernel_size=(3, 3), strides=2, rngs=rngs)
 
         #Create the pooling layer
         self.avg_pool = partial(nnx.avg_pool, window_shape=(16, 16), strides=(8, 8), padding="SAME")
 
         #Create linear layers
-        self.linear_1 = nnx.Linear(8192, 64, rngs=self.rngs) #The size of the flattened array is hardcoded. A solution must be found to account for images of any size
-        self.linear_2 = nnx.Linear(64, self.output_size, rngs=self.rngs)
+        self.linear_1 = nnx.Linear(8192, 64, rngs=rngs) #The size of the flattened array is hardcoded. A solution must be found to account for images of any size
+        self.linear_2 = nnx.Linear(64, self.output_size, rngs=rngs)
 
     def __call__(self, inputs):
         """
@@ -686,7 +646,6 @@ class Compressor:
             model_hparams=self._model_hparams,
             optimizer_hparams=optimizer_hparams,
             loss_fn=self._loss_fn,
-            exmp_input=exmp_input,
             seed=seed,
             logger_params=logger_params,
             enable_progress_bar=self.verbose,
@@ -768,5 +727,5 @@ class Compressor:
             if self._test_loader is not None:
                 print(f"[!] Test loss: {metrics['test/loss']}")
 
-        compressor = self.trainer.bind_model()
+        compressor = self.trainer.model
         return metrics, compressor

@@ -17,6 +17,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 import jax_dataloader as jdl
+import flax.nnx as nnx
 import numpy as np
 from jaxtyping import Array, Float, PyTree
 
@@ -47,6 +48,7 @@ default_maf_hparams = {
     "activation": jax.nn.relu,
     "use_reverse": True,
     "seed": 42,
+    "rngs": nnx.Rngs(0)
 }
 
 
@@ -455,7 +457,7 @@ class NPE:
             else:
                 embedding_net = embedding_net(**embedding_hparams)
 
-        self._embedding_net = nn.Sequential([standardizer, embedding_net])
+        self._embedding_net = nnx.Sequential(standardizer, embedding_net)
 
         if isinstance(embedding_net, Identity):
             n_cond = self._dim_cond
@@ -469,7 +471,8 @@ class NPE:
         model = NDE_w_Standardization(
             nde=self._nde,
             embedding_net=self._embedding_net,
-            transformation=self._transformation,
+            shift_transformation=self._transformation_hparams["shift"],
+            scale_transformation=self._transformation_hparams["scale"]
         )
 
         return model
@@ -492,8 +495,6 @@ class NPE:
             Hyperparameters to use for the optimizer.
         loss_fn : Callable
             Loss function to use for training.
-        exmp_input : Any
-            Example input to use for the model.
         seed : int, optional
             Seed to use for the trainer. Default is 42.
         logger_params : Dict[str, Any], optional
@@ -520,10 +521,9 @@ class NPE:
         nde_w_std_hparams = {
             "nde": self._nde,
             "embedding_net": self._embedding_net,
-            "transformation": self._transformation,
+            "shift_transformation": self._transformation_hparams["shift"],
+            "scale_transformation": self._transformation_hparams["scale"]
         }
-
-        exmp_input = (jnp.zeros((1, self._dim_params)), jnp.zeros((1, self._dim_cond)))
 
         if self.verbose:
             print("[!] Creating the Trainer module.")
@@ -533,7 +533,6 @@ class NPE:
             model_hparams=nde_w_std_hparams,
             optimizer_hparams=optimizer_hparams,
             loss_fn=self._loss_fn,
-            exmp_input=exmp_input,
             seed=seed,
             logger_params=logger_params,
             enable_progress_bar=self.verbose,
@@ -677,7 +676,7 @@ class NPE:
             if self._test_loader is not None:
                 print(f"[!] Test loss: {metrics['test/loss']}")
 
-        density_estimator = self.trainer.bind_model()
+        density_estimator = self.trainer.model
         return metrics, density_estimator
 
     def build_posterior(
@@ -704,7 +703,7 @@ class NPE:
         if verbose is None:
             verbose = self.verbose
         posterior = DirectPosterior(
-            model=self.trainer.model, state=self.trainer.state, verbose=verbose, x=x
+            model=self.trainer.model, verbose=verbose, x=x
         )
 
         if self.verbose:
@@ -827,7 +826,7 @@ class NPE:
         else:
             embedding_net = Identity()
 
-        inference._embedding_net = nn.Sequential(layers=[standardizer, embedding_net])
+        inference._embedding_net = nnx.Sequential(standardizer, embedding_net)
 
         # Regenerate the transformation of the parameters
         shift_str = hparams["transformation_hparams"]["shift"]

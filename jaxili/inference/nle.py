@@ -16,6 +16,7 @@ import flax.linen as nn
 import jax
 import jax.numpy as jnp
 import jax.random as jr
+import flax.nnx as nnx
 import numpy as np
 import numpyro.distributions as dist
 from jaxtyping import Array, Float, PyTree
@@ -44,6 +45,7 @@ default_maf_hparams = {
     "activation": jax.nn.relu,
     "use_reverse": True,
     "seed": 42,
+    "rngs": nnx.Rngs(0)
 }
 
 
@@ -429,7 +431,7 @@ class NLE:
             else:
                 embedding_net = embedding_net(**embedding_hparams)
 
-        self._embedding_net = nn.Sequential([standardizer, embedding_net])
+        self._embedding_net = nnx.Sequential(standardizer, embedding_net)
 
         if isinstance(embedding_net, Identity):
             n_cond = self._dim_cond
@@ -456,7 +458,9 @@ class NLE:
 
         self._transformation_hparams = {"shift": shift, "scale": scale}
 
-        self._transformation = distrax.ScalarAffine(scale=scale, shift=shift)
+        scale = nnx.Variable(scale)
+        shift = nnx.Variable(shift)
+        self._transformation = distrax.ScalarAffine(scale=scale.value, shift=shift.value)
 
         self._model_hparams["n_in"] = self._dim_params
         self._model_hparams["n_cond"] = n_cond
@@ -488,8 +492,6 @@ class NLE:
             Hyperparameters to use for the optimizer.
         loss_fn : Callable
             Loss function to use for training.
-        exmp_input : Any
-            Example input to use for the model.
         seed : int, optional
             Seed to use for the trainer. Default is 42.
         logger_params : Dict[str, Any], optional
@@ -519,11 +521,6 @@ class NLE:
             "transformation": self._transformation,
         }
 
-        exmp_input = (
-            jnp.zeros((1, self._dim_cond)),
-            jnp.zeros((1, self._dim_params)),
-        )  # Example will be reversed in the trainer.
-
         if self.verbose:
             print("[!] Creating the Trainer module.")
 
@@ -532,7 +529,6 @@ class NLE:
             model_hparams=nde_w_std_hparams,
             optimizer_hparams=optimizer_hparams,
             loss_fn=self._loss_fn,
-            exmp_input=exmp_input,
             seed=seed,
             logger_params=logger_params,
             enable_progress_bar=self.verbose,
@@ -712,7 +708,6 @@ class NLE:
         posterior = MCMCPosterior(
             prior_distr=prior_distr,
             model=self.trainer.model,
-            state=self.trainer.state,
             verbose=verbose,
             x=x,
             mcmc_method=mcmc_method,
@@ -839,7 +834,7 @@ class NLE:
         else:
             embedding_net = Identity()
 
-        inference._embedding_net = nn.Sequential(layers=[standardizer, embedding_net])
+        inference._embedding_net = nnx.Sequential(standardizer, embedding_net)
 
         # Regenerate the transformation of the parameters
         shift_str = hparams["transformation_hparams"]["shift"]

@@ -7,6 +7,7 @@ import numpy as np
 
 from jaxili.loss import loss_mse
 import flax.linen as nn
+import flax.nnx as nnx
 from jaxili.compressor import Compressor
 from jaxili.compressor import MLPCompressor
 
@@ -27,9 +28,11 @@ x_train = simulator(theta_train, simkey)
 model_class=MLPCompressor
 
 model_hparams={
+    'input_size': n_reals*n_dim,
     'hidden_size': [8, 4],
     'activation': nn.relu,
     'output_size': n_dim,
+    'rngs': nnx.Rngs(0)
 }
 
 def test_init():
@@ -130,12 +133,7 @@ def test_build_neural_network():
     model = compressor._build_neural_network()
     assert model is not None, "The model is None."
     assert isinstance(model, model_class), "The model is not of the correct class."
-    params = model.init(
-        master_key,
-        x_train,
-    )
-    t_train = model.apply(
-        params,
+    t_train = model(
         x_train,
     )
     assert t_train is not None, "The training output is None."
