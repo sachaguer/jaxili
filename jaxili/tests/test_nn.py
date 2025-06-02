@@ -202,7 +202,7 @@ def test_network_w_standardization():
     )
 
     net_w_standard = NDE_w_Standardization(
-        nde=maf, embedding_net=Identity(), transformation=transformation
+        nde=maf, embedding_net=Identity(), shift_transformation=transformation.shift, scale_transformation=transformation.scale
     )
 
     # Test the standardization

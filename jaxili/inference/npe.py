@@ -842,7 +842,8 @@ class NPE:
         model_hparams = {
             "nde": inference._nde,
             "embedding_net": inference._embedding_net,
-            "transformation": inference._transformation,
+            "shift_transformation": inference._transformation.shift,
+            "scale_transformation": inference._transformation.scale
         }
 
         if not hparams["logger_params"]:

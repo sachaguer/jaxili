@@ -458,9 +458,7 @@ class NLE:
 
         self._transformation_hparams = {"shift": shift, "scale": scale}
 
-        scale = nnx.Variable(scale)
-        shift = nnx.Variable(shift)
-        self._transformation = distrax.ScalarAffine(scale=scale.value, shift=shift.value)
+        self._transformation = distrax.ScalarAffine(scale=scale, shift=shift)
 
         self._model_hparams["n_in"] = self._dim_params
         self._model_hparams["n_cond"] = n_cond
@@ -469,7 +467,8 @@ class NLE:
         model = NDE_w_Standardization(
             nde=self._nde,
             embedding_net=self._embedding_net,
-            transformation=self._transformation,
+            shift_transformation=self._transformation_hparams["shift"],
+            scale_transformation=self._transformation_hparams["scale"]
         )
 
         return model
@@ -518,7 +517,8 @@ class NLE:
         nde_w_std_hparams = {
             "nde": self._nde,
             "embedding_net": self._embedding_net,
-            "transformation": self._transformation,
+            "shift_transformation": self._transformation_hparams["shift"],
+            "scale_transformation": self._transformation_hparams["scale"]
         }
 
         if self.verbose:
@@ -665,7 +665,7 @@ class NLE:
             if self._test_loader is not None:
                 print(f"[!] Test loss: {metrics['test/loss']}")
 
-        density_estimator = self.trainer.bind_model()
+        density_estimator = self.trainer.model
         return metrics, density_estimator
 
     def build_posterior(
