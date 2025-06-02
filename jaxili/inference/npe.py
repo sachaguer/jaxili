@@ -733,11 +733,9 @@ class NPE:
         Parameters
         ----------
         nde_class: NDENetwork
-            Class used to create the neural density estimator
+            Class used to create the neural density estimator.
         checkpoint: str
-            Folder in which the checkpoint and hyperparameter file is stored
-        exmp_input : Any
-            An input to the model with which the shapes are inferred.
+            Folder in which the checkpoint and hyperparameter file is stored.
         embedding_net_class: nn.Module
             Class used to create the embedding net. (Default: Identity)
 
