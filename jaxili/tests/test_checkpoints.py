@@ -137,7 +137,6 @@ def test_checkpoints_npe():
 
     inference = NPE.load_from_checkpoints(
         checkpoint=CHECKPOINT_PATH + "/NDE_w_Standardization/version_0/",
-        exmp_input=next(iter(train_loader)),
     )
 
     posterior = inference.build_posterior()
