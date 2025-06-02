@@ -418,7 +418,7 @@ class NLE:
             scale = scale.at[scale < min_std].set(min_std)
             standardizer = Standardizer(shift, scale)
             self._standardizer_hparams = {}
-            self._standardize_hparams["shift"] = shift
+            self._standardizer_hparams["shift"] = shift
             self._standardizer_hparams["scale"] = scale
         else:
             standardizer = Identity()
