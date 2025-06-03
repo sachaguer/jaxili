@@ -150,9 +150,7 @@ class MCMCPosterior(NeuralPosterior):
         Array
             The unnormalized log probability.
         """
-        log_likelihood = self.model.log_prob(
-            x, theta
-        ).squeeze()
+        log_likelihood = self.model.log_prob(x, theta).squeeze()
         return log_likelihood
 
     def unnormalized_log_prob(self, theta: Array, x: Optional[Array] = None):

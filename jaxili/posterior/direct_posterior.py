@@ -62,9 +62,7 @@ class DirectPosterior(NeuralPosterior):
                 raise ValueError(
                     "Please set the default data `x` using `set_default_x()` or provide `x` as an argument."
                 )
-        samples = self.model.sample(
-            x, num_samples, key
-        )
+        samples = self.model.sample(x, num_samples, key)
         return samples
 
     def unnormalized_log_prob(self, theta: Array, x: Optional[Array] = None):

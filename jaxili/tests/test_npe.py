@@ -124,15 +124,11 @@ def test_build_neural_network():
 
     standardized_theta = (inference._train_dataset[:][0] - shift) / scale
 
-    test_theta = model.standardize(
-        inference._train_dataset[:][0]
-    )
+    test_theta = model.standardize(inference._train_dataset[:][0])
 
     npt.assert_allclose(standardized_theta, test_theta, rtol=1e-5, atol=1e-5)
 
-    test_embedding = model.embedding(
-        inference._train_dataset[:][1]
-    )
+    test_embedding = model.embedding(inference._train_dataset[:][1])
     shift_x = jnp.mean(inference._train_dataset[:][1], axis=0)
     scale_x = jnp.std(inference._train_dataset[:][1], axis=0)
     standardized_x = (inference._train_dataset[:][1] - shift_x) / scale_x
@@ -163,7 +159,7 @@ def test_build_neural_network():
         "hidden_size": [50, 50],
         "activation": jax.nn.relu,
         "output_size": 15,
-        "rngs": nnx.Rngs(0)
+        "rngs": nnx.Rngs(0),
     }
 
     model = inference._build_neural_network(
@@ -174,9 +170,7 @@ def test_build_neural_network():
     assert inference._transformation is not None, "The transformation is None."
     assert inference._embedding_net is not None, "The embedding net is None."
 
-    test_embedding = model.embedding(
-        inference._train_dataset[:][1]
-    )
+    test_embedding = model.embedding(inference._train_dataset[:][1])
 
     assert test_embedding.shape == (inference._train_dataset[:][1].shape[0], 15)
 

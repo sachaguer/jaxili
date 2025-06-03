@@ -28,6 +28,7 @@ from jaxili.utils import handle_non_serializable
 
 import datasets as hf_datasets
 
+
 class TrainerModule:
     """
     A module to perform the training of Normalizing Flows.
@@ -214,7 +215,9 @@ class TrainerModule:
         hparams.pop(
             "weight_decay", None
         )  # removes weight decay if the opt_class is not sgd.
-        self.optimizer = nnx.Optimizer(self.model, optax.chain(*transf, opt_class(lr_schedule, **hparams)))
+        self.optimizer = nnx.Optimizer(
+            self.model, optax.chain(*transf, opt_class(lr_schedule, **hparams))
+        )
 
     def create_jitted_functions(self):
         """
@@ -265,7 +268,7 @@ class TrainerModule:
         num_epochs: int = 500,
         min_delta: float = 1e-3,
         patience: int = 20,
-        load_best: bool = True
+        load_best: bool = True,
     ) -> Dict[str, Any]:
         """
         Start a training loop for the given number of epochs.
@@ -318,7 +321,7 @@ class TrainerModule:
                     best_epoch = epoch_idx
                     self.save_model(step=epoch_idx)
                     self.save_metrics("best_eval", best_eval_metrics)
-                
+
                 if early_stop.should_stop:
                     print(f"Neural network training stopped after {epoch_idx} epochs.")
                     print(
@@ -580,12 +583,13 @@ class TrainerModule:
         -------
         The model with parameters and evt. batch statistics bound to it.
         """
-        warnings.warn("This function is deprecated since the transition form Flax linen to Flax NNX. The model is bind by default now.", DeprecationWarning)
+        warnings.warn(
+            "This function is deprecated since the transition form Flax linen to Flax NNX. The model is bind by default now.",
+            DeprecationWarning,
+        )
 
     @classmethod
-    def load_from_checkpoints(
-        cls, model_class: NDENetwork, checkpoint: str
-    ) -> Any:
+    def load_from_checkpoints(cls, model_class: NDENetwork, checkpoint: str) -> Any:
         """
         Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.
 

@@ -36,9 +36,7 @@ default_maf_hparams = {
 
 
 class TrainerCompressor(TrainerModule):
-    def __init__(self,
-            model_class: nn.Module,
-            **kwargs):
+    def __init__(self, model_class: nn.Module, **kwargs):
         """
         Initialize a basic Trainer module summarizing most training functionalities like logging, model initialization, training loop, etc...
 
@@ -86,7 +84,11 @@ class TrainerCompressor(TrainerModule):
 
     @classmethod
     def load_from_checkpoints(
-        cls, model_class: nn.Module, checkpoint: str, exmp_input: Any, loss_function: Callable
+        cls,
+        model_class: nn.Module,
+        checkpoint: str,
+        exmp_input: Any,
+        loss_function: Callable,
     ) -> Any:
         """
         Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.
@@ -130,6 +132,7 @@ class TrainerCompressor(TrainerModule):
         trainer.load_model()
         return trainer
 
+
 class Identity(nnx.Module):
     """Identity transformation."""
 
@@ -161,7 +164,8 @@ class Standardizer(nnx.Module):
     x \longrightarrow \frac{x- \langle x \rangle}{\sigma_x}.
     $$
     """
-    def __init__(self, mean : Array, std : Array):
+
+    def __init__(self, mean: Array, std: Array):
         """
         Z-score standardizer
 
@@ -206,24 +210,39 @@ class MLPCompressor(nnx.Module):
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     output_size : int
         Size of the output layer.
-    rngs : 
+    rngs :
         RNG keys
     """
-    def __init__(self, hidden_size: list, activation: Callable, input_size: int, output_size: int, rngs: Array):
+
+    def __init__(
+        self,
+        hidden_size: list,
+        activation: Callable,
+        input_size: int,
+        output_size: int,
+        rngs: Array,
+    ):
         self.hidden_size = hidden_size
         self.activation = activation
         self.output_size = output_size
 
         self.layers = []
-        #Create first layer
+        # Create first layer
         if len(hidden_size) > 0:
-            self.layers.append(nnx.Linear(input_size, hidden_size[0], rngs=rngs)) #Append the first layer.
+            self.layers.append(
+                nnx.Linear(input_size, hidden_size[0], rngs=rngs)
+            )  # Append the first layer.
             for in_features, out_features in zip(hidden_size[:-1], hidden_size[1:]):
-                self.layers.append(nnx.Linear(in_features, out_features, rngs=rngs)) #Append intermediate layers.
-            self.layers.append(nnx.Linear(out_features, output_size, rngs=rngs)) #Append last layer.
+                self.layers.append(
+                    nnx.Linear(in_features, out_features, rngs=rngs)
+                )  # Append intermediate layers.
+            self.layers.append(
+                nnx.Linear(out_features, output_size, rngs=rngs)
+            )  # Append last layer.
         else:
-            self.layers.append(nnx.Linear(input_size, output_size, rngs=rngs)) #Only one layer is appened.
-            
+            self.layers.append(
+                nnx.Linear(input_size, output_size, rngs=rngs)
+            )  # Only one layer is appened.
 
     def __call__(self, x):
         """
@@ -257,21 +276,30 @@ class CNN2DCompressor(nnx.Module):
     activation : Callable
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     """
-    def __init__(self, input_size: int, output_size: int, activation: Callable, rngs: nnx.Rngs):
+
+    def __init__(
+        self, input_size: int, output_size: int, activation: Callable, rngs: nnx.Rngs
+    ):
         self.input_size = input_size
         self.output_size = output_size
         self.activation = activation
 
-        #Create the convolutional layers
-        self.conv_1 = nnx.Conv(self.input_size, 32, kernel_size=(3, 3), strides=2, rngs=rngs)
+        # Create the convolutional layers
+        self.conv_1 = nnx.Conv(
+            self.input_size, 32, kernel_size=(3, 3), strides=2, rngs=rngs
+        )
         self.conv_2 = nnx.Conv(32, 64, kernel_size=(3, 3), strides=2, rngs=rngs)
         self.conv_3 = nnx.Conv(64, 128, kernel_size=(3, 3), strides=2, rngs=rngs)
 
-        #Create the pooling layer
-        self.avg_pool = partial(nnx.avg_pool, window_shape=(16, 16), strides=(8, 8), padding="SAME")
+        # Create the pooling layer
+        self.avg_pool = partial(
+            nnx.avg_pool, window_shape=(16, 16), strides=(8, 8), padding="SAME"
+        )
 
-        #Create linear layers
-        self.linear_1 = nnx.Linear(8192, 64, rngs=rngs) #The size of the flattened array is hardcoded. A solution must be found to account for images of any size
+        # Create linear layers
+        self.linear_1 = nnx.Linear(
+            8192, 64, rngs=rngs
+        )  # The size of the flattened array is hardcoded. A solution must be found to account for images of any size
         self.linear_2 = nnx.Linear(64, self.output_size, rngs=rngs)
 
     def __call__(self, inputs):
@@ -292,7 +320,7 @@ class CNN2DCompressor(nnx.Module):
         net_x = self.activation(self.conv_2(net_x))
         net_x = self.activation(self.conv_3(net_x))
         net_x = self.avg_pool(net_x)
-        
+
         # Flatten the tensor
         net_x = net_x.reshape((net_x.shape[0], -1))
         net_x = self.activation(self.linear_1(net_x))
@@ -325,7 +353,6 @@ class Compressor:
         self._logging_level = logging_level
         self._loss_fn = loss_fn
         self.verbose = verbose
-
 
     def set_model_hparams(self, hparams):
         """
@@ -481,7 +508,7 @@ class Compressor:
         self,
         hf_dataset: hf_datasets.Dataset,
         train_test_split: Iterable[float] = [0.7, 0.2, 0.1],
-        key: Optional[PyTree] = None
+        key: Optional[PyTree] = None,
     ):
         """
         Store parameters and simulation outputs to use them for later training.
@@ -498,11 +525,15 @@ class Compressor:
         key : PyTree, optional
             Key to use for the random permutation of the dataset. Default is None.
         """
-        #check if the hugging face dataset has the correct form
-        if ('x' not in hf_dataset.features.keys()) or ('theta' not in hf_dataset.features.keys()):
-            raise ValueError("The hugging face dataset should have columns 'theta' and 'x'")
-    
-        theta, x = hf_dataset['theta'][0], hf_dataset['x'][0]
+        # check if the hugging face dataset has the correct form
+        if ("x" not in hf_dataset.features.keys()) or (
+            "theta" not in hf_dataset.features.keys()
+        ):
+            raise ValueError(
+                "The hugging face dataset should have columns 'theta' and 'x'"
+            )
+
+        theta, x = hf_dataset["theta"][0], hf_dataset["x"][0]
 
         num_sims = hf_dataset.num_rows
         if self.verbose:
@@ -526,12 +557,14 @@ class Compressor:
             ), "The sum of the split fractions should be 1."
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
-        
+
         if not is_test_set:
-            test_fraction=0.
-        hf_dataset = hf_dataset.train_test_split(test_size=val_fraction+test_fraction)
+            test_fraction = 0.0
+        hf_dataset = hf_dataset.train_test_split(test_size=val_fraction + test_fraction)
         if is_test_set:
-            temp_dataset = hf_dataset["test"].train_test_split(test_size=val_fraction/(val_fraction+test_fraction))
+            temp_dataset = hf_dataset["test"].train_test_split(
+                test_size=val_fraction / (val_fraction + test_fraction)
+            )
             hf_dataset["val"] = temp_dataset["train"]
             hf_dataset["test"] = temp_dataset["test"]
             del temp_dataset
@@ -592,7 +625,6 @@ class Compressor:
                 )
             )
 
-
     def _build_neural_network(
         self,
     ):
@@ -608,7 +640,7 @@ class Compressor:
         """
         if self.verbose:
             print("[!] Building the neural network.")
-        
+
         try:
             self._train_dataset
         except AttributeError:

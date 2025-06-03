@@ -188,13 +188,16 @@ class MixtureDensityNetwork(NDENetwork):
     rngs : nnx.Rngs
         Random seed of the network parameters.
     """
-    def __init__(self,
-                 n_in: int,
-                 n_cond: int,
-                 n_components: int,
-                 layers: list[int],
-                 activation: Callable,
-                 rngs: nnx.Rngs):
+
+    def __init__(
+        self,
+        n_in: int,
+        n_cond: int,
+        n_components: int,
+        layers: list[int],
+        activation: Callable,
+        rngs: nnx.Rngs,
+    ):
         self.n_in = n_in
         self.n_cond = n_cond
         self.n_components = n_components
@@ -203,19 +206,24 @@ class MixtureDensityNetwork(NDENetwork):
         rngs = rngs
 
         self.final_size = self.n_components * (
-            1 + self.n_in + self.n_in * (self.n_in +1) // 2
+            1 + self.n_in + self.n_in * (self.n_in + 1) // 2
         )
 
-        self.layers = [] #List of Linear layers in the network
-        if len(self.hidden_size)>0:
-            self.layers.append(nnx.Linear(n_cond, self.hidden_size[0], rngs=rngs)) #Append first layer
-            for in_features, out_features in zip(self.hidden_size[:-1], self.hidden_size[1:]): #Append hidden layers
+        self.layers = []  # List of Linear layers in the network
+        if len(self.hidden_size) > 0:
+            self.layers.append(
+                nnx.Linear(n_cond, self.hidden_size[0], rngs=rngs)
+            )  # Append first layer
+            for in_features, out_features in zip(
+                self.hidden_size[:-1], self.hidden_size[1:]
+            ):  # Append hidden layers
                 self.layers.append(nnx.Linear(in_features, out_features, rngs=rngs))
-            self.layers.append(nnx.Linear(self.hidden_size[-1], self.final_size, rngs=rngs)) #Append final layer
+            self.layers.append(
+                nnx.Linear(self.hidden_size[-1], self.final_size, rngs=rngs)
+            )  # Append final layer
         else:
             self.layers.append(nnx.Linear(self.n_cond, self.final_size, rngs=rngs))
 
-    
     def __call__(self, y, **kwargs):
         """
         Build a bijector that tranforms a multivariate Gaussian distribution into a Mixture of Gaussian distribution using a neural network.
@@ -310,14 +318,23 @@ class AffineCoupling(nnx.Module):
     activation : Callable
         Activation function.
     """
-    def __init__(self, input_size: int, cond_size: int, output_size: int, layers: list, activation: Callable, rngs: nnx.Rngs):
+
+    def __init__(
+        self,
+        input_size: int,
+        cond_size: int,
+        output_size: int,
+        layers: list,
+        activation: Callable,
+        rngs: nnx.Rngs,
+    ):
         self.input_size = input_size
         self.cond_size = cond_size
         self.output_size = output_size
         self.hidden_size = layers
-        self.layers = [self.input_size+self.cond_size]+layers
+        self.layers = [self.input_size + self.cond_size] + layers
         self.activation = activation
-        
+
         self.linear_layers = []
         for in_features, out_features in zip(self.layers[:-1], self.layers[1:]):
             self.linear_layers.append(nnx.Linear(in_features, out_features, rngs=rngs))
@@ -348,12 +365,7 @@ class AffineCoupling(nnx.Module):
 
         # Shift and Scale parameters
         shift = self.shift_layer(x)
-        scale = (
-            nnx.softplus(
-                self.scale_layer(x)
-            )
-            + 1e-3
-        )
+        scale = nnx.softplus(self.scale_layer(x)) + 1e-3
 
         return tfb.Chain([tfb.Shift(shift), tfb.Scale(scale)])
 
@@ -379,17 +391,33 @@ class ConditionalRealNVP(NDENetwork):
     rng : nnx.Rngs
         Random key
     """
-    def __init__(self, n_in: int, n_cond: int, n_layers: int, layers: list[int], activation: Callable, rngs: nnx.Rngs):
+
+    def __init__(
+        self,
+        n_in: int,
+        n_cond: int,
+        n_layers: int,
+        layers: list[int],
+        activation: Callable,
+        rngs: nnx.Rngs,
+    ):
         self.n_in = n_in
         self.n_cond = n_cond
         self.n_layers = n_layers
         self.layers = layers
         self.activation = activation
-        
+
         self.coupling_layers = []
         for _ in range(self.n_layers):
             self.coupling_layers.append(
-                AffineCoupling(self.n_in//2, self.n_cond, self.n_in//2, self.layers, self.activation, rngs=rngs)
+                AffineCoupling(
+                    self.n_in // 2,
+                    self.n_cond,
+                    self.n_in // 2,
+                    self.layers,
+                    self.activation,
+                    rngs=rngs,
+                )
             )
 
     def __call__(self, y):
@@ -418,7 +446,8 @@ class ConditionalRealNVP(NDENetwork):
             [
                 tfb.Permute(jnp.arange(self.n_in)[::-1])(
                     tfb.RealNVP(
-                        self.n_in // 2, bijector_fn=partial(self.coupling_layers[i], y=y)
+                        self.n_in // 2,
+                        bijector_fn=partial(self.coupling_layers[i], y=y),
                     )
                 )
                 for i in range(self.n_layers)
@@ -493,7 +522,15 @@ class MaskedLinear(nnx.Module):
     rngs : nnx.Rngs
         Random key
     """
-    def __init__(self, n_in: int, n_out: int, bias: bool = True, mask: Any = None, rngs: nnx.Rngs = nnx.Rngs(0)):
+
+    def __init__(
+        self,
+        n_in: int,
+        n_out: int,
+        bias: bool = True,
+        mask: Any = None,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         self.n_in = n_in
         self.n_out = n_out
         self.bias = bias
@@ -558,16 +595,17 @@ class ConditionalMADE(nnx.Module):
         Random seed to label nodes. (Default: 42)
     """
 
-    def __init__(self,
-                 n_in : int, #Size of the input vector
-                 hidden_dims : list[int], #List of hidden dimensions
-                 activation : Callable, #Activation function
-                 n_cond : int = 0, # Size of the conditionning variable. 0 if None
-                 gaussian : bool = True, #Whether the outpur are mean and variance of a Gaussian conditional
-                 random_order : bool = False, #Whether to use random order of the input for masking
-                 seed : Optional[int] = 42, # Random seed to label nodes
-                 rngs : nnx.Rngs = nnx.Rngs(0) # Random key
-                 ):
+    def __init__(
+        self,
+        n_in: int,  # Size of the input vector
+        hidden_dims: list[int],  # List of hidden dimensions
+        activation: Callable,  # Activation function
+        n_cond: int = 0,  # Size of the conditionning variable. 0 if None
+        gaussian: bool = True,  # Whether the outpur are mean and variance of a Gaussian conditional
+        random_order: bool = False,  # Whether to use random order of the input for masking
+        seed: Optional[int] = 42,  # Random seed to label nodes
+        rngs: nnx.Rngs = nnx.Rngs(0),  # Random key
+    ):
         self.n_in = n_in
         self.hidden_dims = hidden_dims
         self.activation = activation
@@ -576,7 +614,7 @@ class ConditionalMADE(nnx.Module):
         self.random_order = random_order
         self.seed = seed
 
-        np.random.seed(self.seed) #Set the seed
+        np.random.seed(self.seed)  # Set the seed
         self.n_out = 2 * self.n_in if self.gaussian else self.n_in
         masks = {}
         mask_matrix = []
@@ -708,20 +746,23 @@ class MAFLayer(nnx.Module):
     rngs : nnx.Rngs
         Random key
     """
-    def __init__(self,
-                 n_in : int,
-                 n_cond : int,
-                 hidden_dims : list[int],
-                 reverse : bool,
-                 activation : Callable,
-                 seed : Optional[int]  = 42,
-                 rngs : nnx.Rngs = nnx.Rngs(0)):
+
+    def __init__(
+        self,
+        n_in: int,
+        n_cond: int,
+        hidden_dims: list[int],
+        reverse: bool,
+        activation: Callable,
+        seed: Optional[int] = 42,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         self.n_in = n_in
         self.n_cond = n_cond
         self.hidden_dims = hidden_dims
         self.reverse = reverse
         self.activation = activation
-        self. seed = seed
+        self.seed = seed
 
         self.conditional_made = ConditionalMADE(
             n_in=self.n_in,
@@ -729,7 +770,7 @@ class MAFLayer(nnx.Module):
             n_cond=self.n_cond,
             seed=self.seed,
             activation=self.activation,
-            rngs = rngs
+            rngs=rngs,
         )
 
     def forward(self, x, y=None):
@@ -831,16 +872,18 @@ class ConditionalMAF(NDENetwork):
         Random key
 
     """
-    def __init__(self,
-                 n_in : int,
-                 n_cond : int,
-                 n_layers : int,
-                 layers : list[int],
-                 activation : Callable,
-                 use_reverse : bool,
-                 seed : Optional[int] = 42,
-                 rngs : nnx.Rngs = nnx.Rngs(0)
-                ):
+
+    def __init__(
+        self,
+        n_in: int,
+        n_cond: int,
+        n_layers: int,
+        layers: list[int],
+        activation: Callable,
+        use_reverse: bool,
+        seed: Optional[int] = 42,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         self.n_in = n_in
         self.n_cond = n_cond
         self.n_layers = n_layers
@@ -849,7 +892,7 @@ class ConditionalMAF(NDENetwork):
         self.use_reverse = use_reverse
         self.seed = seed
 
-        #Sets the random seed
+        # Sets the random seed
         np.random.seed(self.seed)
         if self.n_in == 1:
             raise ValueError(
@@ -865,7 +908,7 @@ class ConditionalMAF(NDENetwork):
                     reverse=self.use_reverse,
                     seed=np.random.randint(0, 1000),
                     activation=self.activation,
-                    rngs = rngs
+                    rngs=rngs,
                 )
             )
         self.layer_list = layer_list
@@ -1100,7 +1143,14 @@ class NDE_w_Standardization(NDENetwork):
     transformation : distrax.Bijector
         Transformation used on the points in inference space before training the NDE.
     """
-    def __init__(self, nde: NDENetwork, embedding_net: nnx.Module, shift_transformation: Array, scale_transformation: Array):
+
+    def __init__(
+        self,
+        nde: NDENetwork,
+        embedding_net: nnx.Module,
+        shift_transformation: Array,
+        scale_transformation: Array,
+    ):
         self.nde = nde
         self.embedding_net = embedding_net
         self.shift_transformation = nnx.Variable(shift_transformation)
@@ -1133,9 +1183,11 @@ class NDE_w_Standardization(NDENetwork):
         z = self.embedding_net(y)
         log_prob = self.nde.log_prob(x, z)
         return log_prob + logprob_std
-    
+
     def get_transformation(self):
-        return distrax.ScalarAffine(shift=self.shift_transformation.value, scale=self.scale_transformation.value)
+        return distrax.ScalarAffine(
+            shift=self.shift_transformation.value, scale=self.scale_transformation.value
+        )
 
     def standardize(self, x):
         """Standardize the data point x."""

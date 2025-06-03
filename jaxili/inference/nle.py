@@ -45,7 +45,7 @@ default_maf_hparams = {
     "activation": jax.nn.relu,
     "use_reverse": True,
     "seed": 42,
-    "rngs": nnx.Rngs(0)
+    "rngs": nnx.Rngs(0),
 }
 
 
@@ -246,7 +246,7 @@ class NLE:
         self,
         hf_dataset: hf_datasets.Dataset,
         train_test_split: Iterable[float] = [0.7, 0.2, 0.1],
-        key: Optional[PyTree] = None
+        key: Optional[PyTree] = None,
     ):
         """
         Store parameters and simulation outputs to use them for later training.
@@ -263,12 +263,16 @@ class NLE:
         key : PyTree, optional
             Key to use for the random permutation of the dataset. Default is None.
         """
-        #check if the hugging face dataset has the correct form
-        if ('x' not in hf_dataset.features.keys()) or ('theta' not in hf_dataset.features.keys()):
-            raise ValueError("The hugging face dataset should have columns 'theta' and 'x'")
-    
-        theta, x = hf_dataset[0]['theta'], hf_dataset[0]['x']
-        #theta, x, _ = validate_theta_x(theta, x)
+        # check if the hugging face dataset has the correct form
+        if ("x" not in hf_dataset.features.keys()) or (
+            "theta" not in hf_dataset.features.keys()
+        ):
+            raise ValueError(
+                "The hugging face dataset should have columns 'theta' and 'x'"
+            )
+
+        theta, x = hf_dataset[0]["theta"], hf_dataset[0]["x"]
+        # theta, x, _ = validate_theta_x(theta, x)
         num_sims = hf_dataset.num_rows
         if self.verbose:
             print(f"[!] Inputs are valid.")
@@ -291,12 +295,14 @@ class NLE:
             ), "The sum of the split fractions should be 1."
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
-        
+
         if not is_test_set:
-            test_fraction=0.
-        hf_dataset = hf_dataset.train_test_split(test_size=val_fraction+test_fraction)
+            test_fraction = 0.0
+        hf_dataset = hf_dataset.train_test_split(test_size=val_fraction + test_fraction)
         if is_test_set:
-            temp_dataset = hf_dataset["test"].train_test_split(test_size=val_fraction/(val_fraction+test_fraction))
+            temp_dataset = hf_dataset["test"].train_test_split(
+                test_size=val_fraction / (val_fraction + test_fraction)
+            )
             hf_dataset["val"] = temp_dataset["train"]
             hf_dataset["test"] = temp_dataset["test"]
             del temp_dataset
@@ -471,7 +477,7 @@ class NLE:
             nde=self._nde,
             embedding_net=self._embedding_net,
             shift_transformation=self._transformation_hparams["shift"],
-            scale_transformation=self._transformation_hparams["scale"]
+            scale_transformation=self._transformation_hparams["scale"],
         )
 
         return model
@@ -521,7 +527,7 @@ class NLE:
             "nde": self._nde,
             "embedding_net": self._embedding_net,
             "shift_transformation": self._transformation_hparams["shift"],
-            "scale_transformation": self._transformation_hparams["scale"]
+            "scale_transformation": self._transformation_hparams["scale"],
         }
 
         if self.verbose:
@@ -553,9 +559,7 @@ class NLE:
             self.trainer.config.update(
                 {"standardizer_hparams": copy.deepcopy(self._standardizer_hparams)}
             )
-        self.trainer.config.update(
-            {"embedding_class": embedding_net.__name__}
-        )
+        self.trainer.config.update({"embedding_class": embedding_net.__name__})
         if embedding_net_hparams is not None:
             self.trainer.config.update(
                 {"embedding_hparams": copy.deepcopy(embedding_net_hparams)}
@@ -791,7 +795,7 @@ class NLE:
 
         # Regenerate the embedding net
         standardizer_hparams = hparams.get("standardizer_hparams", None)
-        if  standardizer_hparams is None:
+        if standardizer_hparams is None:
             standardizer = Identity()
         else:
             shift_str = standardizer_hparams["shift"]
@@ -800,7 +804,9 @@ class NLE:
             scale_str = standardizer_hparams["scale"]
             scale_list = [float(x) for x in scale_str.strip("[]").split()]
 
-            standardizer = Standardizer(mean=np.array(shift_list), std=np.array(scale_list))
+            standardizer = Standardizer(
+                mean=np.array(shift_list), std=np.array(scale_list)
+            )
 
         if embedding_class != "Identity":
             if "embedding_hparams" not in hparams.keys():
@@ -832,7 +838,7 @@ class NLE:
             "nde": inference._nde,
             "embedding_net": inference._embedding_net,
             "shift_transformation": inference._transformation.shift,
-            "scale_transformation": inference._transformation.scale
+            "scale_transformation": inference._transformation.scale,
         }
 
         if not hparams["logger_params"]:

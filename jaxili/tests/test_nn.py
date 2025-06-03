@@ -23,7 +23,7 @@ def test_conditional_maf():
             use_reverse=reverse,
             seed=42,
             activation=jax.nn.silu,
-            rngs=nnx.Rngs(0)
+            rngs=nnx.Rngs(0),
         )
         x = jnp.array(np.random.randn(10, n_in))
         cond = jnp.array(np.random.randn(10, n_cond))
@@ -34,9 +34,7 @@ def test_conditional_maf():
 
         # test the forward and reverse modes
         u, log_det = maf(x, cond)
-        x_reconstructed, log_det_reconstructed = maf.backward(
-            u, cond
-        )
+        x_reconstructed, log_det_reconstructed = maf.backward(u, cond)
 
         npt.assert_allclose(x, x_reconstructed, rtol=1e-5, atol=1e-5)
         npt.assert_allclose(log_det, -log_det_reconstructed, rtol=1e-5, atol=1e-5)
@@ -65,7 +63,9 @@ def test_conditional_realnvp():
     layers = [50, 50, 50]
     activation = jax.nn.relu
 
-    realnvp = ConditionalRealNVP(n_in, n_cond, n_layers, layers, activation, rngs=nnx.Rngs(0))
+    realnvp = ConditionalRealNVP(
+        n_in, n_cond, n_layers, layers, activation, rngs=nnx.Rngs(0)
+    )
 
     x = jnp.array(np.random.randn(10, n_in))
     cond = jnp.array(np.random.randn(10, n_cond))
@@ -76,9 +76,7 @@ def test_conditional_realnvp():
     ), f"The shape of the output of log_prob method is wrong."
 
     # Test the sampling
-    samples = realnvp.sample(
-        cond[0], num_samples=10_000, key=jax.random.PRNGKey(0)
-    )
+    samples = realnvp.sample(cond[0], num_samples=10_000, key=jax.random.PRNGKey(0))
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
     # Test sampling with a different shape for the conditional
@@ -97,7 +95,9 @@ def test_mixture_density_network():
     layers = [50, 50, 50]
     activation = jax.nn.relu
 
-    mdn = MixtureDensityNetwork(n_in, n_cond, n_components, layers, activation, nnx.Rngs(0))
+    mdn = MixtureDensityNetwork(
+        n_in, n_cond, n_components, layers, activation, nnx.Rngs(0)
+    )
 
     x = jnp.array(np.random.randn(10, n_in))
     cond = jnp.array(np.random.randn(10, n_cond))
@@ -108,9 +108,7 @@ def test_mixture_density_network():
     ), f"The shape of the output of log_prob method is wrong."
 
     # Test the sampling
-    samples = mdn.sample(
-        cond[0], num_samples=10_000, key=jax.random.PRNGKey(0)
-    )
+    samples = mdn.sample(cond[0], num_samples=10_000, key=jax.random.PRNGKey(0))
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
     # Test sampling with a different shape for the conditional
@@ -127,9 +125,7 @@ def test_identity():
 
     x = np.random.randn(10, 3)
 
-    assert np.isclose(
-        identity(x), x
-    ).all(), "Identity function is not working."
+    assert np.isclose(identity(x), x).all(), "Identity function is not working."
 
 
 def test_affine_transformation():
@@ -195,11 +191,14 @@ def test_network_w_standardization():
         activation=activation,
         use_reverse=True,
         seed=42,
-        rngs=nnx.Rngs(0)
+        rngs=nnx.Rngs(0),
     )
 
     net_w_standard = NDE_w_Standardization(
-        nde=maf, embedding_net=Identity(), shift_transformation=transformation.shift, scale_transformation=transformation.scale
+        nde=maf,
+        embedding_net=Identity(),
+        shift_transformation=transformation.shift,
+        scale_transformation=transformation.scale,
     )
 
     # Test the standardization
@@ -221,7 +220,5 @@ def test_network_w_standardization():
     ), f"The shape of the output of log_prob method is wrong."
 
     # Test the sampling
-    samples = net_w_standard.sample(
-        x[0], num_samples=10_000, key=jax.random.PRNGKey(0)
-    )
+    samples = net_w_standard.sample(x[0], num_samples=10_000, key=jax.random.PRNGKey(0))
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."

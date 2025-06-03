@@ -159,7 +159,7 @@ def test_build_neural_network():
         "hidden_size": [50, 50],
         "activation": jax.nn.relu,
         "output_size": 15,
-        "rngs": nnx.Rngs(0)
+        "rngs": nnx.Rngs(0),
     }
 
     model = inference._build_neural_network(
@@ -170,9 +170,7 @@ def test_build_neural_network():
     assert inference._transformation is not None, "The transformation is None."
     assert inference._embedding_net is not None, "The embedding net is None."
 
-    test_embedding = model.embedding(
-        inference._train_dataset[:][0]
-    )
+    test_embedding = model.embedding(inference._train_dataset[:][0])
     assert test_embedding.shape == (inference._train_dataset[:][0].shape[0], 15)
 
     log_prob = model.log_prob(

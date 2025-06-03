@@ -210,6 +210,7 @@ def loss_mmd_npe(model, batch):
     log_prob = model.log_prob_from_compressed(theta, z)
     return -jnp.mean(log_prob) + mmd_loss
 
+
 def loss_mse(model: Any, batch: Any):
     """
     Mean Squared Error (MSE).
@@ -228,7 +229,8 @@ def loss_mse(model: Any, batch: Any):
     """
     thetas, xs = batch
     compressed_xs = model(xs)
-    return jnp.mean((compressed_xs - thetas)**2)
+    return jnp.mean((compressed_xs - thetas) ** 2)
+
 
 def loss_mae(model: Any, batch: Any):
     """
