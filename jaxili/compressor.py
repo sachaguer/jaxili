@@ -36,6 +36,11 @@ default_maf_hparams = {
 
 
 class TrainerCompressor(TrainerModule):
+    """
+    A module to perform the train a compressor. It inherits from the `TrainerModule` and is adapted for neural network performing compression.
+
+    This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.
+    """
     def __init__(self, model_class: nn.Module, **kwargs):
         """
         Initialize a basic Trainer module summarizing most training functionalities like logging, model initialization, training loop, etc...
@@ -61,7 +66,6 @@ class TrainerCompressor(TrainerModule):
         check_val_every_epoch : int
             How often to check the validation set. Default is 1.
         """
-
         super().__init__(model_class, **kwargs)
 
     def handle_hf_dataset(self, batch: Dict) -> Union[jnp.ndarray, jnp.ndarray]:
@@ -87,7 +91,6 @@ class TrainerCompressor(TrainerModule):
         cls,
         model_class: nn.Module,
         checkpoint: str,
-        exmp_input: Any,
         loss_function: Callable,
     ) -> Any:
         """
@@ -155,7 +158,7 @@ class Identity(nnx.Module):
 
 
 class Standardizer(nnx.Module):
-    """
+    r"""
     Standardizer class making a Z-score standardization given some mean and standard deviation.
 
     The transformation applied to the input vector $x$ is:
@@ -167,7 +170,7 @@ class Standardizer(nnx.Module):
 
     def __init__(self, mean: Array, std: Array):
         """
-        Z-score standardizer
+        Z-score standardizer.
 
         Parameters
         ----------
@@ -448,7 +451,6 @@ class Compressor:
         key : PyTree, optional
             Key to use for the random permutation of the dataset. Default is None.
         """
-
         # Verify theta and x typing and size of the dataset
         theta, x, num_sims = validate_theta_x(theta, x)
         if self.verbose:
@@ -660,6 +662,24 @@ class Compressor:
         check_val_every_epoch: int = 1,
         **kwargs,
     ):
+        """
+        Create a `TrainerModule` for the compressor.
+
+        Parameters
+        ----------
+        optimizer_hparams : Dict[str, Any]
+            Hyperparameters to use for the optimizer.
+        loss_fn : Callable
+            Loss function to use for training.
+        seed : int, optional
+            Seed to use for the trainer. Default is 42.
+        logger_params : Dict[str, Any], optional
+            Parameters to use for the logger. Default is None.
+        debug : bool, optional
+            Whether to use debug mode. Default is False.
+        check_val_every_epoch : int, optional
+            Frequency at which to check the validation loss. Default is 1.
+        """
         try:
             self._compressor
         except AttributeError:
@@ -696,6 +716,43 @@ class Compressor:
         check_val_every_epoch: int = 1,
         **kwargs,
     ):
+        r"""
+        Train the compressor.
+
+        Parameters
+        ----------
+        training_batch_size : int, optional
+            Batch size to use during training. Default is 50.
+        learning_rate: float, optional
+            Learning rate to use during training. Default is 5e-4.
+        patience: int, optional
+            Number of epochs to wait before early stopping. Default is 20.
+        num_epochs: int, optional
+            Maximum number of epochs to train. Default is 2**31 - 1.
+        check_val_every_epoch: int, optional
+            Frequency at which to check the validation loss. Default is 1.
+        **kwargs : dict, optional
+            Additional keyword arguments for training customization:
+
+            - optimizer_name (str): Name of the optimizer to use (default: 'adam').
+            - gradient_clip (float): Value for gradient clipping (default: 5.0).
+            - warmup (float): Warmup proportion for learning rate scheduling (default: 0.1).
+            - weight_decay (float): Weight decay (L2 regularization) (default: 0.0).
+            - checkpoint_path (str): Directory to save training checkpoints (default: 'checkpoints/').
+            - log_dir (str or None): Directory for logging (default: None).
+            - logger_type (str): Type of logger to use (default: 'TensorBoard').
+            - seed (int): Random seed for reproducibility (default: 42).
+            - debug (bool): Whether to run in debug mode (default: False).
+            - min_delta (float): Minimum change in validation loss to qualify as improvement (default: 1e-3).
+
+
+        Returns
+        -------
+        metrics : Dict[str, float]
+            Dictionary containing the training, validation and test losses.
+        density_estimator : nn.Module
+            The trained density estimator.
+        """
         try:
             self._train_dataset
         except AttributeError:

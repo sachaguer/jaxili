@@ -55,7 +55,6 @@ def get_tarp_coverage(
     Tuple[Array, Array]
         Expected coverage probability (ecp) and credibility values (alpha).
     """
-
     if x_test.shape[0] != theta_test.shape[0]:
         raise ValueError("Number of test samples must be equal for x and theta.")
     if num_simulations > x_test.shape[0]:

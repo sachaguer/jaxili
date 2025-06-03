@@ -1185,6 +1185,7 @@ class NDE_w_Standardization(NDENetwork):
         return log_prob + logprob_std
 
     def get_transformation(self):
+        """Create the transformation object."""
         return distrax.ScalarAffine(
             shift=self.shift_transformation.value, scale=self.scale_transformation.value
         )
