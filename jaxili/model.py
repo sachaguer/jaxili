@@ -310,14 +310,21 @@ class AffineCoupling(nnx.Module):
     activation : Callable
         Activation function.
     """
-    def __init__(self, y: Any, layers: list, activation: Callable, rngs: nnx.Rngs):
-        self.y = y
+    def __init__(self, input_size: int, cond_size: int, output_size: int, layers: list, activation: Callable, rngs: nnx.Rngs):
+        self.input_size = input_size
+        self.cond_size = cond_size
+        self.output_size = output_size
         self.hidden_size = layers
-        self.layers = layers
+        self.layers = [self.input_size+self.cond_size]+layers
         self.activation = activation
-        self.rngs = rngs
+        
+        self.linear_layers = []
+        for in_features, out_features in zip(self.layers[:-1], self.layers[1:]):
+            self.linear_layers.append(nnx.Linear(in_features, out_features, rngs=rngs))
+        self.shift_layer = nnx.Linear(self.layers[-1], self.output_size, rngs=rngs)
+        self.scale_layer = nnx.Linear(self.layers[-1], self.output_size, rngs=rngs)
 
-    def __call__(self, x, output_units, **kwargs):
+    def __call__(self, x, output_units, y):
         """
         Build the bijector using tensorflow_probability where the scale and the shift are learned by a neural network.
 
@@ -326,34 +333,24 @@ class AffineCoupling(nnx.Module):
         x : jnp.Array
             Data point.
         output_units : int
-            Dimension of the output.
+            Argument not used in the network. Just for convenience with Tensorflow Probability format.
+        y : jnp.Array
+            Conditionning data vector.
 
         Returns
         -------
         tfb.Chain
             Bijector transforming a multidimensional Gaussian to a more complex distribution.
         """
-        x = jnp.concatenate([x, self.y], axis=-1)
-        #First layer
-        x = self.activation(
-            nnx.Linear(x.shape[1], self.layers[0], rngs=self.rngs)(x)
-        )
-        for in_features, out_features in zip(self.layers[:-1], self.layers[1:]):
-            x = self.activation(
-                nnx.Linear(
-                    in_features, out_features, rngs=self.rngs
-                )(x)
-            )
+        x = jnp.concatenate([x, y], axis=-1)
+        for layer in self.linear_layers:
+            x = self.activation(layer(x))
 
         # Shift and Scale parameters
-        shift = nnx.Linear(
-            self.layers[-1], output_units, rngs=self.rngs
-        )(x)
+        shift = self.shift_layer(x)
         scale = (
             nnx.softplus(
-                nnx.Linear(
-                    self.layers[-1], output_units, rngs=self.rngs
-                )(x)
+                self.scale_layer(x)
             )
             + 1e-3
         )
@@ -388,9 +385,14 @@ class ConditionalRealNVP(NDENetwork):
         self.n_layers = n_layers
         self.layers = layers
         self.activation = activation
-        self.rngs = rngs
+        
+        self.coupling_layers = []
+        for _ in range(self.n_layers):
+            self.coupling_layers.append(
+                AffineCoupling(self.n_in//2, self.n_cond, self.n_in//2, self.layers, self.activation, rngs=rngs)
+            )
 
-    def __call__(self, y, **kwargs):
+    def __call__(self, y):
         """
         Build the bijector using tensorflow_probability.
 
@@ -409,9 +411,6 @@ class ConditionalRealNVP(NDENetwork):
                 "Flows can't be used to learn a one dimensional distribution. Consider using the `MixtureDensityNetwork`."
             )
 
-        bijector_fn = partial(
-            AffineCoupling, layers=self.layers, activation=self.activation, rngs=self.rngs
-        )
         base_distribution = distrax.MultivariateNormalDiag(
             jnp.zeros(self.n_in), jnp.ones(self.n_in)
         )
@@ -419,7 +418,7 @@ class ConditionalRealNVP(NDENetwork):
             [
                 tfb.Permute(jnp.arange(self.n_in)[::-1])(
                     tfb.RealNVP(
-                        self.n_in // 2, bijector_fn=bijector_fn(y)
+                        self.n_in // 2, bijector_fn=partial(self.coupling_layers[i], y=y)
                     )
                 )
                 for i in range(self.n_layers)
@@ -430,7 +429,7 @@ class ConditionalRealNVP(NDENetwork):
 
         return nvp
 
-    def sample(self, y, num_samples, key, **kwargs):
+    def sample(self, y, num_samples, key):
         """
         Sample from the distribution mapped by the real NVP.
 
@@ -452,7 +451,7 @@ class ConditionalRealNVP(NDENetwork):
         nvp = self.__call__(y)
         return nvp.sample(sample_shape=num_samples, seed=key)
 
-    def log_prob(self, x, y, **kwargs):
+    def log_prob(self, x, y):
         """
         Compute the log probability of the data point x conditioned by y from the normalizing flow.
 

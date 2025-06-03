@@ -65,30 +65,27 @@ def test_conditional_realnvp():
     layers = [50, 50, 50]
     activation = jax.nn.relu
 
-    realnvp = ConditionalRealNVP(n_in, n_cond, n_layers, layers, activation)
+    realnvp = ConditionalRealNVP(n_in, n_cond, n_layers, layers, activation, rngs=nnx.Rngs(0))
 
     x = jnp.array(np.random.randn(10, n_in))
     cond = jnp.array(np.random.randn(10, n_cond))
 
-    params = realnvp.init(jax.random.PRNGKey(0), x, cond, method="log_prob")
-    log_prob = realnvp.apply(params, x, cond, method="log_prob")
+    log_prob = realnvp.log_prob(x, cond)
     assert log_prob.shape == (
         10,
     ), f"The shape of the output of log_prob method is wrong."
 
     # Test the sampling
-    samples = realnvp.apply(
-        params, cond[0], num_samples=10_000, key=jax.random.PRNGKey(0), method="sample"
+    samples = realnvp.sample(
+        cond[0], num_samples=10_000, key=jax.random.PRNGKey(0)
     )
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
     # Test sampling with a different shape for the conditional
-    samples = realnvp.apply(
-        params,
+    samples = realnvp.sample(
         cond[0].reshape((-1, n_cond)),
         num_samples=10_000,
         key=jax.random.PRNGKey(0),
-        method="sample",
     )
     assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
 
