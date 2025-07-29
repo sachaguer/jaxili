@@ -10,16 +10,19 @@ from jaxili.loss import loss_mse
 from jaxili.utils import *
 from jaxili.utils import check_density_estimator, create_data_loader, validate_theta_x
 from jaxili.train import TrainerModule
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict
 import jax.random as jr
 import jax.numpy as jnp
 import jax
 import flax.linen as nn
+import flax.nnx as nnx
 import numpyro.distributions as dist
 
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
 
 import os
 import json
+from functools import partial
 import datasets as hf_datasets
 
 
@@ -33,9 +36,12 @@ default_maf_hparams = {
 
 
 class TrainerCompressor(TrainerModule):
-    def __init__(self,
-            model_class: nn.Module,
-            **kwargs):
+    """
+    A module to perform the train a compressor. It inherits from the `TrainerModule` and is adapted for neural network performing compression.
+
+    This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.
+    """
+    def __init__(self, model_class: nn.Module, **kwargs):
         """
         Initialize a basic Trainer module summarizing most training functionalities like logging, model initialization, training loop, etc...
 
@@ -60,32 +66,7 @@ class TrainerCompressor(TrainerModule):
         check_val_every_epoch : int
             How often to check the validation set. Default is 1.
         """
-
         super().__init__(model_class, **kwargs)
-
-    def init_apply_fn(self):
-        """
-        Initialize the apply function for the model.
-        """
-        self.apply_fn = self.model
-
-    def run_model_init(self, exmp_input: Any, init_rng: Any) -> Dict:
-        """
-        Initialize the model by calling it on the example input.
-
-        Parameters
-        ----------
-        exmp_input : Dict[str, Any]
-            An input to the model with which the shapes are inferred.
-        init_rng : Array
-            A jax.random.PRNGKey
-
-        Returns
-        -------
-            The initialized variable dictionary.
-        """
-        x = exmp_input[0]
-        return self.model.init(init_rng, x)
 
     def handle_hf_dataset(self, batch: Dict) -> Union[jnp.ndarray, jnp.ndarray]:
         """
@@ -107,7 +88,10 @@ class TrainerCompressor(TrainerModule):
 
     @classmethod
     def load_from_checkpoints(
-        cls, model_class: nn.Module, checkpoint: str, exmp_input: Any, loss_function: Callable
+        cls,
+        model_class: nn.Module,
+        checkpoint: str,
+        loss_function: Callable,
     ) -> Any:
         """
         Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.
@@ -147,26 +131,12 @@ class TrainerCompressor(TrainerModule):
         if not hparams["logger_params"]:
             hparams["logger_params"] = dict()
         hparams["logger_params"]["log_dir"] = checkpoint
-        trainer = cls(model_class=model_class, exmp_input=exmp_input, loss_fn=loss_function, **hparams)
+        trainer = cls(model_class=model_class, loss_fn=loss_function, **hparams)
         trainer.load_model()
         return trainer
 
-    def print_tabulate(self, exmp_input: Any):
-        """
-        Print a summary of the model represented as a table.
 
-        Parameters
-        ----------
-        exmp_input : Any
-            An input to the model with which the shapes are inferred.
-        """
-        x = exmp_input[0]
-        try:
-            print(self.model.tabulate(jr.PRNGKey(0), x))
-        except Exception as e:
-            print(f"Could not tabulate model: {e}")
-
-class Identity(nn.Module):
+class Identity(nnx.Module):
     """Identity transformation."""
 
     @nn.compact
@@ -187,13 +157,31 @@ class Identity(nn.Module):
         return x
 
 
-class Standardizer(nn.Module):
-    """Standardizer transformation."""
+class Standardizer(nnx.Module):
+    r"""
+    Standardizer class making a Z-score standardization given some mean and standard deviation.
 
-    mean: Array
-    std: Array
+    The transformation applied to the input vector $x$ is:
 
-    @nn.compact
+    $$
+    x \longrightarrow \frac{x- \langle x \rangle}{\sigma_x}.
+    $$
+    """
+
+    def __init__(self, mean: Array, std: Array):
+        """
+        Z-score standardizer.
+
+        Parameters
+        ----------
+        mean : jnp.Array
+            Mean to be substracted during the standardization.
+        std : jnp.Array
+            Standard deviation used during the standardization
+        """
+        self.mean = nnx.Variable(mean)
+        self.std = nnx.Variable(std)
+
     def __call__(self, x):
         """
         Forward pass of the standardizer transformation. The standardization uses the z-score.
@@ -211,7 +199,7 @@ class Standardizer(nn.Module):
         return (x - self.mean) / self.std
 
 
-class MLPCompressor(nn.Module):
+class MLPCompressor(nnx.Module):
     """
     Base class of a MLP Compressor.
 
@@ -225,13 +213,40 @@ class MLPCompressor(nn.Module):
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     output_size : int
         Size of the output layer.
+    rngs :
+        RNG keys
     """
 
-    hidden_size: list
-    activation: Callable
-    output_size: int
+    def __init__(
+        self,
+        hidden_size: list,
+        activation: Callable,
+        input_size: int,
+        output_size: int,
+        rngs: Array,
+    ):
+        self.hidden_size = hidden_size
+        self.activation = activation
+        self.output_size = output_size
 
-    @nn.compact
+        self.layers = []
+        # Create first layer
+        if len(hidden_size) > 0:
+            self.layers.append(
+                nnx.Linear(input_size, hidden_size[0], rngs=rngs)
+            )  # Append the first layer.
+            for in_features, out_features in zip(hidden_size[:-1], hidden_size[1:]):
+                self.layers.append(
+                    nnx.Linear(in_features, out_features, rngs=rngs)
+                )  # Append intermediate layers.
+            self.layers.append(
+                nnx.Linear(out_features, output_size, rngs=rngs)
+            )  # Append last layer.
+        else:
+            self.layers.append(
+                nnx.Linear(input_size, output_size, rngs=rngs)
+            )  # Only one layer is appened.
+
     def __call__(self, x):
         """
         Forward pass of the MLP Compressor.
@@ -246,14 +261,12 @@ class MLPCompressor(nn.Module):
         jnp.array
             Compressed data.
         """
-        for size in self.hidden_size:
-            x = nn.Dense(size)(x)
-            x = self.activation(x)
-        x = nn.Dense(self.output_size)(x)
-        return x
+        for layer in self.layers[:-1]:
+            x = self.activation(layer(x))
+        return self.layers[-1](x)
 
 
-class CNN2DCompressor(nn.Module):
+class CNN2DCompressor(nnx.Module):
     """
     Base class of a CNN2D Compressor.
 
@@ -267,10 +280,31 @@ class CNN2DCompressor(nn.Module):
         Activation function. Preferably from `jax.nn` or `jax.nn.activation`.
     """
 
-    output_size: int
-    activation: Callable
+    def __init__(
+        self, input_size: int, output_size: int, activation: Callable, rngs: nnx.Rngs
+    ):
+        self.input_size = input_size
+        self.output_size = output_size
+        self.activation = activation
 
-    @nn.compact
+        # Create the convolutional layers
+        self.conv_1 = nnx.Conv(
+            self.input_size, 32, kernel_size=(3, 3), strides=2, rngs=rngs
+        )
+        self.conv_2 = nnx.Conv(32, 64, kernel_size=(3, 3), strides=2, rngs=rngs)
+        self.conv_3 = nnx.Conv(64, 128, kernel_size=(3, 3), strides=2, rngs=rngs)
+
+        # Create the pooling layer
+        self.avg_pool = partial(
+            nnx.avg_pool, window_shape=(16, 16), strides=(8, 8), padding="SAME"
+        )
+
+        # Create linear layers
+        self.linear_1 = nnx.Linear(
+            8192, 64, rngs=rngs
+        )  # The size of the flattened array is hardcoded. A solution must be found to account for images of any size
+        self.linear_2 = nnx.Linear(64, self.output_size, rngs=rngs)
+
     def __call__(self, inputs):
         """
         Forward pass of the CNN2D Compressor.
@@ -285,18 +319,15 @@ class CNN2DCompressor(nn.Module):
         jnp.array
             Compressed data.
         """
-        net_x = nn.Conv(32, 3, 2)(inputs)
-        net_x = self.activation(net_x)
-        net_x = nn.Conv(64, 3, 2)(net_x)
-        net_x = self.activation(net_x)
-        net_x = nn.Conv(128, 3, 2)(net_x)
-        net_x = self.activation(net_x)
-        net_x = nn.avg_pool(net_x, (16, 16), (8, 8), padding="SAME")
+        net_x = self.activation(self.conv_1(inputs))
+        net_x = self.activation(self.conv_2(net_x))
+        net_x = self.activation(self.conv_3(net_x))
+        net_x = self.avg_pool(net_x)
+
         # Flatten the tensor
         net_x = net_x.reshape((net_x.shape[0], -1))
-        net_x = nn.Dense(64)(net_x)
-        net_x = self.activation(net_x)
-        net_x = nn.Dense(self.output_size)(net_x)
+        net_x = self.activation(self.linear_1(net_x))
+        net_x = self.activation(self.linear_2(net_x))
         return net_x.squeeze()
 
 
@@ -325,7 +356,6 @@ class Compressor:
         self._logging_level = logging_level
         self._loss_fn = loss_fn
         self.verbose = verbose
-
 
     def set_model_hparams(self, hparams):
         """
@@ -421,7 +451,6 @@ class Compressor:
         key : PyTree, optional
             Key to use for the random permutation of the dataset. Default is None.
         """
-
         # Verify theta and x typing and size of the dataset
         theta, x, num_sims = validate_theta_x(theta, x)
         if self.verbose:
@@ -481,7 +510,7 @@ class Compressor:
         self,
         hf_dataset: hf_datasets.Dataset,
         train_test_split: Iterable[float] = [0.7, 0.2, 0.1],
-        key: Optional[PyTree] = None
+        key: Optional[PyTree] = None,
     ):
         """
         Store parameters and simulation outputs to use them for later training.
@@ -498,11 +527,15 @@ class Compressor:
         key : PyTree, optional
             Key to use for the random permutation of the dataset. Default is None.
         """
-        #check if the hugging face dataset has the correct form
-        if ('x' not in hf_dataset.features.keys()) or ('theta' not in hf_dataset.features.keys()):
-            raise ValueError("The hugging face dataset should have columns 'theta' and 'x'")
-    
-        theta, x = hf_dataset['theta'][0], hf_dataset['x'][0]
+        # check if the hugging face dataset has the correct form
+        if ("x" not in hf_dataset.features.keys()) or (
+            "theta" not in hf_dataset.features.keys()
+        ):
+            raise ValueError(
+                "The hugging face dataset should have columns 'theta' and 'x'"
+            )
+
+        theta, x = hf_dataset["theta"][0], hf_dataset["x"][0]
 
         num_sims = hf_dataset.num_rows
         if self.verbose:
@@ -526,12 +559,14 @@ class Compressor:
             ), "The sum of the split fractions should be 1."
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
-        
+
         if not is_test_set:
-            test_fraction=0.
-        hf_dataset = hf_dataset.train_test_split(test_size=val_fraction+test_fraction)
+            test_fraction = 0.0
+        hf_dataset = hf_dataset.train_test_split(test_size=val_fraction + test_fraction)
         if is_test_set:
-            temp_dataset = hf_dataset["test"].train_test_split(test_size=val_fraction/(val_fraction+test_fraction))
+            temp_dataset = hf_dataset["test"].train_test_split(
+                test_size=val_fraction / (val_fraction + test_fraction)
+            )
             hf_dataset["val"] = temp_dataset["train"]
             hf_dataset["test"] = temp_dataset["test"]
             del temp_dataset
@@ -592,7 +627,6 @@ class Compressor:
                 )
             )
 
-
     def _build_neural_network(
         self,
     ):
@@ -608,7 +642,7 @@ class Compressor:
         """
         if self.verbose:
             print("[!] Building the neural network.")
-        
+
         try:
             self._train_dataset
         except AttributeError:
@@ -628,6 +662,24 @@ class Compressor:
         check_val_every_epoch: int = 1,
         **kwargs,
     ):
+        """
+        Create a `TrainerModule` for the compressor.
+
+        Parameters
+        ----------
+        optimizer_hparams : Dict[str, Any]
+            Hyperparameters to use for the optimizer.
+        loss_fn : Callable
+            Loss function to use for training.
+        seed : int, optional
+            Seed to use for the trainer. Default is 42.
+        logger_params : Dict[str, Any], optional
+            Parameters to use for the logger. Default is None.
+        debug : bool, optional
+            Whether to use debug mode. Default is False.
+        check_val_every_epoch : int, optional
+            Frequency at which to check the validation loss. Default is 1.
+        """
         try:
             self._compressor
         except AttributeError:
@@ -646,7 +698,6 @@ class Compressor:
             model_hparams=self._model_hparams,
             optimizer_hparams=optimizer_hparams,
             loss_fn=self._loss_fn,
-            exmp_input=exmp_input,
             seed=seed,
             logger_params=logger_params,
             enable_progress_bar=self.verbose,
@@ -665,6 +716,43 @@ class Compressor:
         check_val_every_epoch: int = 1,
         **kwargs,
     ):
+        r"""
+        Train the compressor.
+
+        Parameters
+        ----------
+        training_batch_size : int, optional
+            Batch size to use during training. Default is 50.
+        learning_rate: float, optional
+            Learning rate to use during training. Default is 5e-4.
+        patience: int, optional
+            Number of epochs to wait before early stopping. Default is 20.
+        num_epochs: int, optional
+            Maximum number of epochs to train. Default is 2**31 - 1.
+        check_val_every_epoch: int, optional
+            Frequency at which to check the validation loss. Default is 1.
+        **kwargs : dict, optional
+            Additional keyword arguments for training customization:
+
+            - optimizer_name (str): Name of the optimizer to use (default: 'adam').
+            - gradient_clip (float): Value for gradient clipping (default: 5.0).
+            - warmup (float): Warmup proportion for learning rate scheduling (default: 0.1).
+            - weight_decay (float): Weight decay (L2 regularization) (default: 0.0).
+            - checkpoint_path (str): Directory to save training checkpoints (default: 'checkpoints/').
+            - log_dir (str or None): Directory for logging (default: None).
+            - logger_type (str): Type of logger to use (default: 'TensorBoard').
+            - seed (int): Random seed for reproducibility (default: 42).
+            - debug (bool): Whether to run in debug mode (default: False).
+            - min_delta (float): Minimum change in validation loss to qualify as improvement (default: 1e-3).
+
+
+        Returns
+        -------
+        metrics : Dict[str, float]
+            Dictionary containing the training, validation and test losses.
+        density_estimator : nn.Module
+            The trained density estimator.
+        """
         try:
             self._train_dataset
         except AttributeError:
@@ -728,5 +816,5 @@ class Compressor:
             if self._test_loader is not None:
                 print(f"[!] Test loss: {metrics['test/loss']}")
 
-        compressor = self.trainer.bind_model()
+        compressor = self.trainer.model
         return metrics, compressor

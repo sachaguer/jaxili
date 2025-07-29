@@ -13,7 +13,6 @@ from jaxili.inference.npe import default_maf_hparams
 from jaxili.model import NDENetwork
 from jaxili.posterior import DirectPosterior
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
-from jaxili.train import TrainState
 
 task = sbibm.get_task("gaussian_linear_uniform")
 simulator = task.get_simulator()
@@ -53,7 +52,6 @@ def test_direct_posterior():
         posterior, DirectPosterior
     ), "The posterior has not the correct type."
     assert isinstance(posterior.model, NDENetwork), "The model is not a NDENetwork."
-    assert isinstance(posterior.state, TrainState), "The state is not a TrainState."
 
     # Test if the density estimator can return a log_prob
     log_prob = posterior.unnormalized_log_prob(theta_train[0:10], x_train[0:10])

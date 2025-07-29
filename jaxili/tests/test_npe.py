@@ -3,6 +3,7 @@ import shutil
 
 import jax
 import jax.numpy as jnp
+import flax.nnx as nnx
 import numpy as np
 import numpy.testing as npt
 import sbibm
@@ -123,38 +124,28 @@ def test_build_neural_network():
 
     standardized_theta = (inference._train_dataset[:][0] - shift) / scale
 
-    params = model.init(jax.random.PRNGKey(0), theta_train, x_train)
-
-    test_theta = model.apply(
-        params, inference._train_dataset[:][0], method="standardize"
-    )
+    test_theta = model.standardize(inference._train_dataset[:][0])
 
     npt.assert_allclose(standardized_theta, test_theta, rtol=1e-5, atol=1e-5)
 
-    test_embedding = model.apply(
-        params, inference._train_dataset[:][1], method="embedding"
-    )
+    test_embedding = model.embedding(inference._train_dataset[:][1])
     shift_x = jnp.mean(inference._train_dataset[:][1], axis=0)
     scale_x = jnp.std(inference._train_dataset[:][1], axis=0)
     standardized_x = (inference._train_dataset[:][1] - shift_x) / scale_x
     npt.assert_allclose(standardized_x, test_embedding, rtol=1e-5, atol=1e-5)
 
-    log_prob = model.apply(
-        params,
+    log_prob = model.log_prob(
         inference._train_dataset[:][0],
         inference._train_dataset[:][1],
-        method="log_prob",
     )
     assert log_prob.shape[0] == len(
         inference._train_dataset
     ), "The shape of the output of log_prob method is wrong."
 
-    samples = model.apply(
-        params,
+    samples = model.sample(
         inference._train_dataset[:][0][0],
         num_samples=10_000,
         key=jax.random.PRNGKey(0),
-        method="sample",
     )
 
     assert samples.shape == (
@@ -164,9 +155,11 @@ def test_build_neural_network():
 
     # Test with an embedding net
     embedding_net_hparams = {
+        "input_size": 10,
         "hidden_size": [50, 50],
         "activation": jax.nn.relu,
         "output_size": 15,
+        "rngs": nnx.Rngs(0),
     }
 
     model = inference._build_neural_network(
@@ -177,30 +170,22 @@ def test_build_neural_network():
     assert inference._transformation is not None, "The transformation is None."
     assert inference._embedding_net is not None, "The embedding net is None."
 
-    params = model.init(jax.random.PRNGKey(0), theta_train, x_train)
-
-    test_embedding = model.apply(
-        params, inference._train_dataset[:][1], method="embedding"
-    )
+    test_embedding = model.embedding(inference._train_dataset[:][1])
 
     assert test_embedding.shape == (inference._train_dataset[:][1].shape[0], 15)
 
-    log_prob = model.apply(
-        params,
+    log_prob = model.log_prob(
         inference._train_dataset[:][0],
         inference._train_dataset[:][1],
-        method="log_prob",
     )
     assert log_prob.shape[0] == len(
         inference._train_dataset
     ), "The shape of the output of log_prob method is wrong."
 
-    samples = model.apply(
-        params,
+    samples = model.sample(
         inference._train_dataset[:][0][0],
         num_samples=10_000,
         key=jax.random.PRNGKey(0),
-        method="sample",
     )
 
     assert samples.shape == (

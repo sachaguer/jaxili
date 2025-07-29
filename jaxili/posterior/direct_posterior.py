@@ -11,7 +11,6 @@ from jaxtyping import Array
 
 from jaxili.model import NDENetwork
 from jaxili.posterior import NeuralPosterior
-from jaxili.train import TrainState
 
 
 class DirectPosterior(NeuralPosterior):
@@ -24,7 +23,6 @@ class DirectPosterior(NeuralPosterior):
     def __init__(
         self,
         model: NDENetwork,
-        state: TrainState,
         verbose: bool = False,
         x: Optional[Array] = None,
     ):
@@ -35,12 +33,10 @@ class DirectPosterior(NeuralPosterior):
         ----------
         model : NDENetwork
             The neural network used to generate the posterior.
-        state : dict
-            The state of the neural network.
         verbose : bool
             Whether to print information. (Default: False)
         """
-        super().__init__(model, state, verbose, x)
+        super().__init__(model, verbose, x)
 
     def sample(self, num_samples: int, key: Array, x: Optional[Array] = None):
         r"""
@@ -66,10 +62,7 @@ class DirectPosterior(NeuralPosterior):
                 raise ValueError(
                     "Please set the default data `x` using `set_default_x()` or provide `x` as an argument."
                 )
-        params = self.state.params
-        samples = self.model.apply(
-            {"params": params}, x, num_samples, key, method="sample"
-        )
+        samples = self.model.sample(x, num_samples, key)
         return samples
 
     def unnormalized_log_prob(self, theta: Array, x: Optional[Array] = None):
@@ -94,7 +87,6 @@ class DirectPosterior(NeuralPosterior):
                 raise ValueError(
                     "Please set the default data `x` using `set_default_x()` or provide `x` as an argument."
                 )
-        params = self.state.params
         if len(x.shape) == 1:
             x = jnp.expand_dims(x, axis=0)
         if (x.shape[0] == 1) and (theta.shape[0] > 1):
@@ -103,5 +95,5 @@ class DirectPosterior(NeuralPosterior):
             raise ValueError(
                 "The batch size of `x` must be the same as the batch size of parameters `theta`."
             )
-        log_prob = self.model.apply({"params": params}, theta, x, method="log_prob")
+        log_prob = self.model.log_prob(theta, x)
         return log_prob

@@ -16,6 +16,7 @@ import jax.numpy as jnp
 import optax
 import orbax.checkpoint as ocp
 from flax import linen as nn
+import flax.nnx as nnx
 from flax.training import checkpoints, orbax_utils, train_state
 from flax.training.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
@@ -26,18 +27,6 @@ from jaxili.inventory.func_dict import jax_nn_dict, jaxili_loss_dict, jaxili_nn_
 from jaxili.utils import handle_non_serializable
 
 import datasets as hf_datasets
-
-
-class TrainState(train_state.TrainState):
-    """
-    A simple extension of TrainState to also include batch statistics.
-
-    If a model has no batch statistics, it is None.
-    Keep an rng state for dropout or init.
-    """
-
-    batch_stats: Any = (None,)
-    rng: Any = None
 
 
 class TrainerModule:
@@ -53,7 +42,6 @@ class TrainerModule:
         model_hparams: Dict[str, Any],
         optimizer_hparams: Dict[str, Any],
         loss_fn: Callable,
-        exmp_input: Any,
         seed: int = 42,
         logger_params: Dict[str, Any] = None,
         enable_progress_bar: bool = True,
@@ -73,8 +61,6 @@ class TrainerModule:
             A dictionnary of the hyperparameters of the model. Is used as input to the model when it is created.
         optimizer_hparams : Dict[str, Any]
             A dictionnary of the hyperparameters of the optimizer. Used during initialization of the optimizer.
-        exmp_input : Any
-            Input to the model for initialisation and tabulate.
         seed : int
             Seed to initialise PRNG.
         logger_params : Dict[str, Any]
@@ -102,19 +88,14 @@ class TrainerModule:
         assert (
             nde_class == "NPE" or nde_class == "NLE"
         ), "Choose a valid class of Neural Density Estimator. (NPE or NLE)"
-        self.exmp_input = exmp_input
-        if self.nde_class == "NLE":
-            self.exmp_input = (self.exmp_input[1], self.exmp_input[0])
         self.generate_config(logger_params)
         self.config.update(kwargs)
-        # Create an empty model. Note: no parameters yet
+        # Create a model. Contraty to Flax linen, parameters are created at the same time.
         self.model = self.model_class(**self.model_hparams)
-        self.init_apply_fn()
-        self.print_tabulate(self.exmp_input)
+        nnx.display(self.model)
         # Init trainer parts
         self.init_logger(logger_params)
         self.create_jitted_functions()
-        self.init_model(self.exmp_input)
         # Initialize checkpointer
         self.init_checkpointer()
 
@@ -168,38 +149,6 @@ class TrainerModule:
         options = ocp.CheckpointManagerOptions(max_to_keep=1, create=True)
         self.checkpoint_manager = ocp.CheckpointManager(self.log_dir, options=options)
 
-    def init_model(self, exmp_input: Any):
-        """
-        Create an initial training state with newly generated network parameters.
-
-        Parameters
-        ----------
-        exmp_input : Any
-            An input to the model with which the shapes are inferred.
-        """
-        # Prepare PRNG and input
-        init_rng, self.key_rng = jax.random.split(self.key_rng)
-        exmp_input = (
-            [exmp_input] if not isinstance(exmp_input, (list, tuple)) else exmp_input
-        )
-        # Run model initialization
-        variables = self.run_model_init(exmp_input, init_rng)
-        # Create default state. Optimizer is initialized later
-        model_rng, self.key_rng = jax.random.split(self.key_rng)
-        self.state = TrainState(
-            step=0,
-            apply_fn=self.apply_fn,
-            params=variables["params"],
-            batch_stats=variables.get("batch_stats"),
-            rng=model_rng,
-            tx=None,
-            opt_state=None,
-        )
-
-    def init_apply_fn(self):
-        """Initialize a default apply function for the model."""
-        self.apply_fn = self.model.log_prob
-
     def generate_config(self, logger_params):
         """Generate a configuration dictionary for the trainer."""
         self.config = {
@@ -219,37 +168,6 @@ class TrainerModule:
             self.config["model_hparams"]["activation"] = self.model_hparams[
                 "activation"
             ].__name__
-
-    def run_model_init(self, exmp_input: Any, init_rng: Any) -> Dict:
-        """
-        Initialize the model by calling it on the example input.
-
-        Parameters
-        ----------
-        exmp_input : Dict[str, Any]
-            An input to the model with which the shapes are inferred.
-        init_rng : Array
-            A jax.random.PRNGKey
-
-        Returns
-        -------
-            The initialized variable dictionary.
-        """
-        return self.model.init(init_rng, *exmp_input, method="log_prob")
-
-    def print_tabulate(self, exmp_input: Any):
-        """
-        Print a summary of the model represented as a table.
-
-        Parameters
-        ----------
-        exmp_input : Any
-            An input to the model with which the shapes are inferred.
-        """
-        try:
-            print(self.model.tabulate(jax.random.PRNGKey(0), *exmp_input))
-        except Exception as e:
-            print(f"Could not tabulate model: {e}")
 
     def init_optimizer(self, num_epochs: int, num_steps_per_epoch: int):
         """
@@ -297,14 +215,8 @@ class TrainerModule:
         hparams.pop(
             "weight_decay", None
         )  # removes weight decay if the opt_class is not sgd.
-        optimizer = optax.chain(*transf, opt_class(lr_schedule, **hparams))
-        # Initialize training state
-        self.state = TrainState.create(
-            apply_fn=self.state.apply_fn,
-            params=self.state.params,
-            batch_stats=self.state.batch_stats,
-            tx=optimizer,
-            rng=self.state.rng,
+        self.optimizer = nnx.Optimizer(
+            self.model, optax.chain(*transf, opt_class(lr_schedule, **hparams))
         )
 
     def create_jitted_functions(self):
@@ -319,14 +231,14 @@ class TrainerModule:
             self.train_step = train_step
             self.eval_step = eval_step
         else:
-            self.train_step = jax.jit(train_step)
-            self.eval_step = jax.jit(eval_step)
+            self.train_step = nnx.jit(train_step)
+            self.eval_step = nnx.jit(eval_step)
 
     def create_functions(
         self,
     ) -> Tuple[
-        Callable[[TrainState, Any], Tuple[TrainState, Dict]],
-        Callable[[TrainState, Any], Tuple[TrainState, Dict]],
+        Callable[[Any, Any, Any], Tuple[Dict]],
+        Callable[[Any, Any], Tuple[Dict]],
     ]:
         """
         Create and returns functions for the training and evaluation step.
@@ -335,15 +247,14 @@ class TrainerModule:
         Both functions are expected to return a dictionary of logging metrics, and the training function a new train state. This function can be overwritten by a subclass. The train_step and eval_step functions here are examples for the signature of the functions.
         """
 
-        def train_step(state: TrainState, batch: Any):
-            loss_fn = lambda params: self.loss_fn(self.model, params, batch)
-            loss, grads = jax.value_and_grad(loss_fn)(state.params)
-            state = state.apply_gradients(grads=grads)
+        def train_step(model: Any, optimizer: Any, batch: Any):
+            loss, grads = nnx.value_and_grad(self.loss_fn)(model, batch)
+            optimizer.update(grads)
             metrics = {"loss": loss}
-            return state, metrics
+            return metrics
 
-        def eval_step(state: TrainState, batch: Any):
-            loss = self.loss_fn(self.model, state.params, batch)
+        def eval_step(model: Any, batch: Any):
+            loss = self.loss_fn(model, batch)
             metrics = {"loss": loss}
             return metrics
 
@@ -357,7 +268,7 @@ class TrainerModule:
         num_epochs: int = 500,
         min_delta: float = 1e-3,
         patience: int = 20,
-        load_best: bool = True
+        load_best: bool = True,
     ) -> Dict[str, Any]:
         """
         Start a training loop for the given number of epochs.
@@ -402,14 +313,15 @@ class TrainerModule:
                 self.on_validation_epoch_end(epoch_idx, eval_metrics, val_loader)
                 self.logger.log_metrics(eval_metrics, step=epoch_idx)
                 self.save_metrics(f"eval_epoch_{str(epoch_idx).zfill(3)}", eval_metrics)
+                early_stop = early_stop.update(eval_metrics["val/loss"])
                 # Save best model
-                if self.is_new_model_better(eval_metrics, best_eval_metrics):
+                if early_stop.has_improved:
                     best_eval_metrics = eval_metrics
                     best_eval_metrics.update(train_metrics)
                     best_epoch = epoch_idx
                     self.save_model(step=epoch_idx)
                     self.save_metrics("best_eval", best_eval_metrics)
-                early_stop = early_stop.update(eval_metrics["val/loss"])
+
                 if early_stop.should_stop:
                     print(f"Neural network training stopped after {epoch_idx} epochs.")
                     print(
@@ -464,7 +376,7 @@ class TrainerModule:
         for batch in train_loader:
             if hf_dataset:
                 batch = self.handle_hf_dataset(batch)
-            self.state, step_metrics = self.train_step(self.state, batch)
+            step_metrics = self.train_step(self.model, self.optimizer, batch)
             for key in step_metrics:
                 metrics["train/" + key] += step_metrics[key] / num_train_steps
         metrics = {key: metrics[key].item() for key in metrics}
@@ -502,7 +414,7 @@ class TrainerModule:
         for batch in data_loader:
             if hf_dataset:
                 batch = self.handle_hf_dataset(batch)
-            step_metrics = self.eval_step(self.state, batch)
+            step_metrics = self.eval_step(self.model, batch)
             batch_size = (
                 batch[0].shape[0]
                 if isinstance(batch, (list, tuple))
@@ -652,21 +564,16 @@ class TrainerModule:
         step : int
             Index of the step to save the model at, e.g. epoch.
         """
-        target = {"params": self.state.params, "batch_stats": self.state.batch_stats}
-        self.checkpoint_manager.save(step, args=ocp.args.StandardSave(target))
+        _, state = nnx.split(self.model)
+        self.checkpoint_manager.save(step, args=ocp.args.StandardSave(state))
         self.checkpoint_manager.wait_until_finished()
 
     def load_model(self):
         """Load model and batch statistics from the logging directory."""
         step = self.checkpoint_manager.latest_step()
         state_dict = self.checkpoint_manager.restore(step)
-        self.state = TrainState.create(
-            apply_fn=self.apply_fn,
-            params=state_dict["params"],
-            batch_stats=state_dict["batch_stats"],
-            tx=self.state.tx if self.state.tx else optax.sgd(0.1),
-            rng=self.state.rng,
-        )
+        graphdef, _ = nnx.split(self.model)
+        self.model = nnx.merge(graphdef, state_dict)
 
     def bind_model(self):
         """
@@ -676,15 +583,13 @@ class TrainerModule:
         -------
         The model with parameters and evt. batch statistics bound to it.
         """
-        params = {"params": self.state.params}
-        if self.state.batch_stats:
-            params["batch_stats"] = self.state.batch_stats
-        return self.model.bind(params)
+        warnings.warn(
+            "This function is deprecated since the transition form Flax linen to Flax NNX. The model is bind by default now.",
+            DeprecationWarning,
+        )
 
     @classmethod
-    def load_from_checkpoints(
-        cls, model_class: NDENetwork, checkpoint: str, exmp_input: Any
-    ) -> Any:
+    def load_from_checkpoints(cls, model_class: NDENetwork, checkpoint: str) -> Any:
         """
         Create a Trainer object with same hyperparameters and loaded model from a checkpoint directory.
 
@@ -694,8 +599,6 @@ class TrainerModule:
             The class of the model that should be loaded.
         checkpoint : str
             Folder in which the checkpoint and hyperparameter file is stored
-        exmp_input : Any
-            An input to the model with which the shapes are inferred.
 
         Returns
         -------
@@ -725,6 +628,6 @@ class TrainerModule:
         if not hparams["logger_params"]:
             hparams["logger_params"] = dict()
         hparams["logger_params"]["log_dir"] = checkpoint
-        trainer = cls(model_class=model_class, exmp_input=exmp_input, **hparams)
+        trainer = cls(model_class=model_class, **hparams)
         trainer.load_model()
         return trainer

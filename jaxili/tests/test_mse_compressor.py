@@ -7,6 +7,7 @@ import numpy as np
 
 from jaxili.loss import loss_mse
 import flax.linen as nn
+import flax.nnx as nnx
 from jaxili.compressor import Compressor
 from jaxili.compressor import MLPCompressor
 
@@ -14,23 +15,37 @@ master_key = jax.random.PRNGKey(0)
 num_samples = 10_000
 n_dim = 3
 n_reals = 11
+
+
 def simulator(theta, rng_key):
     batch_size = theta.shape[0]
-    return (theta[..., None] + jax.random.normal(rng_key, shape=(batch_size, n_dim, n_reals))*0.1).reshape(batch_size, n_dim*n_reals)
+    return (
+        theta[..., None]
+        + jax.random.normal(rng_key, shape=(batch_size, n_dim, n_reals)) * 0.1
+    ).reshape(batch_size, n_dim * n_reals)
+
 
 train_set_size = 10_000
 master_key, theta_key = jax.random.split(master_key)
-theta_train = jax.random.uniform(theta_key, shape=(train_set_size, n_dim), minval=jnp.array([-2., -2., -2.]), maxval=jnp.array([2., 2., 2.]))
+theta_train = jax.random.uniform(
+    theta_key,
+    shape=(train_set_size, n_dim),
+    minval=jnp.array([-2.0, -2.0, -2.0]),
+    maxval=jnp.array([2.0, 2.0, 2.0]),
+)
 master_key, simkey = jax.random.split(master_key)
 x_train = simulator(theta_train, simkey)
 
-model_class=MLPCompressor
+model_class = MLPCompressor
 
-model_hparams={
-    'hidden_size': [8, 4],
-    'activation': nn.relu,
-    'output_size': n_dim,
+model_hparams = {
+    "input_size": n_reals * n_dim,
+    "hidden_size": [8, 4],
+    "activation": nn.relu,
+    "output_size": n_dim,
+    "rngs": nnx.Rngs(0),
 }
+
 
 def test_init():
     compressor = Compressor(
@@ -43,13 +58,12 @@ def test_init():
     assert (
         compressor._model_hparams == model_hparams
     ), "The model hyperparameters are not correctly initialized."
-    assert (
-        compressor._logging_level == "WARNING"
-    ), "The logging level is not 'WARNING'."
+    assert compressor._logging_level == "WARNING", "The logging level is not 'WARNING'."
     assert compressor.verbose == True, "The verbose attribute is not True."
     assert (
         compressor._loss_fn == loss_mse
     ), "The loss function is not correctly initialized."
+
 
 def test_append_simulations():
     compressor = Compressor(
@@ -67,7 +81,6 @@ def test_append_simulations():
     assert compressor._train_dataset is not None, "The training dataset is None."
     assert compressor._val_dataset is not None, "The validation dataset is None."
     assert compressor._test_dataset is not None, "The test dataset is None."
-
 
     # Test only adding train and validation split
     compressor = Compressor(
@@ -88,6 +101,7 @@ def test_append_simulations():
     assert compressor._val_dataset is not None, "The validation dataset is None."
     assert compressor._test_dataset is None, "The test dataset is not None."
 
+
 def test_dataloaders():
     compressor = Compressor(
         model_class=model_class,
@@ -105,7 +119,7 @@ def test_dataloaders():
     assert test_train[0].shape[0] == batch_size, "The training batch size is wrong."
     assert test_val[0].shape[0] == batch_size, "The validation batch size is wrong."
     assert test_test[0].shape[0] == batch_size, "The test batch size is wrong."
-    
+
     # Test only adding train and validation split
     compressor = Compressor(
         model_class=model_class,
@@ -121,6 +135,7 @@ def test_dataloaders():
     assert test_train[0].shape[0] == batch_size, "The training batch size is wrong."
     assert test_val[0].shape[0] == batch_size, "The validation batch size is wrong."
 
+
 def test_build_neural_network():
     compressor = Compressor(
         model_class=model_class,
@@ -130,16 +145,12 @@ def test_build_neural_network():
     model = compressor._build_neural_network()
     assert model is not None, "The model is None."
     assert isinstance(model, model_class), "The model is not of the correct class."
-    params = model.init(
-        master_key,
-        x_train,
-    )
-    t_train = model.apply(
-        params,
+    t_train = model(
         x_train,
     )
     assert t_train is not None, "The training output is None."
     assert t_train.shape == theta_train.shape, "The training output shape is wrong."
+
 
 def test_training():
     learning_rate = 5e-4

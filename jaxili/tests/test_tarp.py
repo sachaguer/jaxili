@@ -14,21 +14,38 @@ master_key = jax.random.PRNGKey(0)
 num_samples = 10_000
 n_dim = 3
 n_reals = 11
+
+
 def simulator(theta, rng_key):
     batch_size = theta.shape[0]
-    return (theta[..., None] + jax.random.normal(rng_key, shape=(batch_size, n_dim, n_reals))*0.1).reshape(batch_size, n_dim*n_reals)
+    return (
+        theta[..., None]
+        + jax.random.normal(rng_key, shape=(batch_size, n_dim, n_reals)) * 0.1
+    ).reshape(batch_size, n_dim * n_reals)
+
 
 train_set_size = 10_000
 master_key, theta_key = jax.random.split(master_key)
-theta_train = jax.random.uniform(theta_key, shape=(train_set_size, n_dim), minval=jnp.array([-2., -2., -2.]), maxval=jnp.array([2., 2., 2.]))
+theta_train = jax.random.uniform(
+    theta_key,
+    shape=(train_set_size, n_dim),
+    minval=jnp.array([-2.0, -2.0, -2.0]),
+    maxval=jnp.array([2.0, 2.0, 2.0]),
+)
 master_key, simkey = jax.random.split(master_key)
 x_train = simulator(theta_train, simkey)
 
 test_set_size = 10_000
 master_key, theta_key = jax.random.split(master_key)
-theta_test = jax.random.uniform(theta_key, shape=(test_set_size, n_dim), minval=jnp.array([-2., -2., -2.]), maxval=jnp.array([2., 2., 2.]))
+theta_test = jax.random.uniform(
+    theta_key,
+    shape=(test_set_size, n_dim),
+    minval=jnp.array([-2.0, -2.0, -2.0]),
+    maxval=jnp.array([2.0, 2.0, 2.0]),
+)
 master_key, simkey = jax.random.split(master_key)
 x_test = simulator(theta_test, simkey)
+
 
 def test_tarp_coverage_NLE():
     checkpoint_path = "~/tests/"
@@ -50,16 +67,31 @@ def test_tarp_coverage_NLE():
     posterior = inference.build_posterior(prior_distr=prior_distr)
 
     # Get the TARP coverage
-    ecp, alpha = get_tarp_coverage(posterior=posterior, theta_test=theta_test, x_test=x_test, key=master_key, num_samples=100, num_simulations=10)
-    
+    ecp, alpha = get_tarp_coverage(
+        posterior=posterior,
+        theta_test=theta_test,
+        x_test=x_test,
+        key=master_key,
+        num_samples=100,
+        num_simulations=10,
+    )
+
     assert ecp is not None, "The exected coverage is None."
     assert alpha is not None, "The credibility values are None."
-    assert ecp.shape == alpha.shape, "The shapes of the expected coverage and credibility values do not match."
+    assert (
+        ecp.shape == alpha.shape
+    ), "The shapes of the expected coverage and credibility values do not match."
     assert np.all(np.isfinite(ecp)), "The expected coverage values are not finite."
     assert np.all(np.isfinite(alpha)), "The credibility values are not finite."
-    assert np.all(ecp >= 0), "The expected coverage values are not greater than or equal to 0."
-    assert np.all(ecp <= 1), "The expected coverage values are not less than or equal to 1."
-    assert np.all(alpha >= 0), "The credibility values are not greater than or equal to 0."
+    assert np.all(
+        ecp >= 0
+    ), "The expected coverage values are not greater than or equal to 0."
+    assert np.all(
+        ecp <= 1
+    ), "The expected coverage values are not less than or equal to 1."
+    assert np.all(
+        alpha >= 0
+    ), "The credibility values are not greater than or equal to 0."
     assert np.all(alpha <= 1), "The credibility values are not less than or equal to 1."
 
     # Clean up the checkpoint directory
@@ -84,16 +116,26 @@ def test_tarp_coverage_NPE():
     posterior = inference.build_posterior()
 
     # Get the TARP coverage
-    ecp, alpha = get_tarp_coverage(posterior=posterior, theta_test=theta_test, x_test=x_test, key=master_key)
-    
+    ecp, alpha = get_tarp_coverage(
+        posterior=posterior, theta_test=theta_test, x_test=x_test, key=master_key
+    )
+
     assert ecp is not None, "The exected coverage is None."
     assert alpha is not None, "The credibility values are None."
-    assert ecp.shape == alpha.shape, "The shapes of the expected coverage and credibility values do not match."
+    assert (
+        ecp.shape == alpha.shape
+    ), "The shapes of the expected coverage and credibility values do not match."
     assert np.all(np.isfinite(ecp)), "The expected coverage values are not finite."
     assert np.all(np.isfinite(alpha)), "The credibility values are not finite."
-    assert np.all(ecp >= 0), "The expected coverage values are not greater than or equal to 0."
-    assert np.all(ecp <= 1), "The expected coverage values are not less than or equal to 1."
-    assert np.all(alpha >= 0), "The credibility values are not greater than or equal to 0."
+    assert np.all(
+        ecp >= 0
+    ), "The expected coverage values are not greater than or equal to 0."
+    assert np.all(
+        ecp <= 1
+    ), "The expected coverage values are not less than or equal to 1."
+    assert np.all(
+        alpha >= 0
+    ), "The credibility values are not greater than or equal to 0."
     assert np.all(alpha <= 1), "The credibility values are not less than or equal to 1."
 
     # Clean up the checkpoint directory
