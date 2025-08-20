@@ -315,10 +315,10 @@ class NLE:
 
         if self.verbose:
             print(f"[!] Dataset split into training, validation and test sets.")
-            print(f"[!] Training set: {hf_dataset["train"].num_rows} simulations.")
-            print(f"[!] Validation set: {hf_dataset["test"].num_rows} simulations.")
+            print(f"[!] Training set: {hf_dataset['train'].num_rows} simulations.")
+            print(f"[!] Validation set: {hf_dataset['test'].num_rows} simulations.")
             if is_test_set:
-                print(f"[!] Test set: {hf_dataset["val"].num_rows} simulations.")
+                print(f"[!] Test set: {hf_dataset['val'].num_rows} simulations.")
         return self
 
     def _create_data_loader(self, **kwargs):
