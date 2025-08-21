@@ -41,6 +41,7 @@ class TrainerCompressor(TrainerModule):
 
     This module contains the training loop, evaluation, logging, and checkpointing. It can also be used to load a model from a checkpoint.
     """
+
     def __init__(self, model_class: nn.Module, **kwargs):
         """
         Initialize a basic Trainer module summarizing most training functionalities like logging, model initialization, training loop, etc...

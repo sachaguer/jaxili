@@ -5,6 +5,7 @@ This module implements an object to perform the training of Normalizing Flows an
 
 import json
 import os
+import fsspec
 import time
 import warnings
 from collections import defaultdict
@@ -19,7 +20,7 @@ from flax import linen as nn
 import flax.nnx as nnx
 from flax.training import checkpoints, orbax_utils, train_state
 from flax.training.early_stopping import EarlyStopping
-from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
+from flax.metrics import tensorboard
 from tqdm import tqdm
 
 from jaxili.model import NDENetwork
@@ -118,26 +119,86 @@ class TrainerModule:
             log_dir = os.path.join(base_log_dir, self.config["model_class"])
             if "logger_name" in logger_params:
                 log_dir = os.path.join(log_dir, logger_params["logger_name"])
-            version = None
-        else:
-            version = ""
+            # Check the version of the logger
+            os.makedirs(
+                log_dir, exist_ok=True
+            )  # Create the log directory if it does not exist
+            version = logger_params.get("version", None)
+            if version is None:
+                version = self._get_next_version(
+                    log_dir
+                )  # Check if versions ran already and create an appropriate label
+            log_dir = os.path.join(log_dir, version)
+
+        self.log_dir = log_dir
         # Create logger object
-        logger_type = logger_params.get("logger_type", "TensorBoard").lower()
-        if logger_type == "tensorboard":
-            self.logger = TensorBoardLogger(save_dir=log_dir, version=version, name="")
-        elif logger_type == "wandb":
-            self.logger = WandbLogger(save_dir=log_dir, version=version, name="")
-        else:
-            assert False, f'Unknown logger type "{logger_type}"'
+        self.logger = tensorboard.SummaryWriter(log_dir=self.log_dir)
         # Save hyperparameters
-        log_dir = self.logger.log_dir
-        if not os.path.isfile(os.path.join(log_dir, "hparams.json")):
-            os.makedirs(os.path.join(log_dir, "metrics/"), exist_ok=True)
+        if not os.path.isfile(os.path.join(self.log_dir, "hparams.json")):
+            os.makedirs(os.path.join(self.log_dir, "metrics/"), exist_ok=True)
             try:
-                self.write_config(log_dir)
+                self.write_config(self.log_dir)
             except:
                 warnings.warn("Could not save hyperparameters.", Warning)
-        self.log_dir = log_dir
+
+    def _get_next_version(self, log_dir: str) -> str:
+        """
+        Get the next version of the logger.
+
+        This function checks the log directory for existing versions and returns the next version number.
+
+        Parameters
+        ----------
+        log_dir : str
+            The directory where the logs are stored.
+
+        Returns
+        -------
+        str
+            The next version number as a string, e.g. "version_0", "version_1", etc.
+        """
+        log_dir = os.fspath(log_dir)
+        fs = fsspec.core.url_to_fs(log_dir)[0]
+        try:
+            listdir_info = fs.listdir(log_dir)
+        except OSError:
+            return 0
+
+        existing_versions = []
+        for listing in listdir_info:
+            d = listing["name"]
+            bn = os.path.basename(d)
+            if fs.isdir(d) and bn.startswith("version_"):
+                dir_ver = bn.split("_")[1].replace("/", "")
+                if dir_ver.isdigit():
+                    existing_versions.append(int(dir_ver))
+        if len(existing_versions) == 0:
+            return "version_0"
+        else:
+            next_version = max(existing_versions) + 1
+            return f"version_{next_version}"
+
+    def log_metrics(self, metrics: Dict[str, Any], step: int = 0):
+        """
+        Log a dictionary of metrics to the logger.
+
+        Parameters
+        ----------
+        metrics : Dict[str, Any]
+            A dictionary of the metrics to log.
+        step : int
+            The step at which to log the metrics. Default is 0.
+        """
+        for key, value in metrics.items():
+            if isinstance(value, (int, float)):
+                self.logger.scalar(key, value, step=step)
+            elif isinstance(value, jnp.ndarray):
+                self.logger.histogram(key, value, step=step)
+            else:
+                warnings.warn(
+                    f"Could not log metric {key} with value {value}. Only int, float and jnp.ndarray are supported.",
+                    Warning,
+                )
 
     def write_config(self, log_dir):
         """Write the config of the trainer in a JSON file."""
@@ -305,13 +366,13 @@ class TrainerModule:
         pbar = self.tracker(range(1, num_epochs + 1), desc="Epochs")
         for epoch_idx in pbar:
             train_metrics = self.train_epoch(train_loader)
-            self.logger.log_metrics(train_metrics, step=epoch_idx)
+            self.log_metrics(train_metrics, step=epoch_idx)
             self.on_training_epoch_end(epoch_idx)
             # Validation every N epochs
             if epoch_idx % self.check_val_every_epoch == 0:
                 eval_metrics = self.eval_model(val_loader, log_prefix="val/")
                 self.on_validation_epoch_end(epoch_idx, eval_metrics, val_loader)
-                self.logger.log_metrics(eval_metrics, step=epoch_idx)
+                self.log_metrics(eval_metrics, step=epoch_idx)
                 self.save_metrics(f"eval_epoch_{str(epoch_idx).zfill(3)}", eval_metrics)
                 early_stop = early_stop.update(eval_metrics["val/loss"])
                 # Save best model
@@ -341,11 +402,11 @@ class TrainerModule:
             if load_best:
                 self.load_model()
             test_metrics = self.eval_model(test_loader, log_prefix="test/")
-            self.logger.log_metrics(test_metrics, step=epoch_idx)
+            self.log_metrics(test_metrics, step=epoch_idx)
             self.save_metrics("test", test_metrics)
             best_eval_metrics.update(test_metrics)
         # Close logger
-        self.logger.finalize("success")
+        self.logger.close()
         return best_eval_metrics
 
     def train_epoch(self, train_loader: Iterator) -> Dict[str, Any]:
