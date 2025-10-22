@@ -186,7 +186,7 @@ def get_fom_ij_from_posterior(
     fisher_matrix : Array = None
 ):
     """
-    Computes the Figure of Merit of the 2D posterior of two parameters indexed i and j using the posterior and AutoDiff to compute the fisher matrix.
+    Compute the Figure of Merit of the 2D posterior of two parameters indexed i and j using the posterior and AutoDiff to compute the fisher matrix.
 
     Parameters
     ----------
@@ -230,7 +230,7 @@ def get_fom_from_posterior(
     fisher_matrix = None
 ):
     """
-    Computes the Figure of Merit of the 2D posterior of all pairs of parameters using the posterior and AutoDiff to compute the fisher matrix.
+    Compute the Figure of Merit of the 2D posterior of all pairs of parameters using the posterior and AutoDiff to compute the fisher matrix.
 
     Parameters
     ----------
