@@ -271,7 +271,7 @@ class TrainerModule:
         )
         # Clip gradients at max value, and evt. apply weight decay
         transf = [optax.clip_by_global_norm(hparams.pop("gradient_clip", 5.0))]
-        if opt_class == optax.sgd and "weight_decay" in hparams:
+        if opt_class in [optax.sgd, optax.adamw] and "weight_decay" in hparams:
             transf.append(optax.add_decayed_weights(hparams.pop("weight_decay", 0.0)))
         hparams.pop(
             "weight_decay", None

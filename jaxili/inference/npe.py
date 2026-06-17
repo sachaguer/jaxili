@@ -160,11 +160,11 @@ class NPE:
         ], "Type should be 'train', 'val' or 'test'."
 
         if type == "train":
-            self._train_dataloader = dataloader
+            self._train_loader = dataloader
         elif type == "val":
-            self._val_dataloader = dataloader
+            self._val_loader = dataloader
         elif type == "test":
-            self._test_dataloader = dataloader
+            self._test_loader = dataloader
 
     def append_simulations(
         self,
