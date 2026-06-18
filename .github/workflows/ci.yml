@@ -28,6 +28,11 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install ".[lint, test]"
+
+      - name: Show test tool versions
+        run: |
+          python -c "import pytest; print('pytest', pytest.__version__)"
+          python -c "import pydocstyle; print('pydocstyle', pydocstyle.__version__)"
       
       - name: Run tests
         run: python -m pytest --pydocstyle
