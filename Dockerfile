@@ -1,4 +1,4 @@
-FROM python:3.12.13-bookworn
+FROM python:3.12.13-bookworm
 
 LABEL Description="JaxILI Docker Image with Python 3.12"
 ENV SHELL /bin/bash
