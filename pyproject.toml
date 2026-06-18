@@ -41,10 +41,10 @@ docs = [
 ]
 
 test = [
-    "pytest",
+    "pytest>=8.0",
     "pytest-cov",
     "pytest-emoji",
-    "pytest-pydocstyle",
+    "pytest-pydocstyle>=0.0.7",
     "tf-keras",
     "sbibm",
     "sbi==0.23.3",
