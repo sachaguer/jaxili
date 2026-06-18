@@ -49,6 +49,7 @@ class TrainerModule:
         debug: bool = False,
         check_val_every_epoch: int = 1,
         nde_class: str = "NPE",
+        verbose: bool = True,
         **kwargs,
     ):
         """
@@ -74,6 +75,8 @@ class TrainerModule:
             How often to check the validation set. Default is 1.
         nde_class : str
             The class of the Neural Density Estimator. Default is "NPE". Only "NPE" and "NLE" are allowed.
+        verbose : bool
+            If True, print information about the training.
         """
         super().__init__()
         self.model_class = model_class
@@ -81,6 +84,7 @@ class TrainerModule:
         self.loss_fn = loss_fn
         self.optimizer_hparams = optimizer_hparams
         self.enable_progress_bar = enable_progress_bar
+        self.verbose = verbose
         self.debug = debug
         self.seed = seed
         self.key_rng = jax.random.PRNGKey(seed)
@@ -93,7 +97,8 @@ class TrainerModule:
         self.config.update(kwargs)
         # Create a model. Contraty to Flax linen, parameters are created at the same time.
         self.model = self.model_class(**self.model_hparams)
-        nnx.display(self.model)
+        if self.verbose:
+            nnx.display(self.model)
         # Init trainer parts
         self.init_logger(logger_params)
         self.create_jitted_functions()
@@ -383,7 +388,7 @@ class TrainerModule:
                     self.save_model(step=epoch_idx)
                     self.save_metrics("best_eval", best_eval_metrics)
 
-                if early_stop.should_stop:
+                if early_stop.should_stop and self.verbose:
                     print(f"Neural network training stopped after {epoch_idx} epochs.")
                     print(
                         f"Early stopping with best validation metric: {early_stop.best_metric}"
