@@ -26,6 +26,9 @@ jobs:
       - name: Check Python version
         run: python --version
 
+      - name: Install CPU torch before test deps
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
       - name: Install dependencies
         run: python -m pip install ".[lint, test]"
 

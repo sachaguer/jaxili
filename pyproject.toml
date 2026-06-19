@@ -15,7 +15,7 @@ dependencies = [
     "tensorflow-cpu==2.18.0",
     "tensorflow-probability",
     "getdist",
-    "jax[cuda12]",
+    "jax",
     "jax_dataloader",
     "datasets==3.5.0",
     "optax",
@@ -31,6 +31,10 @@ requires-python = ">=3.10, <3.13"
 urls = {Repository = "https://github.com/sachaguer/jaxili"}
 
 [project.optional-dependencies]
+cuda = [
+    "jax[cuda12]"
+]
+
 docs = [
     "myst-parser",
     "numpydoc",
@@ -48,13 +52,14 @@ test = [
     "tf-keras",
     "sbibm",
     "sbi==0.23.3",
+    "torch"
 ]
 
 lint = ["black", "isort"]
 release = ["build", "twine"]
 
 #Install for development
-dev = ["jaxili[docs,lint,release,test]"]
+dev = ["jaxili[docs,lint,release,test,cuda]"]
 
 [tool.pydocstyle]
 convention = "numpy"
