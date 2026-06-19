@@ -651,8 +651,9 @@ class ConditionalMADE(nnx.Module):
                 masks[layer_index + 1] = np.random.randint(low, D - 1, size=size)
             else:
                 masks[layer_index + 1] = np.zeros(size)
-                # Order of the output layer is the same as the input layer
-                masks[L + 1] = masks[0]
+
+        # Order of the output layer is the same as the input layer
+        masks[L + 1] = masks[0]
 
         # Create mask matric for input -> hidden_layer_1
         m = masks[0]
