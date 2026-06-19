@@ -4,7 +4,6 @@ import shutil
 import jax
 import jax.numpy as jnp
 import jax_dataloader as jdl
-import numpy as np
 
 from jaxili.utils import create_data_loader
 from jaxili.train import TrainerModule
@@ -96,7 +95,7 @@ def test_checkpoint_maf():
     )
 
     # Train the Neural Density Estimator
-    metrics_maf_npe = trainer_maf_npe.train_model(
+    _ = trainer_maf_npe.train_model(
         train_loader, val_loader, test_loader=test_loader, num_epochs=500, patience=20
     )
 

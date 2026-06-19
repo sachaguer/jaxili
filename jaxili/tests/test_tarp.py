@@ -57,7 +57,7 @@ def test_tarp_coverage_NLE():
     # Append simulations
     inference = inference.append_simulations(theta_train, x_train)
 
-    logger_params = {
+    _ = {
         "checkpoint_path": checkpoint_path,
     }
     # Train the model
@@ -78,20 +78,20 @@ def test_tarp_coverage_NLE():
 
     assert ecp is not None, "The exected coverage is None."
     assert alpha is not None, "The credibility values are None."
-    assert (
-        ecp.shape == alpha.shape
-    ), "The shapes of the expected coverage and credibility values do not match."
+    assert ecp.shape == alpha.shape, (
+        "The shapes of the expected coverage and credibility values do not match."
+    )
     assert np.all(np.isfinite(ecp)), "The expected coverage values are not finite."
     assert np.all(np.isfinite(alpha)), "The credibility values are not finite."
-    assert np.all(
-        ecp >= 0
-    ), "The expected coverage values are not greater than or equal to 0."
-    assert np.all(
-        ecp <= 1
-    ), "The expected coverage values are not less than or equal to 1."
-    assert np.all(
-        alpha >= 0
-    ), "The credibility values are not greater than or equal to 0."
+    assert np.all(ecp >= 0), (
+        "The expected coverage values are not greater than or equal to 0."
+    )
+    assert np.all(ecp <= 1), (
+        "The expected coverage values are not less than or equal to 1."
+    )
+    assert np.all(alpha >= 0), (
+        "The credibility values are not greater than or equal to 0."
+    )
     assert np.all(alpha <= 1), "The credibility values are not less than or equal to 1."
 
     # Clean up the checkpoint directory
@@ -108,7 +108,7 @@ def test_tarp_coverage_NPE():
     # Append simulations
     inference = inference.append_simulations(theta_train, x_train)
 
-    logger_params = {
+    _ = {
         "checkpoint_path": checkpoint_path,
     }
     # Train the model
@@ -122,20 +122,20 @@ def test_tarp_coverage_NPE():
 
     assert ecp is not None, "The exected coverage is None."
     assert alpha is not None, "The credibility values are None."
-    assert (
-        ecp.shape == alpha.shape
-    ), "The shapes of the expected coverage and credibility values do not match."
+    assert ecp.shape == alpha.shape, (
+        "The shapes of the expected coverage and credibility values do not match."
+    )
     assert np.all(np.isfinite(ecp)), "The expected coverage values are not finite."
     assert np.all(np.isfinite(alpha)), "The credibility values are not finite."
-    assert np.all(
-        ecp >= 0
-    ), "The expected coverage values are not greater than or equal to 0."
-    assert np.all(
-        ecp <= 1
-    ), "The expected coverage values are not less than or equal to 1."
-    assert np.all(
-        alpha >= 0
-    ), "The credibility values are not greater than or equal to 0."
+    assert np.all(ecp >= 0), (
+        "The expected coverage values are not greater than or equal to 0."
+    )
+    assert np.all(ecp <= 1), (
+        "The expected coverage values are not less than or equal to 1."
+    )
+    assert np.all(alpha >= 0), (
+        "The credibility values are not greater than or equal to 0."
+    )
     assert np.all(alpha <= 1), "The credibility values are not less than or equal to 1."
 
     # Clean up the checkpoint directory

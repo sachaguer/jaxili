@@ -10,15 +10,13 @@ import time
 import warnings
 from collections import defaultdict
 from copy import copy, deepcopy
-from typing import Any, Callable, Dict, Iterator, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
 import optax
 import orbax.checkpoint as ocp
-from flax import linen as nn
 import flax.nnx as nnx
-from flax.training import checkpoints, orbax_utils, train_state
 from flax.training.early_stopping import EarlyStopping
 from flax.metrics import tensorboard
 from tqdm import tqdm
@@ -90,9 +88,9 @@ class TrainerModule:
         self.key_rng = jax.random.PRNGKey(seed)
         self.check_val_every_epoch = check_val_every_epoch
         self.nde_class = nde_class
-        assert (
-            nde_class == "NPE" or nde_class == "NLE"
-        ), "Choose a valid class of Neural Density Estimator. (NPE or NLE)"
+        assert nde_class == "NPE" or nde_class == "NLE", (
+            "Choose a valid class of Neural Density Estimator. (NPE or NLE)"
+        )
         self.generate_config(logger_params)
         self.config.update(kwargs)
         # Create a model. Contraty to Flax linen, parameters are created at the same time.
@@ -143,8 +141,8 @@ class TrainerModule:
             os.makedirs(os.path.join(self.log_dir, "metrics/"), exist_ok=True)
             try:
                 self.write_config(self.log_dir)
-            except:
-                warnings.warn("Could not save hyperparameters.", Warning)
+            except Exception as e:
+                warnings.warn(f"Could not save hyperparameters. Error: {e}", Warning)
 
     def _get_next_version(self, log_dir: str) -> str:
         """
@@ -674,14 +672,14 @@ class TrainerModule:
         assert os.path.isfile(hparams_file), "Could not find hparams file."
         with open(hparams_file, "r") as f:
             hparams = json.load(f)
-        assert (
-            hparams["model_class"] == model_class.__name__
-        ), "Model class does not match. Check that you are using the correct architecture."
+        assert hparams["model_class"] == model_class.__name__, (
+            "Model class does not match. Check that you are using the correct architecture."
+        )
         hparams.pop("model_class")
         # Check if an activation function is used as a hyperparameter if the neural network.
-        assert (
-            hparams["loss_fn"] in jaxili_loss_dict
-        ), "Unknown loss function. Check that the loss function you used comes from `jax.nn`."
+        assert hparams["loss_fn"] in jaxili_loss_dict, (
+            "Unknown loss function. Check that the loss function you used comes from `jax.nn`."
+        )
         hparams["loss_fn"] = jaxili_loss_dict[hparams["loss_fn"]]
         if "activation" in hparams["model_hparams"].keys():
             hparams["model_hparams"]["activation"] = jax_nn_dict[

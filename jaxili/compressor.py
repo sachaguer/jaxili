@@ -4,26 +4,26 @@ Compressor.
 This module contains classes that implement compressors used in JaxILI.
 """
 
-from typing import Any, Callable, Dict, Optional, Union, Iterable
-from jaxtyping import Array, Float, PyTree
-from jaxili.loss import loss_mse
-from jaxili.utils import *
-from jaxili.utils import check_density_estimator, create_data_loader, validate_theta_x
-from jaxili.train import TrainerModule
-from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict
+import numpy as np
+import jax
 import jax.random as jr
 import jax.numpy as jnp
-import jax
+
 import flax.linen as nn
 import flax.nnx as nnx
-import numpyro.distributions as dist
+import jax_dataloader as jdl
 
-from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
+from jaxili.loss import loss_mse
+from jaxili.utils import create_data_loader, validate_theta_x
+from jaxili.train import TrainerModule
+from jaxili.inventory.func_dict import jax_nn_dict, jaxili_nn_dict
 
 import os
 import json
 from functools import partial
 import datasets as hf_datasets
+from typing import Any, Callable, Dict, Optional, Union, Iterable
+from jaxtyping import Array, PyTree
 
 
 default_maf_hparams = {
@@ -116,9 +116,9 @@ class TrainerCompressor(TrainerModule):
         assert os.path.isfile(hparams_file), "Could not find hparams file."
         with open(hparams_file, "r") as f:
             hparams = json.load(f)
-        assert (
-            hparams["model_class"] == model_class.__name__
-        ), "Model class does not match. Check that you are using the correct architecture."
+        assert hparams["model_class"] == model_class.__name__, (
+            "Model class does not match. Check that you are using the correct architecture."
+        )
         hparams.pop("model_class")
         hparams.pop("loss_fn")
         if "activation" in hparams["model_hparams"].keys():
@@ -455,7 +455,7 @@ class Compressor:
         # Verify theta and x typing and size of the dataset
         theta, x, num_sims = validate_theta_x(theta, x)
         if self.verbose:
-            print(f"[!] Inputs are valid.")
+            print("[!] Inputs are valid.")
             print(f"[!] Appending {num_sims} simulations to the dataset.")
 
         self._dim_sim = x.shape[1]
@@ -466,14 +466,14 @@ class Compressor:
         is_test_set = len(train_test_split) == 3
         if is_test_set:
             train_fraction, val_fraction, test_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction + test_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction + test_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         elif len(train_test_split) == 2:
             train_fraction, val_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
 
@@ -500,7 +500,7 @@ class Compressor:
         )
 
         if self.verbose:
-            print(f"[!] Dataset split into training, validation and test sets.")
+            print("[!] Dataset split into training, validation and test sets.")
             print(f"[!] Training set: {len(train_idx)} simulations.")
             print(f"[!] Validation set: {len(val_idx)} simulations.")
             if is_test_set:
@@ -540,7 +540,7 @@ class Compressor:
 
         num_sims = hf_dataset.num_rows
         if self.verbose:
-            print(f"[!] Inputs are valid.")
+            print("[!] Inputs are valid.")
             print(f"[!] Appending {num_sims} simulations to the dataset.")
         self._dim_sim = len(x)
         self._dim_params = len(theta)
@@ -550,14 +550,14 @@ class Compressor:
         is_test_set = len(train_test_split) == 3
         if is_test_set:
             train_fraction, val_fraction, test_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction + test_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction + test_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         elif len(train_test_split) == 2:
             train_fraction, val_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
 
@@ -579,7 +579,7 @@ class Compressor:
         )
 
         if self.verbose:
-            print(f"[!] Dataset split into training, validation and test sets.")
+            print("[!] Dataset split into training, validation and test sets.")
             print(f"[!] Training set: {hf_dataset['train'].num_rows} simulations.")
             print(f"[!] Validation set: {hf_dataset['test'].num_rows} simulations.")
             if is_test_set:
@@ -686,10 +686,11 @@ class Compressor:
         except AttributeError:
             _ = self._build_neural_network()
 
-        exmp_input = (
-            jnp.zeros((1, self._dim_sim)),
-            jnp.zeros((1, self._dim_params)),
-        )
+        # Unused variable
+        # exmp_input = (
+        #    jnp.zeros((1, self._dim_sim)),
+        #    jnp.zeros((1, self._dim_params)),
+        # )
 
         if self.verbose:
             print("[!] Creating the Trainer module.")

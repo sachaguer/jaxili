@@ -4,12 +4,10 @@ import shutil
 import jax
 import jax.numpy as jnp
 import numpy as np
-import numpy.testing as npt
 import numpyro.distributions as dist
 import sbibm
 
 from jaxili.inference import NLE, NPE
-from jaxili.inference.npe import default_maf_hparams
 from jaxili.model import NDENetwork
 from jaxili.posterior import DirectPosterior
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
@@ -27,7 +25,6 @@ theta_train, x_train = np.array(theta_train), np.array(x_train)
 
 
 def test_direct_posterior():
-
     checkpoint_path = "~/tests/"
     checkpoint_path = os.path.expanduser(checkpoint_path)
 
@@ -48,16 +45,16 @@ def test_direct_posterior():
 
     posterior = inference.build_posterior()
 
-    assert isinstance(
-        posterior, DirectPosterior
-    ), "The posterior has not the correct type."
+    assert isinstance(posterior, DirectPosterior), (
+        "The posterior has not the correct type."
+    )
     assert isinstance(posterior.model, NDENetwork), "The model is not a NDENetwork."
 
     # Test if the density estimator can return a log_prob
     log_prob = posterior.unnormalized_log_prob(theta_train[0:10], x_train[0:10])
-    assert log_prob.shape == (
-        10,
-    ), "The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (10,), (
+        "The shape of the output of log_prob method is wrong."
+    )
 
     # Test if the density estimator can return samples
     samples = posterior.sample(
@@ -83,9 +80,9 @@ def test_direct_posterior():
 
     # Test log_prob with default x
     log_prob = posterior.unnormalized_log_prob(theta_train[0:10])
-    assert log_prob.shape == (
-        10,
-    ), "The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (10,), (
+        "The shape of the output of log_prob method is wrong."
+    )
 
     # Test sample with default x
     samples = posterior.sample(num_samples=10_000, key=jax.random.PRNGKey(0))
@@ -98,7 +95,6 @@ def test_direct_posterior():
 
 
 def test_mcmc_posterior():
-
     checkpoint_path = "~/tests/"
     checkpoint_path = os.path.expanduser(checkpoint_path)
 
@@ -122,27 +118,27 @@ def test_mcmc_posterior():
     )
 
     assert posterior.mcmc_method == "nuts_numpyro", "The default mcmc method is wrong."
-    assert (
-        posterior.mcmc_kwargs == nuts_numpyro_kwargs_default
-    ), "The default mcmc kwargs are wrong."
+    assert posterior.mcmc_kwargs == nuts_numpyro_kwargs_default, (
+        "The default mcmc kwargs are wrong."
+    )
 
     # Test if the density estimator returns a log_prior
     log_prior = posterior.log_prior(theta_train[0:10])
-    assert log_prior.shape == (
-        10,
-    ), "The shape of the output of log_prior method is wrong."
+    assert log_prior.shape == (10,), (
+        "The shape of the output of log_prior method is wrong."
+    )
 
     # Test if the density estimator returns a log_likelihood
     log_likelihood = posterior.log_likelihood(x_train[0:10], theta_train[0:10])
-    assert log_likelihood.shape == (
-        10,
-    ), "The shape of the output of log_likelihood method is wrong."
+    assert log_likelihood.shape == (10,), (
+        "The shape of the output of log_likelihood method is wrong."
+    )
 
     # Test if the density estimator returns a log_prob
     log_prob = posterior.unnormalized_log_prob(theta_train[0:10], x_train[0:10])
-    assert log_prob.shape == (
-        10,
-    ), "The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (10,), (
+        "The shape of the output of log_prob method is wrong."
+    )
 
     # Sample using NUTS numpyro
     samples = posterior.sample(

@@ -6,3 +6,5 @@ This module contains the inference classes for the JaxILI library. JaxILI implem
 
 from jaxili.inference.nle import NLE
 from jaxili.inference.npe import NPE
+
+__all__ = ["NLE", "NPE"]

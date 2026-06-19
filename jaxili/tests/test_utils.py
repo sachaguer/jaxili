@@ -1,18 +1,19 @@
+import numpy as np
 import jax
 
-from jaxili.utils import *
+from jaxili.utils import (
+    check_density_estimator,
+    validate_theta_x,
+    check_hparams_maf,
+    check_hparams_realnvp,
+    check_hparams_mdn,
+)
 
 
 def test_check_density_estimator():
-
     check_density_estimator("maf")
     check_density_estimator("mdn")
     check_density_estimator("realnvp")
-
-    try:
-        check_density_estimator("blablabla")
-    except ValueError:
-        pass
 
 
 def test_validate_theta_x():

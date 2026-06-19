@@ -6,7 +6,7 @@ Some functions are used to format the input data for the training.
 Other functions allow to check the validity of the input data.
 """
 
-from typing import Any, Callable, Sequence, Union
+from typing import Any, Sequence, Union
 
 import jax.numpy as jnp
 import jax_dataloader as jdl
@@ -83,15 +83,15 @@ def validate_theta_x(theta: Any, x: Any):
     x : Any
         Simulation outputs.
     """
-    assert isinstance(theta, jnp.ndarray) or isinstance(
-        theta, np.ndarray
-    ), "theta should be a jax array."
-    assert isinstance(x, jnp.ndarray) or isinstance(
-        x, np.ndarray
-    ), "x should be a jax array."
-    assert (
-        theta.shape[0] == x.shape[0]
-    ), f"Number of parameter sets ({theta.shape[0]}) and number of simulation outputs ({x.shape[0]}) should be the same."
+    assert isinstance(theta, jnp.ndarray) or isinstance(theta, np.ndarray), (
+        "theta should be a jax array."
+    )
+    assert isinstance(x, jnp.ndarray) or isinstance(x, np.ndarray), (
+        "x should be a jax array."
+    )
+    assert theta.shape[0] == x.shape[0], (
+        f"Number of parameter sets ({theta.shape[0]}) and number of simulation outputs ({x.shape[0]}) should be the same."
+    )
 
     assert theta.dtype == jnp.float32, "theta should have dtype float32."
     assert x.dtype == jnp.float32, "x should have dtype float32."

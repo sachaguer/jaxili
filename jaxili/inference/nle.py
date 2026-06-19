@@ -6,7 +6,6 @@ This modules provides a Neural Likelihood Estimation (NLE) class to train a neur
 
 import os
 import json
-import re
 import copy
 import warnings
 from typing import Any, Callable, Dict, Iterable, Optional, Union
@@ -19,7 +18,8 @@ import jax.random as jr
 import flax.nnx as nnx
 import numpy as np
 import numpyro.distributions as dist
-from jaxtyping import Array, Float, PyTree
+from jaxtyping import Array, PyTree
+import jax_dataloader as jdl
 
 import jaxili
 from jaxili.loss import loss_nll_nle
@@ -33,8 +33,13 @@ from jaxili.compressor import Identity, Standardizer
 from jaxili.posterior import MCMCPosterior
 from jaxili.posterior.mcmc_posterior import nuts_numpyro_kwargs_default
 from jaxili.train import TrainerModule
-from jaxili.utils import *
-from jaxili.utils import check_density_estimator, create_data_loader, validate_theta_x
+from jaxili.utils import (
+    create_data_loader,
+    validate_theta_x,
+    check_hparams_maf,
+    check_hparams_realnvp,
+    check_hparams_mdn,
+)
 from jaxili.inventory.func_dict import jax_nn_dict, jaxili_loss_dict, jaxili_nn_dict
 
 import datasets as hf_datasets
@@ -190,7 +195,7 @@ class NLE:
         # Verify theta and x typing and size of the dataset
         theta, x, num_sims = validate_theta_x(theta, x)
         if self.verbose:
-            print(f"[!] Inputs are valid.")
+            print("[!] Inputs are valid.")
             print(f"[!] Appending {num_sims} simulations to the dataset.")
 
         self._dim_params = x.shape[1]
@@ -201,14 +206,14 @@ class NLE:
         is_test_set = len(train_test_split) == 3
         if is_test_set:
             train_fraction, val_fraction, test_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction + test_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction + test_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         elif len(train_test_split) == 2:
             train_fraction, val_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
 
@@ -235,7 +240,7 @@ class NLE:
         )
 
         if self.verbose:
-            print(f"[!] Dataset split into training, validation and test sets.")
+            print("[!] Dataset split into training, validation and test sets.")
             print(f"[!] Training set: {len(train_idx)} simulations.")
             print(f"[!] Validation set: {len(val_idx)} simulations.")
             if is_test_set:
@@ -275,7 +280,7 @@ class NLE:
         # theta, x, _ = validate_theta_x(theta, x)
         num_sims = hf_dataset.num_rows
         if self.verbose:
-            print(f"[!] Inputs are valid.")
+            print("[!] Inputs are valid.")
             print(f"[!] Appending {num_sims} simulations to the dataset.")
         self._dim_params = len(x)
         self._dim_cond = len(theta)
@@ -285,14 +290,14 @@ class NLE:
         is_test_set = len(train_test_split) == 3
         if is_test_set:
             train_fraction, val_fraction, test_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction + test_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction + test_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         elif len(train_test_split) == 2:
             train_fraction, val_fraction = train_test_split
-            assert np.isclose(
-                train_fraction + val_fraction, 1.0
-            ), "The sum of the split fractions should be 1."
+            assert np.isclose(train_fraction + val_fraction, 1.0), (
+                "The sum of the split fractions should be 1."
+            )
         else:
             raise ValueError("train_test_split should have 2 or 3 elements.")
 
@@ -314,7 +319,7 @@ class NLE:
         )
 
         if self.verbose:
-            print(f"[!] Dataset split into training, validation and test sets.")
+            print("[!] Dataset split into training, validation and test sets.")
             print(f"[!] Training set: {hf_dataset['train'].num_rows} simulations.")
             print(f"[!] Validation set: {hf_dataset['test'].num_rows} simulations.")
             if is_test_set:
@@ -759,20 +764,20 @@ class NLE:
         assert os.path.isfile(hparams_file), "Could not find hparams file."
         with open(hparams_file, "r") as f:
             hparams = json.load(f)
-        assert (
-            hparams["model_class"] == NDE_w_Standardization.__name__
-        ), "The model has not been trained with NDE_w_Standardization. Check the checkpoint path is correct."
+        assert hparams["model_class"] == NDE_w_Standardization.__name__, (
+            "The model has not been trained with NDE_w_Standardization. Check the checkpoint path is correct."
+        )
         hparams.pop("model_class")
 
         embedding_class = hparams["embedding_class"]
-        assert (
-            embedding_class == embedding_net_class.__name__
-        ), "The embedding class does not match. Check that you are using the correct architecture."
+        assert embedding_class == embedding_net_class.__name__, (
+            "The embedding class does not match. Check that you are using the correct architecture."
+        )
 
         # Check if the loss function is correct.
-        assert (
-            hparams["loss_fn"] in jaxili_loss_dict
-        ), "Unknown loss function. Check that the loss function you used comes from `jax.nn`."
+        assert hparams["loss_fn"] in jaxili_loss_dict, (
+            "Unknown loss function. Check that the loss function you used comes from `jax.nn`."
+        )
         hparams["loss_fn"] = jaxili_loss_dict[hparams["loss_fn"]]
         # Create the NDE
         # Extract the nde string

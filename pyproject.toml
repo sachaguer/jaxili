@@ -61,7 +61,7 @@ lint = ["black", "isort"]
 release = ["build", "twine"]
 
 #Install for development
-dev = ["jaxili[docs,lint,release,test,cuda]"]
+dev = ["jaxili[docs,lint,release,test,cuda]", "pre-commit"]
 
 [tool.pydocstyle]
 convention = "numpy"

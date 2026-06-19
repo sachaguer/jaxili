@@ -3,7 +3,6 @@ import shutil
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 
 from jaxili.loss import loss_mse
 import flax.linen as nn
@@ -52,17 +51,17 @@ def test_init():
         model_class=model_class,
         model_hparams=model_hparams,
     )
-    assert (
-        compressor._model_class == model_class
-    ), "The model class is not MLPCompressor."
-    assert (
-        compressor._model_hparams == model_hparams
-    ), "The model hyperparameters are not correctly initialized."
+    assert compressor._model_class == model_class, (
+        "The model class is not MLPCompressor."
+    )
+    assert compressor._model_hparams == model_hparams, (
+        "The model hyperparameters are not correctly initialized."
+    )
     assert compressor._logging_level == "WARNING", "The logging level is not 'WARNING'."
-    assert compressor.verbose == True, "The verbose attribute is not True."
-    assert (
-        compressor._loss_fn == loss_mse
-    ), "The loss function is not correctly initialized."
+    assert compressor.verbose, "The verbose attribute is not True."
+    assert compressor._loss_fn == loss_mse, (
+        "The loss function is not correctly initialized."
+    )
 
 
 def test_append_simulations():
@@ -71,12 +70,12 @@ def test_append_simulations():
         model_hparams=model_hparams,
     )
     compressor = compressor.append_simulations(theta_train, x_train)
-    assert (
-        compressor._dim_params == theta_train.shape[1]
-    ), "The number of parameters is wrong."
-    assert (
-        compressor._dim_sim == x_train.shape[1]
-    ), "The number of the conditionning variable is wrong."
+    assert compressor._dim_params == theta_train.shape[1], (
+        "The number of parameters is wrong."
+    )
+    assert compressor._dim_sim == x_train.shape[1], (
+        "The number of the conditionning variable is wrong."
+    )
     assert compressor._num_sims == train_set_size, "The number of simulations is wrong."
     assert compressor._train_dataset is not None, "The training dataset is None."
     assert compressor._val_dataset is not None, "The validation dataset is None."
@@ -90,12 +89,12 @@ def test_append_simulations():
     compressor = compressor.append_simulations(
         theta_train, x_train, train_test_split=[0.7, 0.3]
     )
-    assert (
-        compressor._dim_params == theta_train.shape[1]
-    ), "The number of parameters is wrong."
-    assert (
-        compressor._dim_sim == x_train.shape[1]
-    ), "The number of the conditionning variable is wrong."
+    assert compressor._dim_params == theta_train.shape[1], (
+        "The number of parameters is wrong."
+    )
+    assert compressor._dim_sim == x_train.shape[1], (
+        "The number of the conditionning variable is wrong."
+    )
     assert compressor._num_sims == train_set_size, "The number of simulations is wrong."
     assert compressor._train_dataset is not None, "The training dataset is None."
     assert compressor._val_dataset is not None, "The validation dataset is None."
@@ -183,12 +182,12 @@ def test_training():
     assert t_train.shape == theta_train.shape, "The training output shape is wrong."
 
     # Test if the checkpoints have been saved
-    assert os.path.exists(
-        os.path.join(checkpoint_path)
-    ), "The checkpoint log dir does not exist. Check ~/test."
-    assert os.path.exists(
-        os.path.join(checkpoint_path, "MLPCompressor/version_0")
-    ), "The checkpoint dir does not exist. Check ~/test/."
+    assert os.path.exists(os.path.join(checkpoint_path)), (
+        "The checkpoint log dir does not exist. Check ~/test."
+    )
+    assert os.path.exists(os.path.join(checkpoint_path, "MLPCompressor/version_0")), (
+        "The checkpoint dir does not exist. Check ~/test/."
+    )
     assert os.path.exists(
         os.path.join(checkpoint_path, "MLPCompressor/version_0/metrics")
     ), "The metrics dir does not exist. Check ~/test/MLPCompressor/version_0."

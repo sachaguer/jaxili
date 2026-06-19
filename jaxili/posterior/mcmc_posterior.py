@@ -4,7 +4,7 @@ MCMC Posterior.
 This module contains the MCMCPosterior class that wraps the NeuralPosterior class to perform MCMC sampling.
 """
 
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 
 import jax
 import jax.numpy as jnp
@@ -92,8 +92,8 @@ class MCMCPosterior(NeuralPosterior):
         if x is None:
             try:
                 x = self.x
-            except:
-                raise ValueError(
+            except AttributeError:
+                raise AttributeError(
                     "The data x must be specified or loaded in the posterior with `set_default_x()`."
                 )
         self.mcmc_kwargs.update({"num_samples": num_samples})
@@ -189,7 +189,7 @@ class MCMCPosterior(NeuralPosterior):
         def model(data):
             theta = numpyro.sample("theta", self.prior_distr)
 
-            z = numpyro.deterministic("z", theta)
+            _ = numpyro.deterministic("z", theta)
 
             likelihood = self.log_likelihood(x, theta.reshape((1, theta.shape[0])))
 

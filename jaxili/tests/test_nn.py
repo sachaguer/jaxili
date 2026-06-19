@@ -3,9 +3,15 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import numpy.testing as npt
+import flax.nnx as nnx
 
-from jaxili.model import *
-from jaxili.compressor import *
+from jaxili.model import (
+    ConditionalMAF,
+    ConditionalRealNVP,
+    MixtureDensityNetwork,
+    NDE_w_Standardization,
+)
+from jaxili.compressor import Identity, Standardizer
 
 
 def test_conditional_maf():
@@ -28,9 +34,9 @@ def test_conditional_maf():
         x = jnp.array(np.random.randn(10, n_in))
         cond = jnp.array(np.random.randn(10, n_cond))
         log_prob = maf.log_prob(x, cond)
-        assert log_prob.shape == (
-            10,
-        ), f"The shape of the output of log_prob method is wrong."
+        assert log_prob.shape == (10,), (
+            "The shape of the output of log_prob method is wrong."
+        )
 
         # test the forward and reverse modes
         u, log_det = maf(x, cond)
@@ -45,7 +51,7 @@ def test_conditional_maf():
             num_samples=10_000,
             key=jax.random.PRNGKey(0),
         )
-        assert samples.shape == (10_000, 3), f"The shape of the samples is wrong."
+        assert samples.shape == (10_000, 3), "The shape of the samples is wrong."
 
         # Test sampling with a different shape for the conditional
         samples = maf.sample(
@@ -53,7 +59,7 @@ def test_conditional_maf():
             num_samples=10_000,
             key=jax.random.PRNGKey(0),
         )
-        assert samples.shape == (10_000, 3), f"The shape of the samples is wrong."
+        assert samples.shape == (10_000, 3), "The shape of the samples is wrong."
 
 
 def test_conditional_realnvp():
@@ -71,13 +77,13 @@ def test_conditional_realnvp():
     cond = jnp.array(np.random.randn(10, n_cond))
 
     log_prob = realnvp.log_prob(x, cond)
-    assert log_prob.shape == (
-        10,
-    ), f"The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (10,), (
+        "The shape of the output of log_prob method is wrong."
+    )
 
     # Test the sampling
     samples = realnvp.sample(cond[0], num_samples=10_000, key=jax.random.PRNGKey(0))
-    assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
+    assert samples.shape == (10_000, n_in), "The shape of the samples is wrong."
 
     # Test sampling with a different shape for the conditional
     samples = realnvp.sample(
@@ -85,7 +91,7 @@ def test_conditional_realnvp():
         num_samples=10_000,
         key=jax.random.PRNGKey(0),
     )
-    assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
+    assert samples.shape == (10_000, n_in), "The shape of the samples is wrong."
 
 
 def test_mixture_density_network():
@@ -103,13 +109,13 @@ def test_mixture_density_network():
     cond = jnp.array(np.random.randn(10, n_cond))
 
     log_prob = mdn.log_prob(x, cond)
-    assert log_prob.shape == (
-        10,
-    ), f"The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (10,), (
+        "The shape of the output of log_prob method is wrong."
+    )
 
     # Test the sampling
     samples = mdn.sample(cond[0], num_samples=10_000, key=jax.random.PRNGKey(0))
-    assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
+    assert samples.shape == (10_000, n_in), "The shape of the samples is wrong."
 
     # Test sampling with a different shape for the conditional
     samples = mdn.sample(
@@ -117,7 +123,7 @@ def test_mixture_density_network():
         num_samples=10_000,
         key=jax.random.PRNGKey(0),
     )
-    assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
+    assert samples.shape == (10_000, n_in), "The shape of the samples is wrong."
 
 
 def test_identity():
@@ -215,10 +221,10 @@ def test_network_w_standardization():
 
     # Test the log_prob
     log_prob = net_w_standard.log_prob(theta, x)
-    assert log_prob.shape == (
-        10,
-    ), f"The shape of the output of log_prob method is wrong."
+    assert log_prob.shape == (10,), (
+        "The shape of the output of log_prob method is wrong."
+    )
 
     # Test the sampling
     samples = net_w_standard.sample(x[0], num_samples=10_000, key=jax.random.PRNGKey(0))
-    assert samples.shape == (10_000, n_in), f"The shape of the samples is wrong."
+    assert samples.shape == (10_000, n_in), "The shape of the samples is wrong."

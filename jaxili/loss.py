@@ -7,7 +7,7 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jaxtyping import Array, Float, PyTree
+from jaxtyping import Array
 
 MMD_BANDWIDTH_LIST = [
     1e-6,
@@ -98,7 +98,10 @@ def gaussian_kernel_matrix(x, y, sigmas=None):
     """
     if sigmas is None:
         sigmas = jnp.array(MMD_BANDWIDTH_LIST)
-    norm = lambda v: jnp.sum(v**2, axis=1)
+
+    def norm(v):
+        return jnp.sum(v**2, axis=1)
+
     beta = 1.0 / (2.0 * (jnp.expand_dims(sigmas, 1)))
     dist = jnp.transpose(norm(jnp.expand_dims(x, 2) - jnp.transpose(y)))
     s = jnp.matmul(beta, jnp.reshape(dist, (1, -1)))

@@ -2,18 +2,18 @@
 
 Scripts to perform validation of the models. (e.g. coverage plots, rank statistics etc...)
 """
+
 import jax
 import jax.numpy as jnp
 import warnings
 from jaxili.posterior.base_posterior import NeuralPosterior
 from jaxili.posterior import DirectPosterior
-from typing import Any, Dict, Optional
+from typing import Any
 import numpy as np
 from jaxtyping import Array
 import tarp
 from tqdm import tqdm
 import jax.random as jr
-import matplotlib.pyplot as plt
 
 
 def get_tarp_coverage(
@@ -104,6 +104,7 @@ def get_tarp_coverage(
     theta = theta_test[selection][:, relevant_variables]
     return tarp.get_tarp_coverage(samples, theta)
 
+
 def get_fom_ij_from_samples(samples_i, samples_j):
     """
     Compute the Figure of Merit of the 2D posterior of two parameters indexed i and j from samples drawn from the posterior.
@@ -125,6 +126,7 @@ def get_fom_ij_from_samples(samples_i, samples_j):
 
     return np.sqrt(np.linalg.det(np.linalg.inv(cov_params)))
 
+
 def get_fom_from_samples(samples):
     """
     Compute the Figure of Merit of the 2D posterior of all pairs of parameters from samples drawn from the posterior.
@@ -143,15 +145,14 @@ def get_fom_from_samples(samples):
     fom_matrix = jnp.zeros((n_parameters, n_parameters))
 
     for i in range(n_parameters):
-        for j in range(i+1, n_parameters):
-            fom_matrix = fom_matrix.at[i,j].set(get_fom_ij_from_samples(samples[:, i], samples[:, j]))
+        for j in range(i + 1, n_parameters):
+            fom_matrix = fom_matrix.at[i, j].set(
+                get_fom_ij_from_samples(samples[:, i], samples[:, j])
+            )
     return fom_matrix + fom_matrix.T
 
-def get_fisher_from_posterior(
-    observation,
-    fiducial_params,
-    posterior : DirectPosterior
-):
+
+def get_fisher_from_posterior(observation, fiducial_params, posterior: DirectPosterior):
     """
     Compute the Fisher matrix of the sampled parameters using the posterior object produced from NPE.
 
@@ -169,7 +170,9 @@ def get_fisher_from_posterior(
     Array
         Fisher matrix of the sampled parameters.
     """
-    log_prob_fn = lambda params: posterior.unnormalized_log_prob(theta=params, x=observation)
+
+    def log_prob_fn(params):
+        return posterior.unnormalized_log_prob(theta=params, x=observation)
 
     H = jax.hessian(log_prob_fn)(fiducial_params)
     F = -H.squeeze()
@@ -177,13 +180,14 @@ def get_fisher_from_posterior(
     assert F.shape == (fiducial_params.shape[1], fiducial_params.shape[1])
     return F
 
+
 def get_fom_ij_from_posterior(
     index_i,
     index_j,
-    observation = None,
-    fiducial_params = None,
-    posterior : DirectPosterior = None,
-    fisher_matrix : Array = None
+    observation=None,
+    fiducial_params=None,
+    posterior: DirectPosterior = None,
+    fisher_matrix: Array = None,
 ):
     """
     Compute the Figure of Merit of the 2D posterior of two parameters indexed i and j using the posterior and AutoDiff to compute the fisher matrix.
@@ -208,14 +212,22 @@ def get_fom_ij_from_posterior(
     float
         Figure of Merit of the 2D posterior between parameters i and j. Raise an error if posterior and fisher_matrix are both None.
     """
-    assert ~((posterior is None) & (fisher_matrix is None)), "You must specify either a posterior object or a fisher matrix to compute the Figure of Merit."
+    assert ~((posterior is None) & (fisher_matrix is None)), (
+        "You must specify either a posterior object or a fisher matrix to compute the Figure of Merit."
+    )
 
     if (fisher_matrix is not None) & (posterior is not None):
-        warnings.warn("You specified a posterior object but a fisher matrix is already provided. Using the fisher matrix")
+        warnings.warn(
+            "You specified a posterior object but a fisher matrix is already provided. Using the fisher matrix"
+        )
 
     if fisher_matrix is None:
-        assert (observation is not None) & (fiducial_params is not None), "You need an observation and fiducial parameters to compute the Fisher matrix."
-        fisher_matrix = get_fisher_from_posterior(observation, fiducial_params, posterior)
+        assert (observation is not None) & (fiducial_params is not None), (
+            "You need an observation and fiducial parameters to compute the Fisher matrix."
+        )
+        fisher_matrix = get_fisher_from_posterior(
+            observation, fiducial_params, posterior
+        )
 
     rows = jnp.array([index_i, index_j])
     cols = jnp.array([index_i, index_j])
@@ -223,11 +235,12 @@ def get_fom_ij_from_posterior(
 
     return jnp.sqrt(jnp.linalg.det(F_sub))
 
+
 def get_fom_from_posterior(
-    observation = None,
-    fiducial_params = None,
-    posterior : DirectPosterior = None,
-    fisher_matrix = None
+    observation=None,
+    fiducial_params=None,
+    posterior: DirectPosterior = None,
+    fisher_matrix=None,
 ):
     """
     Compute the Figure of Merit of the 2D posterior of all pairs of parameters using the posterior and AutoDiff to compute the fisher matrix.
@@ -248,20 +261,31 @@ def get_fom_from_posterior(
     float
         Figure of Merit of the 2D posterior between parameters i and j. Raise an error if posterior and fisher_matrix are both None.
     """
-    assert ~((posterior is None) & (fisher_matrix is None)), "You must specify either a posterior object or a fisher matrix to compute the Figure of Merit."
+    assert ~((posterior is None) & (fisher_matrix is None)), (
+        "You must specify either a posterior object or a fisher matrix to compute the Figure of Merit."
+    )
 
     if (fisher_matrix is not None) & (posterior is not None):
-        warnings.warn("You specified a posterior object but a fisher matrix is already provided. Using the fisher matrix")
+        warnings.warn(
+            "You specified a posterior object but a fisher matrix is already provided. Using the fisher matrix"
+        )
 
     if fisher_matrix is None:
-        assert (observation is not None) & (fiducial_params is not None), "You need an observation and fiducial parameters to compute the Fisher matrix."
-        fisher_matrix = get_fisher_from_posterior(observation, fiducial_params, posterior)
+        assert (observation is not None) & (fiducial_params is not None), (
+            "You need an observation and fiducial parameters to compute the Fisher matrix."
+        )
+        fisher_matrix = get_fisher_from_posterior(
+            observation, fiducial_params, posterior
+        )
 
     fom_matrix = jnp.zeros_like(fisher_matrix)
 
     n_params = fom_matrix.shape[0]
     for i in range(n_params):
-        for j in range(i+1, n_params):
-            fom_matrix = fom_matrix.at[i, j].set(get_fom_ij_from_posterior(i, j, observation, fiducial_params, fisher_matrix=fisher_matrix))
+        for j in range(i + 1, n_params):
+            fom_matrix = fom_matrix.at[i, j].set(
+                get_fom_ij_from_posterior(
+                    i, j, observation, fiducial_params, fisher_matrix=fisher_matrix
+                )
+            )
     return fom_matrix + fom_matrix.T
-    

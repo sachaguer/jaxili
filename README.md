@@ -2,8 +2,8 @@
 
 [![Documentation](https://readthedocs.org/projects/jaxili/badge/?version=stable)](https://jaxili.readthedocs.io/en/stable)
 [![CI Test](https://github.com/sachaguer/jaxili/actions/workflows/ci.yml/badge.svg)]()
-[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
-[![PyPI](https://img.shields.io/pypi/v/jaxili)](https://pypi.org/project/jaxili/) 
+[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![PyPI](https://img.shields.io/pypi/v/jaxili)](https://pypi.org/project/jaxili/)
 ![[PyPI - License](https://img.shields.io/pypi/l/jaxili)](https://github.com/sachaguer/jaxili/blob/main/LICENSE)
 
 This is a package to run Neural Density Estimation using Jax. The training is performed using `optax` (documentation available [here](https://optax.readthedocs.io/en/latest/)) and the neural network are created using `flax` (see [documentation](https://flax.readthedocs.io/en/latest/)).
@@ -58,7 +58,6 @@ posterior = inference.build_posterior()
 observation = ... #The observation should have the shape [1, data vector size].
 samples = posterior.sample(x=observation, num_samples=..., key=...) #You have to give a PRNGKey and specify the number of samples.
 ```
-
 
 ## Training a conditional MAF
 
@@ -129,7 +128,7 @@ trainer_maf_npe = TrainerModule(
     logger_params=logger_params,
     debug=debug,
     check_val_every_epoch=check_val_every_epoch,
-    nde_class=nde_class    
+    nde_class=nde_class
 )
 
 #Train the Neural Density Estimator
@@ -137,6 +136,7 @@ metrics_maf_npe = trainer_maf_npe.train_model(
     train_loader, val_loader, test_loader=test_loader, num_epochs=500, patience=20
 )
 ```
+
 The trained model can then be used to sample from or compute the log-probability of the learned distribution:
 
 ```python

@@ -6,7 +6,7 @@ ENV SHELL /bin/bash
 # Install system dependencies
 RUN apt-get update -y --quiet --fix-missing && \
     apt-get dist-upgrade -y --quiet --fix-missing && \
-    apt-cache policy autconf && \ 
+    apt-cache policy autconf && \
     apt-get install -y --quiet \
     apt-utils \
     autoconf \
