@@ -29,7 +29,27 @@ MANIFEST
 # VS code workspace
 .vscode/
 
+# Notebooks
+notebooks/
+
 # Saved checkpoints
+*/ConditionalMAF/
+*/MixtureDensityNetwork/
 */NDE_w_Standardization/
 */checkpoints*/
 */sbi-logs/
+
+# hidden files
+.coverage
+.ruff_cache/
+.pytest_cache/
+
+
+# NodeJS
+node_modules/
+
+# logs
+logs/
+
+# Image
+*.png
