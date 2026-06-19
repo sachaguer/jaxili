@@ -644,15 +644,15 @@ class ConditionalMADE(nnx.Module):
         masks[0] = np.random.permutation(D) if self.random_order else np.arange(D)
 
         # Set the connectivity number for the hidden layers
-        for prev_mask, size in zip(masks.values(), self.hidden_dims):
-            low = prev_mask.min()
+        for layer_index in range(L):
+            low = masks[layer_index].min()
+            size = self.hidden_dims[layer_index]
             if D > 1:
-                masks[len(masks)] = np.random.randint(low, D - 1, size=size)
+                masks[layer_index + 1] = np.random.randint(low, D - 1, size=size)
             else:
-                masks[len(masks)] = np.zeros(size)
-
-        # Order of the output layer is the same as the input layer
-        masks[L + 1] = masks[0]
+                masks[layer_index + 1] = np.zeros(size)
+                # Order of the output layer is the same as the input layer
+                masks[L + 1] = masks[0]
 
         # Create mask matric for input -> hidden_layer_1
         m = masks[0]
